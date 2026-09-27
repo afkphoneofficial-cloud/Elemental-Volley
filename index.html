@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elemental Volley : Spike It !!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <canvas id="lobby-bg" aria-hidden="true"></canvas>
+  <div id="lobby-veil" aria-hidden="true"></div>
+  <div id="vol-dock">
+    <span class="vol-ico" data-i18n="web.music">♪ เพลง</span>
+    <input id="vol-slider" type="range" min="0" max="100" value="55" />
+    <span id="vol-pct">55%</span>
+  </div>
+  <div id="lang-dock">
+    <button type="button" data-lang="th">ไทย</button>
+    <button type="button" data-lang="en">EN</button>
+  </div>
+  <div id="auth-overlay" hidden>
+    <div class="auth-card">
+      <p id="auth-msg"></p>
+      <div id="auth-google-panel">
+        <div id="google-btn"></div>
+        <p class="auth-note" data-i18n="web.authNote">รับเฉพาะบัญชี Gmail</p>
+      </div>
+      <form id="auth-name-form" class="auth-name-panel" hidden>
+        <div id="auth-name-panel">
+          <input id="auth-name-input" maxlength="16" data-i18n-placeholder="web.authName" placeholder="ชื่อบัญชีในเกม" autocomplete="nickname" />
+          <button type="submit" data-i18n="web.authSave">บันทึกชื่อ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="wrap">
+    <div id="game"></div>
+  </div>
+  <script type="module" src="js/main.js?v=local13"></script>
+</body>
+</html>

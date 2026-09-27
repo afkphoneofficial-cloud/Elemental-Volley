@@ -1,0 +1,12 @@
+/** Unlock is always 100 character tokens. Tokens come from PVP exchange or premium. */
+export const ECONOMY = {
+  unlockTokenCost: 100,
+  pvpPerToken: 1,
+  premiumPerToken: 1,
+  pvpWin: 40,
+  pvpLoss: 15,
+  firstWinBonus: 50,
+  premiumTopup: 100,
+  tokenPack: 100,
+  cheerThemePremium: 80
+};

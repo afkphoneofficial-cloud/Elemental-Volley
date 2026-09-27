@@ -1,0 +1,812 @@
+import { GAME, PHYSICS } from "../config/gameConfig.js";
+import { COURTS } from "../data/courts.js";
+import { getCharacter } from "../data/roster.js";
+import { Session } from "../systems/Session.js";
+import { AudioSystem } from "../systems/AudioSystem.js";
+import {
+  PikaPhysics,
+  PikaUserInput,
+  GROUND_HALF_WIDTH,
+  WORLD,
+  SCALE,
+  OX,
+  toScreenX,
+  toScreenY
+} from "../gameplay/ArcadeEngine.js";
+import { HitFx, ELEMENT_FX } from "../fx/HitFx.js";
+import { syncJumpForm } from "../fx/JumpForm.js";
+import { CheerPopup } from "../fx/CheerPopup.js";
+import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
+import { t, I18n, charName } from "../i18n/I18n.js";
+import {
+  GAUGE_MAX,
+  HOLD_FRAMES,
+  MATCH_FX,
+  UltState,
+  resetMatchUlt,
+  addGauge,
+  isFull,
+  fireUlt,
+  tickPointStatuses
+} from "../gameplay/UltSystem.js";
+
+const SIZE = WORLD.playerLen * SCALE;
+const CHAR = SIZE * 1.15 * 0.75;
+const CHAR_DIVE_W = SIZE * 1.25 * 0.75;
+const CHAR_DIVE_H = SIZE * 0.9 * 0.75;
+const BALL = WORLD.ballR * 2 * SCALE;
+
+export class PlayScene extends Phaser.Scene {
+  constructor() { super("play"); }
+
+  create() {
+    this.youSide = Session.youSide === 2 ? 2 : 1;
+    this.youData = getCharacter(Session.playerId);
+    this.botData = getCharacter(Session.botId);
+    this.leftData = this.youSide === 1 ? this.youData : this.botData;
+    this.rightData = this.youSide === 1 ? this.botData : this.youData;
+    this.score = [0, 0];
+    this.p2Serves = this.firstServeIsP2();
+    this.matchOver = false;
+    this.roundEnded = false;
+    this.slowMoLeft = 0;
+    this.readyFrames = 25;
+    this.physAcc = 0;
+    this.stepMs = 1000 / PHYSICS.fps;
+    this.physicsPack = new PikaPhysics(this.youSide !== 1, this.youSide !== 2);
+    this.p1In = new PikaUserInput();
+    this.p2In = new PikaUserInput();
+    this.enterWasDown = false;
+    this.prevHit = [false, false];
+    this.lastHitter = 1;
+    this.season = Session.courtId || "summer";
+    this.enterHold = 0;
+    this.ultArmed = false;
+    this.streak = 0;
+    this.streakSide = 0;
+    this.hadMatchPoint = false;
+    resetMatchUlt();
+
+    this.buildCourt();
+    this.spawnWeather();
+
+    const shadow = (x) => this.add.ellipse(x, 0, CHAR * 0.62, 14, 0x000000, 0.28).setDepth(4);
+    this.sh1 = shadow(200);
+    this.sh2 = shadow(900);
+    this.p1 = this.add.image(200, 400, this.faceKey(this.leftData.id, 1)).setDisplaySize(CHAR, CHAR).setDepth(6);
+    this.p2 = this.add.image(900, 400, this.faceKey(this.rightData.id, 2)).setDisplaySize(CHAR, CHAR).setDepth(6);
+    this.jform1 = this.add.image(200, 400, "jump-fire").setDepth(6).setVisible(false);
+    this.jform2 = this.add.image(900, 400, "jump-fire").setDepth(6).setVisible(false);
+    this.jfx1 = this.add.graphics().setDepth(6);
+    this.jfx2 = this.add.graphics().setDepth(6);
+    this.jslot1 = { origin: null, rising: false, didPop: false };
+    this.jslot2 = { origin: null, rising: false, didPop: false };
+    const spark = () => {
+      try {
+        const p = this.add.particles(0, 0, "dot", {
+          lifespan: { min: 260, max: 560 },
+          speed: { min: 40, max: 240 },
+          scale: { start: 0.9, end: 0 },
+          alpha: { start: 1, end: 0 },
+          gravityY: 110,
+          blendMode: "ADD",
+          emitting: false
+        });
+        p.setDepth(7);
+        return p;
+      } catch (e) {
+        return null;
+      }
+    };
+    this.jspark1 = spark();
+    this.jspark2 = spark();
+    this.ball = this.add.image(200, 80, "ball").setDisplaySize(BALL, BALL).setDepth(7);
+    this.trail1 = this.add.image(200, 80, "ball").setDisplaySize(BALL * 0.72, BALL * 0.72).setAlpha(0.35).setDepth(5);
+    this.trail2 = this.add.image(200, 80, "ball").setDisplaySize(BALL * 0.5, BALL * 0.5).setAlpha(0.18).setDepth(5);
+    this.wetRing = this.add.circle(200, 80, BALL * 0.95, 0x3ad6ff, 0.18).setStrokeStyle(4, 0x9af6ff, 0.95).setDepth(6).setVisible(false);
+    this.drops = [0, 1, 2, 3, 4].map((i) => this.add.circle(0, 0, 6 + (i % 2) * 3, 0x7ae8ff, 0.85).setDepth(8).setVisible(false));
+    this.bolt = this.add.graphics().setDepth(8);
+    this.boltTrail = [];
+    this.flame = this.add.graphics().setDepth(8);
+    this.flameTrail = [];
+    this.spark1 = this.add.circle(0, 0, 14, 0xe8ff3a, 1).setDepth(9).setVisible(false);
+    this.spark2 = this.add.circle(0, 0, 14, 0xe8ff3a, 1).setDepth(9).setVisible(false);
+    this.spark1b = this.add.circle(0, 0, 8, 0xffffff, 1).setDepth(9).setVisible(false);
+    this.spark2b = this.add.circle(0, 0, 8, 0xffffff, 1).setDepth(9).setVisible(false);
+    this.ember1 = this.add.circle(0, 0, 16, 0xff6a22, 1).setDepth(9).setVisible(false);
+    this.ember2 = this.add.circle(0, 0, 16, 0xff6a22, 1).setDepth(9).setVisible(false);
+    this.ember1b = this.add.circle(0, 0, 9, 0xffe08a, 1).setDepth(9).setVisible(false);
+    this.ember2b = this.add.circle(0, 0, 9, 0xffe08a, 1).setDepth(9).setVisible(false);
+    this.statusTag1 = this.add.text(0, 0, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418",
+      stroke: "#fff6ea", strokeThickness: 5
+    }).setOrigin(0.5).setDepth(12);
+    this.statusTag2 = this.add.text(0, 0, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418",
+      stroke: "#fff6ea", strokeThickness: 5
+    }).setOrigin(0.5).setDepth(12);
+    try { this.fx = new HitFx(this); } catch (e) { this.fx = { pop() {}, ultPop() {} }; }
+    this.cheer = new CheerPopup(this);
+    this.events.once("shutdown", () => {
+      window.removeEventListener("ev-lang", this._onLang);
+      try { this.cheer.destroy(); } catch (e) {}
+      AudioSystem.playMenu();
+    });
+    this.buildHud();
+    this._onLang = () => this.applyLang();
+    window.addEventListener("ev-lang", this._onLang);
+    this.bindKeys();
+    this.syncSprites();
+    this.resetRound();
+    AudioSystem.playCourt(this.season);
+    this.cameras.main.fadeIn(160, 8, 6, 10);
+  }
+
+  firstServeIsP2() {
+    const youServe = Session.youServe === true;
+    if (youServe) return this.youSide === 2;
+    return this.youSide === 1;
+  }
+
+  faceKey(id, courtSide) {
+    const want = courtSide === 1 ? "vis_" + id + "_r" : "vis_" + id + "_l";
+    if (this.textures.exists(want)) return want;
+    if (this.textures.exists("vis_" + id)) return "vis_" + id;
+    return "vis_ignis";
+  }
+
+  buildCourt() {
+    const W = GAME.width, H = GAME.height;
+    this.add.rectangle(W / 2, H / 2, W, H, 0xffc38a);
+    const left = OX;
+    const cw = WORLD.width * SCALE;
+    const ch = WORLD.height * SCALE;
+    const courtKey = "court-" + this.season;
+    if (this.textures.exists(courtKey)) {
+      this.add.image(left, 0, courtKey).setOrigin(0, 0).setDisplaySize(cw, ch).setDepth(0);
+    } else {
+      const sky = this.add.graphics().setDepth(0);
+      sky.fillStyle(0xff8a4a, 1);
+      sky.fillRect(left, 0, cw, GAME.groundY * 0.62);
+      sky.fillStyle(0xf2d39a, 1);
+      sky.fillRect(left, GAME.groundY * 0.78, cw, H - GAME.groundY * 0.78);
+    }
+    this.drawNet();
+    this.placeReferee();
+  }
+
+  drawNet() {
+    const x = GAME.netX;
+    const top = GAME.netTop;
+    const bot = toScreenY(WORLD.playerGroundY) + CHAR * 0.52;
+    const g = this.add.graphics().setDepth(5);
+    g.fillStyle(0xfff0d8, 0.55);
+    g.fillRoundedRect(x - 18, top + 10, 36, bot - top - 12, 10);
+    g.lineStyle(2, 0xffffff, 0.45);
+    for (let y = top + 16; y < bot - 8; y += 11) g.lineBetween(x - 14, y, x + 14, y);
+    g.fillStyle(0xffd6e8, 1);
+    g.fillRoundedRect(x - 22, top - 2, 44, 14, 7);
+    g.fillStyle(0xf2b24a, 1);
+    g.fillRoundedRect(x - 26, top - 6, 12, bot - top + 8, 6);
+    g.fillRoundedRect(x + 14, top - 6, 12, bot - top + 8, 6);
+    g.fillStyle(0xff8ab8, 1);
+    g.fillCircle(x - 20, top - 4, 6);
+    g.fillCircle(x + 20, top - 4, 6);
+    g.fillStyle(0xffe08a, 1);
+    g.fillCircle(x, top + 5, 9);
+    g.lineStyle(2, 0xfff6d0, 0.9);
+    g.strokeCircle(x, top + 5, 9);
+  }
+
+  placeReferee() {
+    const key = this.textures.exists("vis_ref_" + this.season) ? "vis_ref_" + this.season : "vis_ignis";
+    const x = GAME.netX;
+    const y = GAME.netTop + 6;
+    this.ref = this.add.image(x, y, key).setDisplaySize(86, 86).setOrigin(0.5, 1).setDepth(6);
+    this.tweens.add({
+      targets: this.ref,
+      y: y - 5,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+  }
+
+  spawnWeather() {
+    this.wx = [];
+    const W = GAME.width;
+    const H = GAME.height;
+    const kind = this.season === "rain" ? "wx-drop"
+      : this.season === "winter" ? "wx-flake"
+      : this.season === "spring" ? "wx-petal"
+      : this.season === "summer" ? "wx-heat"
+      : null;
+    if (!kind || !this.textures.exists(kind)) return;
+    const n = this.season === "rain" ? 55 : this.season === "summer" ? 14 : 36;
+    for (let i = 0; i < n; i += 1) {
+      const s = this.add.image(Math.random() * W, Math.random() * H, kind).setDepth(3);
+      if (this.season === "rain") s.setAlpha(0.45).setScale(1, 1.4);
+      else if (this.season === "winter") s.setAlpha(0.7 + Math.random() * 0.3).setScale(0.6 + Math.random());
+      else if (this.season === "spring") s.setAlpha(0.75).setAngle(Math.random() * 360);
+      else s.setAlpha(0.22).setScale(0.8 + Math.random());
+      this.wx.push({
+        s,
+        vx: this.season === "rain" ? -1.4 : this.season === "winter" ? (Math.random() - 0.5) * 0.8 : this.season === "spring" ? (Math.random() - 0.5) * 1.4 : 0.3,
+        vy: this.season === "rain" ? 9 + Math.random() * 6 : this.season === "winter" ? 1.1 + Math.random() : this.season === "spring" ? 1.4 + Math.random() : -0.7,
+        spin: this.season === "spring" ? 2 + Math.random() * 3 : 0
+      });
+    }
+  }
+
+  tickWeather() {
+    const W = GAME.width;
+    const H = GAME.height;
+    this.wx.forEach((p) => {
+      p.s.x += p.vx;
+      p.s.y += p.vy;
+      if (p.spin) p.s.angle += p.spin;
+      if (p.s.y > H + 12 || p.s.y < -24 || p.s.x < -20 || p.s.x > W + 20) {
+        p.s.x = Math.random() * W;
+        p.s.y = this.season === "summer" ? H - 40 : -10;
+      }
+    });
+  }
+
+  buildHud() {
+    const f = UI_FONT;
+    const court = COURTS.find((c) => c.id === this.season);
+    const leftYou = this.youSide === 1;
+    const palL = ELEMENT_FX[this.leftData.id] || ELEMENT_FX.ignis;
+    const palR = ELEMENT_FX[this.rightData.id] || ELEMENT_FX.ignis;
+    this.plateL = makeChibiPlate(this, OX + 168, 92, {
+      faceKey: this.faceKey(this.leftData.id, 1),
+      tag: this.sideTag(leftYou, this.leftData.id),
+      you: leftYou,
+      fill: 0xfff4e8,
+      stroke: leftYou ? 0xffb14a : 0x8eb8e8,
+      pip: palL.tints[0]
+    });
+    this.plateR = makeChibiPlate(this, GAME.courtRight - 168, 92, {
+      faceKey: this.faceKey(this.rightData.id, 2),
+      tag: this.sideTag(!leftYou, this.rightData.id),
+      you: !leftYou,
+      fill: 0xfff4e8,
+      stroke: !leftYou ? 0xffb14a : 0x8eb8e8,
+      pip: palR.tints[0]
+    });
+    this.s1 = this.plateL.score;
+    this.s2 = this.plateR.score;
+
+    if (court) {
+      const ribbon = this.add.graphics().setDepth(11);
+      ribbon.fillStyle(0xfff4e8, 0.94);
+      ribbon.fillRoundedRect(GAME.width / 2 - 150, 16, 300, 48, 24);
+      ribbon.lineStyle(4, 0xffb14a, 0.8);
+      ribbon.strokeRoundedRect(GAME.width / 2 - 150, 16, 300, 48, 24);
+      this.courtTitle = this.add.text(GAME.width / 2, 30, I18n.courtName(court.id), {
+        fontFamily: f, fontSize: "16px", fontStyle: "800", color: court.color
+      }).setOrigin(0.5).setDepth(12);
+      this.courtFlavor = this.add.text(GAME.width / 2, 50, I18n.courtFlavor(court.id), {
+        fontFamily: f, fontSize: "12px", color: "#7a5a40"
+      }).setOrigin(0.5).setDepth(12);
+    }
+    this.banner = this.add.text(GAME.width / 2, 138, "", {
+      fontFamily: f, fontSize: "34px", fontStyle: "900", color: "#fff6ea",
+      stroke: "#c45a16", strokeThickness: 6
+    }).setOrigin(0.5).setAlpha(0).setDepth(15);
+    this.ultPop = this.add.text(GAME.width / 2, 186, "", {
+      fontFamily: f, fontSize: "18px", fontStyle: "800", color: "#c45a16",
+      stroke: "#fff6ea", strokeThickness: 5, align: "center"
+    }).setOrigin(0.5).setAlpha(0).setDepth(16);
+    this.callout = this.add.text(GAME.width / 2, 214, "", {
+      fontFamily: f, fontSize: "40px", fontStyle: "900", color: "#fff6ea",
+      stroke: "#c45a16", strokeThickness: 8
+    }).setOrigin(0.5).setAlpha(0).setDepth(17);
+    this.calloutSub = this.add.text(GAME.width / 2, 256, "", {
+      fontFamily: f, fontSize: "18px", fontStyle: "800", color: "#c45a16",
+      stroke: "#fff6ea", strokeThickness: 5
+    }).setOrigin(0.5).setAlpha(0).setDepth(17);
+    this.mpL = this.add.text(OX + 168, 158, "", {
+      fontFamily: f, fontSize: "13px", fontStyle: "900", color: "#ff4a6a",
+      stroke: "#fff6ea", strokeThickness: 4
+    }).setOrigin(0.5).setDepth(14);
+    this.mpR = this.add.text(GAME.courtRight - 168, 158, "", {
+      fontFamily: f, fontSize: "13px", fontStyle: "900", color: "#ff4a6a",
+      stroke: "#fff6ea", strokeThickness: 4
+    }).setOrigin(0.5).setDepth(14);
+
+    const hint = this.add.graphics().setDepth(11);
+    hint.fillStyle(0xfff4e8, 0.9);
+    hint.fillRoundedRect(GAME.width / 2 - 310, GAME.height - 40, 620, 32, 16);
+    this.hintHud = this.add.text(GAME.width / 2, GAME.height - 24, t("play.hudHint"), {
+      fontFamily: f, fontSize: "14px", fontStyle: "700", color: "#6a4a30"
+    }).setOrigin(0.5).setDepth(12);
+
+    this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.quit"), () => {
+      this.scene.start("hub");
+    }, 0xff8ab8);
+  }
+
+  sideTag(isYou, id) {
+    return (isYou ? t("play.you") : t("play.bot")) + " · " + charName(id);
+  }
+
+  applyLang() {
+    const leftYou = this.youSide === 1;
+    if (this.plateL && this.plateL.tag) this.plateL.tag.setText(this.sideTag(leftYou, this.leftData.id));
+    if (this.plateR && this.plateR.tag) this.plateR.tag.setText(this.sideTag(!leftYou, this.rightData.id));
+    if (this.courtTitle) this.courtTitle.setText(I18n.courtName(this.season));
+    if (this.courtFlavor) this.courtFlavor.setText(I18n.courtFlavor(this.season));
+    if (this.hintHud) this.hintHud.setText(t("play.hudHint"));
+    if (this.exitBtn && this.exitBtn.text) this.exitBtn.text.setText(t("play.quit"));
+    if (this.mpL && this.mpL.text) this.mpL.setText(t("play.matchPoint"));
+    if (this.mpR && this.mpR.text) this.mpR.setText(t("play.matchPoint"));
+  }
+
+  bindKeys() {
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.input.keyboard.on("keydown-ESC", () => this.scene.start("hub"));
+  }
+
+  readHuman() {
+    const c = this.cursors;
+    const input = this.youSide === 1 ? this.p1In : this.p2In;
+    const idle = this.youSide === 1 ? this.p2In : this.p1In;
+    const myIdx = this.youSide - 1;
+    input.xDirection = c.left.isDown ? -1 : c.right.isDown ? 1 : 0;
+    input.yDirection = c.up.isDown ? -1 : c.down.isDown ? 1 : 0;
+    const down = this.enter.isDown;
+    if (this.roundEnded) {
+      this.ultArmed = false;
+      this.enterHold = 0;
+      input.powerHit = 0;
+    } else if (isFull(myIdx)) {
+      if (down) {
+        this.enterHold += 1;
+        if (this.enterHold >= HOLD_FRAMES) this.ultArmed = true;
+        input.powerHit = this.ultArmed ? 1 : 0;
+      } else {
+        input.powerHit = !this.ultArmed && this.enterWasDown && this.enterHold > 0 && this.enterHold < HOLD_FRAMES ? 1 : 0;
+        this.enterHold = 0;
+      }
+    } else {
+      this.ultArmed = false;
+      this.enterHold = 0;
+      input.powerHit = !this.enterWasDown && down ? 1 : 0;
+    }
+    this.enterWasDown = down;
+    idle.xDirection = 0;
+    idle.yDirection = 0;
+    idle.powerHit = 0;
+  }
+
+  resetRound() {
+    this.physicsPack.player1.initializeForNewRound();
+    this.physicsPack.player2.initializeForNewRound();
+    this.physicsPack.ball.initializeForNewRound(this.p2Serves);
+    this.roundEnded = false;
+    this.slowMoLeft = 0;
+    this.readyFrames = 25;
+    this.showBanner(t("play.ready"), "#fff4e8");
+    this.syncSprites();
+  }
+
+  update(_t, delta) {
+    this.tickWeather();
+    this.pulseMatchPoint();
+    if (this.matchOver) return;
+
+    this.physAcc += Math.min(delta, 80);
+    let stepped = false;
+    while (this.physAcc >= this.stepMs) {
+      this.physAcc -= this.stepMs;
+      this.stepPhysics();
+      stepped = true;
+    }
+    if (!stepped) this.syncSprites();
+  }
+
+  stepPhysics() {
+    if (this.readyFrames > 0) {
+      this.readyFrames -= 1;
+      this.syncSprites();
+      return;
+    }
+
+    this.readHuman();
+    const pack = this.physicsPack;
+    const hitGround = pack.runEngineForNextFrame([this.p1In, this.p2In]);
+    this.detectHits();
+    this.handleSounds();
+
+    if (hitGround && !this.roundEnded) this.onPoint();
+    if (this.roundEnded) {
+      if (this.slowMoLeft > 0) this.slowMoLeft -= 1;
+      else if (!this.matchOver) this.resetRound();
+    }
+
+    this.syncSprites();
+  }
+
+  detectHits() {
+    const a = this.physicsPack;
+    const now = [a.player1.isCollisionWithBallHappened, a.player2.isCollisionWithBallHappened];
+    const power = a.ball.isPowerHit;
+    if (now[0] && !this.prevHit[0]) this.onBallTouch(1, power);
+    if (now[1] && !this.prevHit[1]) this.onBallTouch(2, power);
+    this.prevHit = now;
+  }
+
+  onBallTouch(side, power) {
+    this.lastHitter = side;
+    const idx = side - 1;
+    const data = side === 1 ? this.leftData : this.rightData;
+    const human = (this.youSide === 1 && side === 1) || (this.youSide === 2 && side === 2);
+    const a = this.physicsPack.ball;
+    let usedUlt = false;
+    if (!this.roundEnded) {
+      if (power && isFull(idx) && ((human && this.ultArmed) || !human)) {
+        const ult = fireUlt(idx, data.id);
+        usedUlt = true;
+        this.ultArmed = false;
+        this.playUlt(ult);
+        this.applyUltBall(ult, a);
+      } else if (power) {
+        if (addGauge(idx, 1) && human) this.showUltPopup();
+      }
+    }
+    if (this.fx && this.fx.pop) {
+      if (usedUlt && this.fx.ultPop) this.fx.ultPop(toScreenX(a.x), toScreenY(a.y), data.id);
+      else this.fx.pop(toScreenX(a.x), toScreenY(a.y), data.id, power);
+    }
+    const pal = ELEMENT_FX[data.id] || ELEMENT_FX.ignis;
+    this.trail1.setTint(pal.tints[0]);
+    this.trail2.setTint(pal.tints[1]);
+    this.ball.setTint(power ? pal.smash[0] : 0xffffff);
+    if (!power) this.time.delayedCall(120, () => this.ball.clearTint());
+    if (!this.roundEnded) {
+      if (power) AudioSystem.smash(data.id);
+      else AudioSystem.hit(data.id);
+    }
+  }
+
+  handleSounds() {
+    const a = this.physicsPack;
+    if (a.player1.sound.chu) {
+      AudioSystem.jump(this.leftData.id);
+      a.player1.sound.chu = false;
+    }
+    if (a.player2.sound.chu) {
+      AudioSystem.jump(this.rightData.id);
+      a.player2.sound.chu = false;
+    }
+    a.player1.sound.pika = false;
+    a.player2.sound.pika = false;
+    a.ball.sound.powerHit = false;
+    a.ball.sound.ballTouchesGround = false;
+  }
+
+  syncSprites() {
+    const a = this.physicsPack;
+    this.p1.setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y));
+    this.p2.setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y));
+    this.sh1.setPosition(toScreenX(a.player1.x), toScreenY(WORLD.playerGroundY + 28));
+    this.sh2.setPosition(toScreenX(a.player2.x), toScreenY(WORLD.playerGroundY + 28));
+    this.ball.setPosition(toScreenX(a.ball.x), toScreenY(a.ball.y));
+    this.ball.angle += a.ball.xVelocity * 2.2;
+    this.ball.setVisible(!MATCH_FX.hideBall);
+    this.trail1.setPosition(toScreenX(a.ball.previousX), toScreenY(a.ball.previousY));
+    this.trail1.setAngle(this.ball.angle);
+    this.trail2.setPosition(toScreenX(a.ball.previousPreviousX), toScreenY(a.ball.previousPreviousY));
+    this.trail2.setAngle(this.ball.angle);
+    this.drawBolt(a.ball);
+    this.drawFlame(a.ball);
+    this.tickStatusFx(a);
+    const dive1 = a.player1.state === 3;
+    const dive2 = a.player2.state === 3;
+    this.p1.setDisplaySize(dive1 ? CHAR_DIVE_W : CHAR, dive1 ? CHAR_DIVE_H : CHAR);
+    this.p2.setDisplaySize(dive2 ? CHAR_DIVE_W : CHAR, dive2 ? CHAR_DIVE_H : CHAR);
+    this.p1.setTexture(this.faceKey(this.leftData.id, 1));
+    this.p2.setTexture(this.faceKey(this.rightData.id, 2));
+    this.p1.setFlipX(false);
+    this.p2.setFlipX(false);
+    syncJumpForm(this, this.jslot1, a.player1, this.p1, this.jform1, this.jfx1, this.leftData.id, this.time.now, CHAR, this.jspark1);
+    syncJumpForm(this, this.jslot2, a.player2, this.p2, this.jform2, this.jfx2, this.rightData.id, this.time.now, CHAR, this.jspark2);
+    this.p1.setTint(a.player1.state === 2 ? 0xffe0a0 : 0xffffff);
+    this.p2.setTint(a.player2.state === 2 ? 0xe8ffa0 : 0xffffff);
+    if (a.ball.isPowerHit) {
+      this.trail1.setVisible(!MATCH_FX.hideBall);
+      this.trail2.setVisible(!MATCH_FX.hideBall);
+    } else {
+      this.trail1.setVisible(!MATCH_FX.hideBall && Math.abs(a.ball.xVelocity) > 6);
+      this.trail2.setVisible(!MATCH_FX.hideBall && Math.abs(a.ball.xVelocity) > 10);
+    }
+    this.syncGauges();
+  }
+
+  pulseMatchPoint() {
+    if (!this.mpL) return;
+    const pulse = 0.55 + Math.abs(Math.sin(this.time.now / 180)) * 0.45;
+    this.mpL.setAlpha(this.mpL.text ? pulse : 0);
+    this.mpR.setAlpha(this.mpR.text ? pulse : 0);
+  }
+
+  onPoint() {
+    this.roundEnded = true;
+    this.slowMoLeft = 38;
+    const leftLand = this.physicsPack.ball.punchEffectX < GROUND_HALF_WIDTH;
+    if (leftLand) {
+      this.score[1] += 1;
+      this.p2Serves = true;
+    } else {
+      this.score[0] += 1;
+      this.p2Serves = false;
+    }
+    this.s1.setText(String(this.score[0]));
+    this.s2.setText(String(this.score[1]));
+    AudioSystem.score();
+    const winSide = leftLand ? 2 : 1;
+    const winData = winSide === 1 ? this.leftData : this.rightData;
+    if (winSide === this.streakSide) this.streak += 1;
+    else {
+      this.streak = 1;
+      this.streakSide = winSide;
+    }
+    this.cheer.show(winSide, winData.id);
+    this.showBanner(winData.name, leftLand ? "#c8ff3a" : "#ff8a3a");
+    if (this.streak >= 2) {
+      this.time.delayedCall(180, () => this.showStreak(this.streak, charName(winData.id)));
+    }
+    if (this.ref) this.tweens.add({ targets: this.ref, scale: 1.12, duration: 90, yoyo: true });
+    tickPointStatuses();
+    this.ultArmed = false;
+    this.enterHold = 0;
+    const youScore = this.youSide === 1 ? this.score[0] : this.score[1];
+    const botScore = this.youSide === 1 ? this.score[1] : this.score[0];
+    const need = GAME.winScore - 1;
+    const mpL = this.score[0] >= need && this.score[0] < GAME.winScore;
+    const mpR = this.score[1] >= need && this.score[1] < GAME.winScore;
+    this.mpL.setText(mpL ? t("play.matchPoint") : "");
+    this.mpR.setText(mpR ? t("play.matchPoint") : "");
+    if (youScore >= GAME.winScore || botScore >= GAME.winScore) {
+      this.matchOver = true;
+      this.mpL.setText("");
+      this.mpR.setText("");
+      this.time.delayedCall(1700, () => {
+        this.scene.start("result", {
+          winner: youScore >= GAME.winScore ? 1 : 2,
+          score: { p1: youScore, p2: botScore }
+        });
+      });
+    } else if ((mpL || mpR) && !this.hadMatchPoint) {
+      this.hadMatchPoint = true;
+      const who = mpL && mpR
+        ? t("play.both")
+        : (mpL ? charName(this.leftData.id) : charName(this.rightData.id));
+      this.time.delayedCall(this.streak >= 2 ? 900 : 280, () => this.showMatchPoint(who));
+    }
+  }
+
+  showBanner(text, color) {
+    this.banner.setText(text).setColor(color).setAlpha(1).setScale(0.86);
+    this.tweens.add({ targets: this.banner, scale: 1, duration: 120 });
+    this.tweens.add({ targets: this.banner, alpha: 0, delay: 500, duration: 180 });
+  }
+
+  showCallout(title, sub, color) {
+    this.tweens.killTweensOf([this.callout, this.calloutSub]);
+    this.callout.setText(title).setColor(color).setAlpha(1).setScale(0.7);
+    this.calloutSub.setText(sub).setAlpha(1).setScale(0.85);
+    this.tweens.add({ targets: this.callout, scale: 1.12, duration: 160, yoyo: true });
+    this.tweens.add({
+      targets: [this.callout, this.calloutSub],
+      alpha: 0,
+      delay: 980,
+      duration: 220
+    });
+  }
+
+  showStreak(n, name) {
+    const title = n === 5 ? "ON FIRE x5" : ("STREAK x" + n);
+    const key = n >= 2 && n <= 5 ? String(n) : "more";
+    this.showCallout(title, t("streak." + key, { name }), n >= 5 ? "#ff6a22" : "#ffe08a");
+    AudioSystem.ui();
+  }
+
+  showMatchPoint(who) {
+    this.showCallout(t("play.matchPoint"), t("play.matchSub", { who }), "#ff4a6a");
+    AudioSystem.ui();
+  }
+
+  showUltPopup() {
+    this.ultPop.setText(t("play.ultFull")).setAlpha(1).setScale(0.92);
+    this.tweens.add({ targets: this.ultPop, scale: 1, duration: 140 });
+    this.tweens.add({ targets: this.ultPop, alpha: 0, delay: 2400, duration: 280 });
+    AudioSystem.ui();
+  }
+
+  playUlt(ult) {
+    if (!ult) return;
+    const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };
+    this.showBanner(names[ult.id] || "ULTIMATE", "#ffe08a");
+    if (ult.id === "ignis") this.cameras.main.shake(280, 0.01);
+    if (ult.id === "terra") this.cameras.main.shake(520, 0.02);
+    if (ult.pierce) this.time.delayedCall(420, () => this.showBanner(t("play.pierce"), "#ff6a22"));
+    if (ult.statusBlocked) {
+      this.time.delayedCall(ult.pierce ? 780 : 420, () => this.showBanner(t("play.statusBlocked"), "#ff8aa8"));
+    } else {
+      if (ult.id === "ignis") this.time.delayedCall(ult.pierce ? 780 : 420, () => this.showBanner(t("play.burn"), "#ff6a22"));
+      if (ult.stone) this.time.delayedCall(420, () => this.showBanner(t("play.stone"), "#e0a24a"));
+      if (ult.para) this.time.delayedCall(420, () => this.showBanner(t("play.para"), "#c8ff3a"));
+    }
+    this.boltTrail = [];
+  }
+
+  applyUltBall(ult, ball) {
+    if (!ult || !ball) return;
+    if (ult.id === "ignis") {
+      ball.xVelocity *= 2.15;
+      ball.yVelocity *= 1.85;
+      if (Math.abs(ball.xVelocity) < 14) ball.xVelocity = ball.xVelocity < 0 ? -16 : 16;
+    } else if (ult.id === "volt") {
+      ball.xVelocity *= 3.4;
+      ball.yVelocity *= 2.8;
+      if (Math.abs(ball.xVelocity) < 18) ball.xVelocity = ball.xVelocity < 0 ? -20 : 20;
+    } else if (ult.id === "terra") {
+      ball.xVelocity *= 1.85;
+      ball.yVelocity *= 1.7;
+    } else if (ult.id === "aqua") {
+      ball.xVelocity *= 1.2;
+    }
+  }
+
+  syncGauges() {
+    const now = this.time.now;
+    const full0 = isFull(0);
+    const full1 = isFull(1);
+    if (full0 && !this.plateL.wasFull) this.burstGauge(this.plateL);
+    if (full1 && !this.plateR.wasFull) this.burstGauge(this.plateR);
+    this.plateL.wasFull = full0;
+    this.plateR.wasFull = full1;
+    paintChibiPips(this.plateL, UltState.gauge[0], full0, this.ultArmed && this.youSide === 1, now, UltState.burn[0] > 0);
+    paintChibiPips(this.plateR, UltState.gauge[1], full1, this.ultArmed && this.youSide === 2, now, UltState.burn[1] > 0);
+  }
+
+  burstGauge(g) {
+    const ring = this.add.circle(g.x, g.y, 12, 0xffe08a, 0.0).setStrokeStyle(3, 0xffe08a, 0.95).setDepth(14);
+    this.tweens.add({ targets: ring, scale: 3.2, alpha: 0, duration: 420, onComplete: () => ring.destroy() });
+  }
+
+  drawBolt(ball) {
+    this.bolt.clear();
+    if (!MATCH_FX.volt) {
+      this.boltTrail = [];
+      return;
+    }
+    const x = toScreenX(ball.x);
+    const y = toScreenY(ball.y);
+    this.boltTrail.push({ x, y });
+    if (this.boltTrail.length > 10) this.boltTrail.shift();
+    const pts = this.boltTrail;
+    if (pts.length < 2) return;
+    this.bolt.lineStyle(7, 0xe8ff3a, 0.4);
+    this.bolt.beginPath();
+    this.bolt.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i += 1) this.bolt.lineTo(pts[i].x, pts[i].y);
+    this.bolt.strokePath();
+    this.bolt.lineStyle(3, 0xffffff, 0.95);
+    this.bolt.beginPath();
+    this.bolt.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i += 1) {
+      this.bolt.lineTo(pts[i].x + (Math.random() - 0.5) * 10, pts[i].y + (Math.random() - 0.5) * 10);
+    }
+    this.bolt.strokePath();
+    this.bolt.fillStyle(0xffffcc, 1);
+    this.bolt.fillCircle(x, y, 9);
+    this.bolt.fillStyle(0xe8ff3a, 0.65);
+    this.bolt.fillCircle(x, y, 16);
+  }
+
+  drawFlame(ball) {
+    this.flame.clear();
+    if (!MATCH_FX.fire) {
+      this.flameTrail = [];
+      return;
+    }
+    const x = toScreenX(ball.x);
+    const y = toScreenY(ball.y);
+    this.flameTrail.push({ x, y });
+    if (this.flameTrail.length > 12) this.flameTrail.shift();
+    const pts = this.flameTrail;
+    for (let i = 0; i < pts.length; i += 1) {
+      const p = pts[i];
+      const u = (i + 1) / pts.length;
+      this.flame.fillStyle(0xff6a22, 0.18 + u * 0.45);
+      this.flame.fillCircle(p.x, p.y, 8 + u * 16);
+      this.flame.fillStyle(0xffe08a, 0.2 + u * 0.5);
+      this.flame.fillCircle(p.x, p.y, 4 + u * 8);
+    }
+    this.flame.fillStyle(0xfff4e8, 0.95);
+    this.flame.fillCircle(x, y, 10);
+    this.ball.setTint(0xff6a22);
+  }
+
+  tickStatusFx(a) {
+    const wet = UltState.wetPoints > 0;
+    this.wetRing.setVisible(wet && !MATCH_FX.hideBall);
+    this.drops.forEach((d) => d.setVisible(wet && !MATCH_FX.hideBall));
+    if (wet) {
+      const bx = toScreenX(a.ball.x);
+      const by = toScreenY(a.ball.y);
+      this.wetRing.setPosition(bx, by);
+      this.wetRing.setScale(1.15 + Math.sin(this.time.now / 120) * 0.2);
+      this.wetRing.setAlpha(0.75);
+      this.ball.setTint(0x66e8ff);
+      const tw = this.time.now / 160;
+      this.drops.forEach((d, i) => {
+        const ang = tw + i * 1.25;
+        d.setPosition(bx + Math.cos(ang) * (28 + i * 4), by + Math.sin(ang * 1.3) * (22 + i * 3));
+        d.setAlpha(0.55 + (i % 2) * 0.3);
+      });
+    }
+    const spin = this.time.now / 55;
+    const p1 = UltState.para[0] > 0;
+    const p2 = UltState.para[1] > 0;
+    const b1 = UltState.burn[0] > 0;
+    const b2 = UltState.burn[1] > 0;
+    this.spark1.setVisible(p1);
+    this.spark1b.setVisible(p1);
+    this.spark2.setVisible(p2);
+    this.spark2b.setVisible(p2);
+    this.ember1.setVisible(b1);
+    this.ember1b.setVisible(b1);
+    this.ember2.setVisible(b2);
+    this.ember2b.setVisible(b2);
+    if (p1) {
+      this.p1.setTint(0xf2ff8a);
+      this.spark1.setPosition(toScreenX(a.player1.x) + Math.cos(spin) * 40, toScreenY(a.player1.y) + Math.sin(spin * 1.8) * 32);
+      this.spark1b.setPosition(toScreenX(a.player1.x) + Math.cos(spin + 2) * 28, toScreenY(a.player1.y) + Math.sin(spin * 2.1) * 24);
+      this.spark1.setAlpha(0.75);
+      this.spark1b.setAlpha(0.85);
+      this.statusTag1.setText(t("play.para")).setColor("#e8ff3a").setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y) - 70);
+    } else this.statusTag1.setText("");
+    if (p2) {
+      this.p2.setTint(0xf2ff8a);
+      this.spark2.setPosition(toScreenX(a.player2.x) + Math.cos(spin + 1) * 40, toScreenY(a.player2.y) + Math.sin(spin * 1.8) * 32);
+      this.spark2b.setPosition(toScreenX(a.player2.x) + Math.cos(spin + 3) * 28, toScreenY(a.player2.y) + Math.sin(spin * 2.1) * 24);
+      this.spark2.setAlpha(0.75);
+      this.spark2b.setAlpha(0.85);
+      this.statusTag2.setText(t("play.para")).setColor("#e8ff3a").setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y) - 70);
+    } else this.statusTag2.setText("");
+    if (b1 && !p1) {
+      this.p1.setTint(0xff6a22);
+      this.ember1.setPosition(toScreenX(a.player1.x) + Math.cos(spin) * 36, toScreenY(a.player1.y) - 24 + Math.sin(spin * 2) * 10);
+      this.ember1b.setPosition(toScreenX(a.player1.x) + Math.cos(spin + 2.2) * 22, toScreenY(a.player1.y) - 38);
+      this.ember1.setAlpha(0.7);
+      this.ember1b.setAlpha(0.9);
+      this.statusTag1.setText(t("play.burn") + " x" + UltState.burn[0]).setColor("#ff6a22").setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y) - 70);
+    }
+    if (b2 && !p2) {
+      this.p2.setTint(0xff6a22);
+      this.ember2.setPosition(toScreenX(a.player2.x) + Math.cos(spin + 1) * 36, toScreenY(a.player2.y) - 24 + Math.sin(spin * 2) * 10);
+      this.ember2b.setPosition(toScreenX(a.player2.x) + Math.cos(spin + 3.1) * 22, toScreenY(a.player2.y) - 38);
+      this.ember2.setAlpha(0.7);
+      this.ember2b.setAlpha(0.9);
+      this.statusTag2.setText(t("play.burn") + " x" + UltState.burn[1]).setColor("#ff6a22").setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y) - 70);
+    }
+    if (UltState.wetVictim === 0 && UltState.wetPoints > 0 && !p1) {
+      this.statusTag1.setText(t("play.slip")).setColor("#7ae8ff").setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y) - 70);
+    }
+    if (UltState.wetVictim === 1 && UltState.wetPoints > 0 && !p2) {
+      this.statusTag2.setText(t("play.slip")).setColor("#7ae8ff").setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y) - 70);
+    }
+    if (MATCH_FX.stone || MATCH_FX.stuck) this.ball.setTint(0xc07830);
+    if (MATCH_FX.stuck && !this.stuckShook) {
+      this.cameras.main.shake(280, 0.012);
+      this.stuckShook = true;
+    }
+    if (!MATCH_FX.stuck) this.stuckShook = false;
+  }
+}
