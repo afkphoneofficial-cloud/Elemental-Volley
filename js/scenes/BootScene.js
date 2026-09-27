@@ -14,6 +14,7 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id, "assets/sprites/" + id + ".png");
       this.load.image("chibi-" + id + "-left", "assets/sprites/" + id + "-left.png");
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
+      this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
     });
     this.load.image("ball-art", "assets/sprites/ball.png");
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
@@ -34,6 +35,7 @@ export class BootScene extends Phaser.Scene {
         TextureFactory.applyChibi(this, "chibi-" + id, "vis_" + id);
         TextureFactory.applyChibi(this, "chibi-" + id + "-left", "vis_" + id + "_l");
         TextureFactory.applyChibi(this, "chibi-" + id + "-right", "vis_" + id + "_r");
+        TextureFactory.applyChibi(this, "select-" + id, "vis_select_" + id);
         if (!this.textures.exists("vis_" + id + "_r") && this.textures.exists("vis_" + id + "_l")) {
           TextureFactory.mirror(this, "vis_" + id + "_l", "vis_" + id + "_r", true);
         }

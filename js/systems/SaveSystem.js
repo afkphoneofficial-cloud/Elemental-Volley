@@ -48,7 +48,8 @@ export const SaveSystem = {
   },
 
   isUnlocked(id) {
-    return this.data.unlocked.includes(id);
+    if (this.data.starterId === id) return true;
+    return (this.data.unlocked || []).includes(id);
   },
 
   chooseStarter(id) {
