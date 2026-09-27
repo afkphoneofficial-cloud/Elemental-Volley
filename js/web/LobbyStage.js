@@ -292,18 +292,15 @@ export async function mountLobbyStage() {
       fg.clip("evenodd");
     }
 
-    const ground = H - Math.max(10, Math.min(22, padB * 0.35));
-    if (padL >= 70) {
-      const sz = Math.min(150, padL * 1.15);
-      const x = Math.max(sz * 0.42, padL * 0.48);
-      drawSprite(layer, "volt_r", Math.max(36, x * 0.55), ground + bob(2.2), sz * 0.72, 0, 0.92);
-      drawSprite(layer, "ignis_r", x, ground + jumpL, sz * squashL);
-    }
-    if (padR >= 70) {
-      const sz = Math.min(150, padR * 1.15);
-      const x = W - Math.max(sz * 0.42, padR * 0.48);
-      drawSprite(layer, "terra_l", W - Math.max(32, padR * 0.28), ground + bob(3.1), sz * 0.72, 0, 0.92);
-      drawSprite(layer, "aqua_l", x, ground + jumpR, sz * squashR);
+    const ground = Math.min(H - 16, g.bottom + 18);
+    const landscape = W > H;
+    const showMascots = padL >= 200 && padR >= 200 && !(landscape && H < 560);
+    if (showMascots) {
+      const charSize = Math.min(150, Math.max(110, Math.min(padL, padR) * 0.7));
+      drawSprite(layer, "volt_r", 72, ground + bob(2.2), charSize * 0.72, 0, 0.92);
+      drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
+      drawSprite(layer, "ignis_r", g.left - 8, ground + jumpL, charSize * squashL);
+      drawSprite(layer, "aqua_l", g.right + 8, ground + jumpR, charSize * squashR);
     }
     if (padT >= 60) {
       const refSize = Math.min(132, padT - 8);

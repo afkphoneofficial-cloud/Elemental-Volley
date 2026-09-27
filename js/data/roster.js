@@ -52,6 +52,28 @@ export const ROSTER = {
 
 export const ROSTER_IDS = Object.keys(ROSTER);
 
+export const CHAR_SEASON = {
+  ignis: "summer",
+  aqua: "rain",
+  volt: "spring",
+  terra: "winter"
+};
+
+export const SEASON_CHAR = {
+  summer: "ignis",
+  rain: "aqua",
+  spring: "volt",
+  winter: "terra"
+};
+
 export function getCharacter(id) {
   return ROSTER[id] || ROSTER.ignis;
+}
+
+export function pickMatchRef(youId, botId, season) {
+  const used = new Set([youId, botId]);
+  const idle = ROSTER_IDS.filter((id) => !used.has(id));
+  const prefer = SEASON_CHAR[season];
+  const char = idle.includes(prefer) ? prefer : (idle[0] || "volt");
+  return { char, season: CHAR_SEASON[char] || "spring" };
 }

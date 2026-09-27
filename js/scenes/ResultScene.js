@@ -20,6 +20,8 @@ export class ResultScene extends Phaser.Scene {
     this.payload = data || {};
     this.win = this.payload.winner === 1;
     this.courtId = this.payload.courtId || "summer";
+    this.refSeason = this.payload.refSeason || this.courtId;
+    this.refChar = this.payload.refChar || null;
     this.verdict = pickRefVerdict(this.win);
     this.page = "verdict";
     this.bits = { verdict: [], stats: [] };
@@ -66,7 +68,7 @@ export class ResultScene extends Phaser.Scene {
     card.strokeRoundedRect(W / 2 - 430, 72, 860, 400, 28);
     this.keep(v, card);
 
-    const refKey = this.textures.exists("vis_ref_" + this.courtId) ? "vis_ref_" + this.courtId : "vis_ignis";
+    const refKey = this.textures.exists("vis_ref_" + this.refSeason) ? "vis_ref_" + this.refSeason : "vis_ignis";
     this.keep(v, this.add.circle(W / 2 - 248, 250, 128, pal.glow, 0.22).setDepth(7));
     this.keep(v, this.add.image(W / 2 - 248, 250, refKey).setDisplaySize(248, 248).setDepth(8));
     this.keep(v, this.add.circle(W / 2 - 248, 250, 118, 0x000000, 0).setStrokeStyle(6, pal.glow, 0.95).setDepth(8));
@@ -110,7 +112,7 @@ export class ResultScene extends Phaser.Scene {
     card.strokeRoundedRect(56, 56, W - 112, 520, 28);
     this.keep(g, card);
 
-    const refKey = this.textures.exists("vis_ref_" + this.courtId) ? "vis_ref_" + this.courtId : "vis_ignis";
+    const refKey = this.textures.exists("vis_ref_" + this.refSeason) ? "vis_ref_" + this.refSeason : "vis_ignis";
     this.keep(g, this.add.circle(168, 168, 90, pal.glow, 0.28).setDepth(7));
     this.keep(g, this.add.image(168, 168, refKey).setDisplaySize(168, 168).setDepth(8));
     this.keep(g, this.add.circle(168, 168, 84, 0x000000, 0).setStrokeStyle(5, pal.glow, 0.95).setDepth(8));
@@ -175,7 +177,10 @@ export class ResultScene extends Phaser.Scene {
     if (this.mark) this.mark.setText(this.win ? t("result.winMark") : t("result.loseMark"));
     if (this.head) this.head.setText(en ? v.titleEn : v.titleTh);
     if (this.quote) this.quote.setText(en ? v.en : v.th);
-    if (this.refBy) this.refBy.setText(t("result.refLabel", { name: t("court." + this.courtId + "Ref") }));
+    if (this.refBy) {
+      const who = this.refChar ? charName(this.refChar) : t("court." + this.courtId + "Ref");
+      this.refBy.setText(t("result.refLabel", { name: who }));
+    }
     if (this.scoreLine) this.scoreLine.setText(score.p1 + "  -  " + score.p2);
     if (this.names) {
       this.names.setText(
@@ -195,7 +200,9 @@ export class ResultScene extends Phaser.Scene {
     if (this.statsBtn && this.statsBtn.text) this.statsBtn.text.setText(t("result.statsBtn"));
     if (this.statsBackBtn && this.statsBackBtn.text) this.statsBackBtn.text.setText(t("result.statsBack"));
     if (this.statsTitle) this.statsTitle.setText(t("result.statsTitle"));
-    if (this.statsRef) this.statsRef.setText(t("court." + this.courtId + "Ref"));
+    if (this.statsRef) {
+      this.statsRef.setText(this.refChar ? charName(this.refChar) : t("court." + this.courtId + "Ref"));
+    }
     const talk = pickStatTalk(st);
     const goodVar = talk.good === "talkAce" ? { n: st.aces } : talk.good === "talkStreak" ? { n: st.bestStreak } : talk.good === "talkRally" ? { n: st.longestRally } : talk.good === "talkUlt" ? { n: st.ults } : { n: st.hits };
     const badVar = talk.bad === "talkError" ? { n: st.errors } : {};

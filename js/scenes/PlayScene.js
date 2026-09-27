@@ -1,6 +1,6 @@
 import { GAME, PHYSICS } from "../config/gameConfig.js";
 import { COURTS } from "../data/courts.js";
-import { getCharacter } from "../data/roster.js";
+import { getCharacter, pickMatchRef } from "../data/roster.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import {
@@ -222,7 +222,10 @@ export class PlayScene extends Phaser.Scene {
   }
 
   placeReferee() {
-    const key = this.textures.exists("vis_ref_" + this.season) ? "vis_ref_" + this.season : "vis_ignis";
+    const pick = pickMatchRef(this.youData.id, this.botData.id, this.season);
+    this.refChar = pick.char;
+    this.refSeason = pick.season;
+    const key = this.textures.exists("vis_ref_" + this.refSeason) ? "vis_ref_" + this.refSeason : "vis_ignis";
     const x = GAME.netX;
     const y = GAME.netTop + 6;
     this.ref = this.add.image(x, y, key).setDisplaySize(CHAR * 1.12, CHAR * 1.12).setOrigin(0.5, 1).setDepth(6);
@@ -677,6 +680,8 @@ export class PlayScene extends Phaser.Scene {
           courtId: this.season,
           youId: this.youData.id,
           botId: this.botData.id,
+          refChar: this.refChar,
+          refSeason: this.refSeason,
           stats: snapshotMatchStats(this.matchStats)
         });
       });
