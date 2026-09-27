@@ -130,6 +130,7 @@ export const COPY = {
       statusFog: "ยังไม่ได้สำรวจ",
       close: "ปิด",
       pinHint: "แตะหมุดบนแผนที่",
+      scrollHint: "เลื่อนลงเพื่ออ่านต่อ",
       secretHead: "แฟ้มที่กรรมการสั่งปิด  ·  ยังไม่มีกำหนดเปิดตัว",
       from: "ที่มา {mark}"
     },
@@ -336,6 +337,7 @@ export const COPY = {
       statusFog: "Unexplored",
       close: "Close",
       pinHint: "Tap a pin on the map",
+      scrollHint: "Scroll to read more",
       secretHead: "Files sealed by the refs  ·  No release date yet",
       from: "Origin {mark}"
     },

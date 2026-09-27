@@ -71,15 +71,16 @@ export class WikiScene extends Phaser.Scene {
   spawnPin(loc) {
     const p = this.pinXY(loc);
     const col = loc.color;
-    const ring = this.add.circle(p.x, p.y, loc.kind === "fog" ? 16 : 20, 0xfff6ea, 0.92)
+    const big = loc.kind === "shown" && loc.char;
+    const ring = this.add.circle(p.x, p.y, big ? 38 : loc.kind === "fog" ? 16 : 20, 0xfff6ea, 0.92)
       .setStrokeStyle(3, col, loc.kind === "shown" ? 1 : 0.7)
       .setDepth(8);
-    ring.setInteractive(new Phaser.Geom.Circle(0, 0, 28), Phaser.Geom.Circle.Contains).setData("loc", loc.id);
+    ring.setInteractive(new Phaser.Geom.Circle(0, 0, big ? 44 : 28), Phaser.Geom.Circle.Contains);
     ring.input.cursor = "pointer";
-    this.add.circle(p.x, p.y + 18, 10, 0x000000, 0.18).setDepth(7);
-    if (loc.kind === "shown" && loc.char) {
+    this.add.circle(p.x, p.y + (big ? 34 : 18), big ? 16 : 10, 0x000000, 0.18).setDepth(7);
+    if (big) {
       const vis = this.textures.exists("vis_" + loc.char) ? "vis_" + loc.char : "vis_ignis";
-      this.add.image(p.x, p.y - 2, vis).setDisplaySize(34, 34).setDepth(9);
+      this.add.image(p.x, p.y - 2, vis).setDisplaySize(68, 68).setDepth(9);
     } else if (loc.kind === "sealed") {
       this.add.text(p.x, p.y - 1, "?", {
         fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#5a3828"
@@ -91,7 +92,7 @@ export class WikiScene extends Phaser.Scene {
     }
     this.tweens.add({
       targets: ring,
-      scale: loc.kind === "shown" ? 1.08 : 1.04,
+      scale: 1.04,
       duration: loc.kind === "fog" ? 1400 : 900,
       yoyo: true,
       repeat: -1
@@ -151,12 +152,19 @@ export class WikiScene extends Phaser.Scene {
   }
 
   buildPopup(info) {
-    this.popup.removeAll(true);
+    this.closePopup();
     const W = this.scale.width;
     const H = this.scale.height;
     const wide = !!info.wide;
-    const cardW = wide ? 760 : 560;
-    const cardH = wide ? 520 : 340;
+    const cardW = wide ? 820 : 560;
+    const cardH = wide ? 600 : 360;
+    const y0 = H / 2 - cardH / 2;
+    const headerH = info.vis ? 132 : (info.region ? 108 : 92);
+    const viewW = cardW - 72;
+    const viewH = cardH - headerH - 28;
+    const viewX = W / 2 - viewW / 2;
+    const viewY = y0 + headerH;
+
     const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x1a1008, 0.46)
       .setInteractive()
       .setDepth(50);
@@ -167,36 +175,80 @@ export class WikiScene extends Phaser.Scene {
     g.lineStyle(3, 0xc45a16, 0.55);
     g.strokeRoundedRect(W / 2 - cardW / 2, H / 2 - cardH / 2, cardW, cardH, 24);
     const block = this.add.zone(W / 2, H / 2, cardW, cardH).setInteractive();
-    const y0 = H / 2 - cardH / 2;
     const bits = [dim, g, block];
-    bits.push(this.add.text(W / 2, y0 + 28, info.status, {
+    bits.push(this.add.text(W / 2, y0 + 26, info.status, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: info.chip
     }).setOrigin(0.5).setDepth(52));
-    const titleX = info.vis ? W / 2 + 36 : W / 2;
+    const titleX = info.vis ? W / 2 + 28 : W / 2;
     if (info.vis) {
-      bits.push(this.add.circle(W / 2 - 196, y0 + 108, 52, 0xffe8c8, 1).setStrokeStyle(3, 0xc45a16, 0.5).setDepth(52));
-      bits.push(this.add.image(W / 2 - 196, y0 + 108, info.vis).setDisplaySize(88, 88).setDepth(53));
+      bits.push(this.add.circle(W / 2 - 196, y0 + 96, 52, 0xffe8c8, 1).setStrokeStyle(3, 0xc45a16, 0.5).setDepth(52));
+      bits.push(this.add.image(W / 2 - 196, y0 + 96, info.vis).setDisplaySize(88, 88).setDepth(53));
     }
-    bits.push(this.add.text(titleX, y0 + 64, info.title, {
-      fontFamily: UI_FONT, fontSize: wide ? "30px" : "28px", fontStyle: "900", color: "#3a2418",
-      align: "center", wordWrap: { width: cardW - (info.vis ? 220 : 64) }
+    bits.push(this.add.text(titleX, y0 + 58, info.title, {
+      fontFamily: UI_FONT, fontSize: wide ? "28px" : "26px", fontStyle: "900", color: "#3a2418",
+      align: "center", wordWrap: { width: cardW - (info.vis ? 240 : 96) }
     }).setOrigin(0.5).setDepth(52));
     if (info.region) {
-      bits.push(this.add.text(titleX, y0 + 100, info.region, {
+      bits.push(this.add.text(titleX, y0 + 92, info.region, {
         fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#7a4a30"
       }).setOrigin(0.5).setDepth(52));
     }
-    bits.push(this.add.text(W / 2, info.region ? y0 + 136 : y0 + 108, info.body, {
-      fontFamily: UI_FONT, fontSize: wide ? "16px" : "17px", fontStyle: "600", color: "#4a3228",
-      align: wide ? "left" : "center", wordWrap: { width: cardW - 72 }, lineSpacing: 6
-    }).setOrigin(0.5, 0).setDepth(52));
-    const close = makeButton(this, W / 2, H / 2 + cardH / 2 - 36, 160, 42, t("wiki.close"), () => this.closePopup(), 0x7d5cff);
-    this.popup.add(bits);
+
+    const body = this.add.text(wide ? 0 : viewW / 2, 0, info.body, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "600", color: "#4a3228",
+      align: wide ? "left" : "center", wordWrap: { width: viewW }, lineSpacing: 7
+    }).setOrigin(wide ? 0 : 0.5, 0).setDepth(52);
+    const wrap = this.add.container(viewX, viewY).setDepth(52);
+    wrap.add(body);
+    const maskG = this.add.graphics();
+    maskG.fillStyle(0xffffff, 1);
+    maskG.fillRoundedRect(viewX, viewY, viewW, viewH, 8);
+    maskG.setVisible(false);
+    wrap.setMask(maskG.createGeometryMask());
+
+    const maxScroll = Math.max(0, body.height - viewH);
+    this._popScroll = 0;
+    const applyScroll = () => {
+      this._popScroll = Phaser.Math.Clamp(this._popScroll, 0, maxScroll);
+      body.y = -this._popScroll;
+      if (hint) hint.setVisible(maxScroll > 8 && this._popScroll < maxScroll - 4);
+    };
+    let hint = null;
+    if (maxScroll > 8) {
+      hint = this.add.text(W / 2, y0 + cardH - 18, t("wiki.scrollHint"), {
+        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+      }).setOrigin(0.5).setDepth(54);
+      bits.push(hint);
+    }
+    const dragZ = this.add.zone(W / 2, viewY + viewH / 2, viewW, viewH).setInteractive().setDepth(53);
+    dragZ.on("pointerdown", (p) => { this._popDrag = p.y; });
+    dragZ.on("pointermove", (p) => {
+      if (!p.isDown || this._popDrag == null) return;
+      this._popScroll -= (p.y - this._popDrag);
+      this._popDrag = p.y;
+      applyScroll();
+    });
+    this._onPopWheel = (_pointer, _over, _dx, dy) => {
+      if (!this.popup.visible) return;
+      this._popScroll += dy * 0.45;
+      applyScroll();
+    };
+    this.input.on("wheel", this._onPopWheel);
+    applyScroll();
+
+    const close = makeButton(this, W / 2 + cardW / 2 - 36, y0 + 28, 44, 40, "✕", () => this.closePopup(), 0x7d5cff);
+    this.popup.add(bits.concat([wrap, dragZ, maskG]));
     this.popup.add([close.gfx, close.text, close.bg]);
     this.popup.setVisible(true);
   }
 
   closePopup() {
+    if (this._onPopWheel) {
+      this.input.off("wheel", this._onPopWheel);
+      this._onPopWheel = null;
+    }
+    this._popDrag = null;
+    if (!this.popup) return;
     this.popup.setVisible(false);
     this.popup.removeAll(true);
   }
