@@ -18,6 +18,12 @@ const BGM_SRC = {
   spring: "assets/audio/bgm-spring.mp3",
   winter: "assets/audio/bgm-winter.mp3"
 };
+const MENU_BGM = [
+  "assets/audio/bgm-menu.mp3",
+  "assets/audio/bgm-menu2.mp3",
+  "assets/audio/bgm-menu3.mp3"
+];
+let lastMenuSrc = "";
 
 function readStoredVol() {
   try {
@@ -38,16 +44,33 @@ function applySfxVol() {
   if (sfxBus) sfxBus.gain.value = 1.15 * sfxVol;
 }
 
+function pickMenuSrc(avoid) {
+  const skip = avoid || lastMenuSrc;
+  const pool = MENU_BGM.filter((s) => s !== skip);
+  const list = pool.length ? pool : MENU_BGM.slice();
+  const src = list[(Math.random() * list.length) | 0];
+  lastMenuSrc = src;
+  return src;
+}
+
 function playFileTheme(id) {
-  const src = BGM_SRC[id] || BGM_SRC.menu;
   if (themeId === id && musicEl && !musicEl.paused) {
     applyMusicVol();
     return true;
   }
   haltMusic();
   themeId = id;
+  const src = id === "menu" ? pickMenuSrc() : (BGM_SRC[id] || BGM_SRC.menu);
+  attachMusic(id, src, id === "menu" ? [src] : []);
+  return true;
+}
+
+function attachMusic(id, src, failed) {
+  if (musicEl) {
+    try { musicEl.pause(); } catch (e) {}
+  }
   const el = new Audio(src);
-  el.loop = true;
+  el.loop = id !== "menu";
   el.preload = "auto";
   el.volume = musicVol;
   musicEl = el;
@@ -56,13 +79,28 @@ function playFileTheme(id) {
     if (p && p.catch) p.catch(() => {});
   };
   el.addEventListener("error", () => {
+    if (id === "menu") {
+      const next = MENU_BGM.find((s) => failed.indexOf(s) === -1 && s !== src);
+      if (!next) return;
+      lastMenuSrc = next;
+      attachMusic(id, next, failed.concat(src));
+      return;
+    }
     if (!String(el.src).endsWith(".mp3.mp3")) {
       el.src = src + ".mp3";
       start();
     }
   }, { once: true });
+  if (id === "menu") {
+    el.addEventListener("ended", () => {
+      if (themeId !== "menu" || musicEl !== el) return;
+      el.src = pickMenuSrc();
+      el.loop = false;
+      el.volume = musicVol;
+      start();
+    });
+  }
   start();
-  return true;
 }
 
 function ensure() {
