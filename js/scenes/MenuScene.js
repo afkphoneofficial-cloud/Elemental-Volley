@@ -45,5 +45,10 @@ export class MenuScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("wiki", { from: "menu" });
     }, 0x7d5cff);
+    makeButton(this, W / 2, 580, 340, 50, t("menu.settings"), () => {
+      AudioSystem.unlock();
+      AudioSystem.ui();
+      this.scene.start("settings", { from: "menu" });
+    }, 0xffe08a);
   }
 }

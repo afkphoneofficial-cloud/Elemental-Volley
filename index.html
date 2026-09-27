@@ -2,7 +2,9 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#07060c" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>Elemental Volley : Spike It !!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,6 +43,19 @@
   <div id="wrap">
     <div id="game"></div>
   </div>
-  <script type="module" src="js/main.js?v=local16"></script>
+  <div id="touch-pad" hidden>
+    <div id="stick-base" aria-label="move">
+      <div id="stick-knob"></div>
+      <span class="pad-lab" data-i18n="touch.move">เดิน</span>
+    </div>
+    <button type="button" id="hit-pad" aria-label="hit">
+      <span class="hit-core"></span>
+      <span class="pad-lab" data-i18n="touch.hit">ตบ</span>
+    </button>
+  </div>
+  <div id="rotate-hint" hidden>
+    <p data-i18n="touch.rotate">หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด</p>
+  </div>
+  <script type="module" src="js/main.js?v=local17"></script>
 </body>
 </html>

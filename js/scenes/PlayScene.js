@@ -18,6 +18,7 @@ import { syncJumpForm } from "../fx/JumpForm.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
 import { UltCutIn } from "../fx/UltCutIn.js";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
+import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import {
   GAUGE_MAX,
@@ -138,6 +139,7 @@ export class PlayScene extends Phaser.Scene {
       window.removeEventListener("ev-lang", this._onLang);
       try { this.cheer.destroy(); } catch (e) {}
       try { this.ultCut.destroy(); } catch (e) {}
+      TouchControls.setPlayActive(false);
       this.tweens.timeScale = 1;
       if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
       AudioSystem.playMenu();
@@ -146,6 +148,8 @@ export class PlayScene extends Phaser.Scene {
     this._onLang = () => this.applyLang();
     window.addEventListener("ev-lang", this._onLang);
     this.bindKeys();
+    TouchControls.setPlayActive(true);
+    this.layoutHudMode();
     this.syncSprites();
     this.resetRound();
     AudioSystem.playCourt(this.season);
@@ -329,6 +333,7 @@ export class PlayScene extends Phaser.Scene {
     const hint = this.add.graphics().setDepth(11);
     hint.fillStyle(0xfff4e8, 0.9);
     hint.fillRoundedRect(GAME.width / 2 - 310, GAME.height - 40, 620, 32, 16);
+    this.hintBg = hint;
     this.hintHud = this.add.text(GAME.width / 2, GAME.height - 24, t("play.hudHint"), {
       fontFamily: f, fontSize: "14px", fontStyle: "700", color: "#6a4a30"
     }).setOrigin(0.5).setDepth(12);
@@ -348,10 +353,20 @@ export class PlayScene extends Phaser.Scene {
     if (this.plateR && this.plateR.tag) this.plateR.tag.setText(this.sideTag(!leftYou, this.rightData.id));
     if (this.courtTitle) this.courtTitle.setText(I18n.courtName(this.season));
     if (this.courtFlavor) this.courtFlavor.setText(I18n.courtFlavor(this.season));
-    if (this.hintHud) this.hintHud.setText(t("play.hudHint"));
+    if (this.hintHud) this.hintHud.setText(preferTouch() ? t("play.hudHintTouch") : t("play.hudHint"));
+    this.layoutHudMode();
     if (this.exitBtn && this.exitBtn.text) this.exitBtn.text.setText(t("play.quit"));
     if (this.mpL && this.mpL.text) this.mpL.setText(t("play.matchPoint"));
     if (this.mpR && this.mpR.text) this.mpR.setText(t("play.matchPoint"));
+  }
+
+  layoutHudMode() {
+    const touch = preferTouch();
+    if (this.hintBg) this.hintBg.setVisible(!touch);
+    if (this.hintHud) {
+      this.hintHud.setVisible(!touch);
+      this.hintHud.setText(touch ? t("play.hudHintTouch") : t("play.hudHint"));
+    }
   }
 
   bindKeys() {
@@ -361,13 +376,16 @@ export class PlayScene extends Phaser.Scene {
   }
 
   readHuman() {
+    const pad = TouchControls.snapshot();
     const c = this.cursors;
     const input = this.youSide === 1 ? this.p1In : this.p2In;
     const idle = this.youSide === 1 ? this.p2In : this.p1In;
     const myIdx = this.youSide - 1;
-    input.xDirection = c.left.isDown ? -1 : c.right.isDown ? 1 : 0;
-    input.yDirection = c.up.isDown ? -1 : c.down.isDown ? 1 : 0;
-    const down = this.enter.isDown;
+    const keyX = c.left.isDown ? -1 : c.right.isDown ? 1 : 0;
+    const keyY = c.up.isDown ? -1 : c.down.isDown ? 1 : 0;
+    input.xDirection = pad.x || keyX;
+    input.yDirection = pad.y || keyY;
+    const down = this.enter.isDown || pad.hit;
     if (this.roundEnded) {
       this.ultArmed = false;
       this.enterHold = 0;

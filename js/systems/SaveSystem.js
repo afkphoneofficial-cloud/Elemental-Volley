@@ -5,7 +5,7 @@ const empty = () => ({
   unlocked: [],
   currencies: { pvp: 0, premium: 0, tokens: 0 },
   firstWinDate: null,
-  settings: { lang: "th" },
+  settings: { lang: "th", controlMode: "auto" },
   unlockedCheers: ["classic"],
   equippedCheer: "classic"
 });
@@ -20,6 +20,7 @@ export const SaveSystem = {
     } catch (e) {
       this.data = empty();
     }
+    this.data.settings = { ...empty().settings, ...(this.data.settings || {}) };
     if (!Array.isArray(this.data.unlockedCheers) || !this.data.unlockedCheers.length) {
       this.data.unlockedCheers = ["classic"];
     }
@@ -30,6 +31,7 @@ export const SaveSystem = {
   applyCloud(save) {
     if (!save || typeof save !== "object") return;
     this.data = { ...empty(), ...save };
+    this.data.settings = { ...empty().settings, ...(this.data.settings || {}) };
     if (!Array.isArray(this.data.unlockedCheers) || !this.data.unlockedCheers.length) {
       this.data.unlockedCheers = ["classic"];
     }

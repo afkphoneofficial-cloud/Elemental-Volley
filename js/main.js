@@ -14,6 +14,8 @@ import { PlayScene } from "./scenes/PlayScene.js";
 import { LuckScene } from "./scenes/LuckScene.js";
 import { WikiScene } from "./scenes/WikiScene.js";
 import { ResultScene } from "./scenes/ResultScene.js";
+import { SettingsScene } from "./scenes/SettingsScene.js";
+import { TouchControls } from "./ui/TouchControls.js";
 
 window.game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -28,9 +30,12 @@ window.game = new Phaser.Game({
   },
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    parent: "game",
+    width: GAME.width,
+    height: GAME.height
   },
-  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene]
+  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene]
 });
 
 AudioSystem.mountDock();
@@ -38,3 +43,10 @@ SaveSystem.load();
 I18n.load();
 I18n.mountToggle();
 mountLobbyStage();
+TouchControls.mount();
+const refreshScale = () => {
+  if (window.game && window.game.scale) window.game.scale.refresh();
+  TouchControls.sync();
+};
+window.addEventListener("resize", refreshScale);
+window.addEventListener("orientationchange", () => setTimeout(refreshScale, 200));

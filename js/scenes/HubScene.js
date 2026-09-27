@@ -39,7 +39,11 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("wiki", { from: "hub" });
     }, 0xffb14a);
-    makeButton(this, W / 2, 446, 380, 54, t("hub.home"), () => this.scene.start("menu"), 0x7d5cff);
+    makeButton(this, W / 2, 446, 380, 54, t("hub.settings"), () => {
+      AudioSystem.ui();
+      this.scene.start("settings", { from: "hub" });
+    }, 0xffe08a);
+    makeButton(this, W / 2, 516, 380, 54, t("hub.home"), () => this.scene.start("menu"), 0x7d5cff);
 
     AudioSystem.playMenu();
   }

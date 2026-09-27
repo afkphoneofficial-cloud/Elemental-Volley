@@ -23,7 +23,8 @@ export const COPY = {
       title: "SPIKE IT !!",
       tag: "วอลเลย์อาร์เคด  •  อสูรธาตุจิ๋ว  •  1v1 กับบอท",
       enter: "เข้าล็อบบี้",
-      wiki: "Wiki เกาะอีเธเรีย"
+      wiki: "Wiki เกาะอีเธเรีย",
+      settings: "ตั้งค่า"
     },
     auth: {
       login: "ลงทะเบียน / เข้าสู่ระบบด้วย Gmail",
@@ -36,6 +37,7 @@ export const COPY = {
       shop: "ร้านค้า / ปลดล็อกตัวละคร",
       wiki: "Wiki เกาะอีเธเรีย",
       home: "กลับหน้าแรก",
+      settings: "ตั้งค่าการควบคุม",
       hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ"
     },
     starter: {
@@ -107,6 +109,7 @@ export const COPY = {
       ready: "พร้อม",
       quit: "ออก",
       hudHint: "← → ↑ ↓   ENTER ตี   ค้าง ENTER ปล่อยอัลติ",
+      hudHintTouch: "ซ้ายเลื่อนทิศทาง  ·  ขวากดตบ  ·  ค้างขวาปล่อยอัลติ",
       ultFull: "เกจเต็ม!  ค้าง ENTER แล้วตบเพื่อปล่อยอัลติ",
       matchPoint: "MATCH POINT",
       matchSub: "แต้มต่อไปจบเกมได้  ·  {who}",
@@ -127,6 +130,19 @@ export const COPY = {
       more: "{name} แต้มไหลไม่หยุด!"
     },
     nav: { back: "กลับ" },
+    touch: {
+      move: "เดิน",
+      hit: "ตบ",
+      rotate: "หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด"
+    },
+    settings: {
+      title: "ตั้งค่าการควบคุม",
+      sub: "เลือกวิธีเล่นบนเครื่องนี้  บันทึกอัตโนมัติ",
+      auto: "อัตโนมัติ",
+      pc: "คอมพิวเตอร์  ·  คีย์บอร์ด",
+      mobile: "มือถือ  ·  ปุ่มสัมผัส",
+      note: "มือถือใช้วงกลมซ้ายเลื่อนทิศทาง วงกลมขวากดตบ ค้างไว้เพื่ออัลติ"
+    },
     cheer: {
       classic: "คลาสสิก",
       classicBlurb: "ฉลองแต้มชุดแรก ติดตัวมาฟรี",
@@ -172,7 +188,8 @@ export const COPY = {
       title: "SPIKE IT !!",
       tag: "Arcade volleyball  •  Tiny elementals  •  1v1 vs a bot",
       enter: "Enter lobby",
-      wiki: "Etheria Island Wiki"
+      wiki: "Etheria Island Wiki",
+      settings: "Settings"
     },
     auth: {
       login: "Register / sign in with Gmail",
@@ -185,6 +202,7 @@ export const COPY = {
       shop: "Shop / unlock fighters",
       wiki: "Etheria Island Wiki",
       home: "Back to title",
+      settings: "Control settings",
       hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult"
     },
     starter: {
@@ -256,6 +274,7 @@ export const COPY = {
       ready: "READY",
       quit: "Quit",
       hudHint: "← → ↑ ↓   ENTER hit   Hold ENTER to fire ult",
+      hudHintTouch: "Left stick to move  ·  Right tap to hit  ·  Hold right to fire ult",
       ultFull: "Gauge full!  Hold ENTER on a spike to fire your ult",
       matchPoint: "MATCH POINT",
       matchSub: "Next point can end the game  ·  {who}",
@@ -276,6 +295,19 @@ export const COPY = {
       more: "{name} will not drop the streak!"
     },
     nav: { back: "Back" },
+    touch: {
+      move: "MOVE",
+      hit: "HIT",
+      rotate: "Turn the phone sideways for a bigger court  ·  Tap to hide"
+    },
+    settings: {
+      title: "Control settings",
+      sub: "Pick how you play on this device. Saved automatically.",
+      auto: "Automatic",
+      pc: "Computer  ·  Keyboard",
+      mobile: "Phone  ·  Touch pads",
+      note: "On phone, left stick moves, right tap hits, hold right to fire your ult."
+    },
     cheer: {
       classic: "Classic",
       classicBlurb: "The first cheer set. Free with your account.",
