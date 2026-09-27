@@ -23,20 +23,20 @@ export const COPY = {
       title: "SPIKE IT !!",
       tag: "วอลเลย์อาร์เคด  •  อสูรธาตุจิ๋ว  •  1v1 กับบอท",
       enter: "เล่น",
-      wiki: "Wiki",
+      wiki: "แผนที่โลก",
       settings: "ตั้งค่า",
       signedIn: "บัญชี  ·  {name}"
     },
     auth: {
       login: "ต้องเข้าสู่ระบบด้วย Gmail ก่อน จึงจะเล่นและเห็นข้อมูลในไอดีได้",
-      wikiFirst: "อ่าน Wiki ก่อน"
+      wikiFirst: "ดูแผนที่โลกก่อน"
     },
     hub: {
       title: "ล็อบบี้",
       stats: "{account}   ·   {name}   ·   ปลดล็อก {n}/4   ·   ตรา {tokens}   ·   PVP {pvp}",
       play: "เล่นกับบอท",
       shop: "ร้านค้า / ปลดล็อกตัวละคร",
-      wiki: "Wiki เกาะอีเธเรีย",
+      wiki: "แผนที่โลก",
       home: "กลับหน้าแรก",
       settings: "ตั้งค่า",
       hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ"
@@ -122,8 +122,8 @@ export const COPY = {
       talkNext: "รอบหน้าเก็บจังหวะเดิม แล้วลดความเสี่ยงตอนรับ"
     },
     wiki: {
-      title: "WIKI  ·  เกาะอีเธเรีย",
-      sub: "แผนที่โลกของซีรีส์  ·  หมุดคือที่อยู่",
+      title: "แผนที่โลก",
+      sub: "เกาะอีเธเรีย  ·  แตะหมุดเพื่อดูที่อยู่",
       tabStory: "เรื่องราว",
       tabRules: "กติกา",
       tabCast: "ธาตุทั้งสี่",
@@ -238,20 +238,20 @@ export const COPY = {
       title: "SPIKE IT !!",
       tag: "Arcade volleyball  •  Tiny elementals  •  1v1 vs a bot",
       enter: "Play",
-      wiki: "Wiki",
+      wiki: "World map",
       settings: "Settings",
       signedIn: "Signed in  ·  {name}"
     },
     auth: {
       login: "Sign in with Gmail to play and load your account",
-      wikiFirst: "Read the wiki first"
+      wikiFirst: "View the world map first"
     },
     hub: {
       title: "Lobby",
       stats: "{account}   ·   {name}   ·   Unlocked {n}/4   ·   Tokens {tokens}   ·   PVP {pvp}",
       play: "Play vs bot",
       shop: "Shop / unlock fighters",
-      wiki: "Etheria Island Wiki",
+      wiki: "World map",
       home: "Back to title",
       settings: "Settings",
       hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult"
@@ -337,8 +337,8 @@ export const COPY = {
       talkNext: "Keep the good beats. Cut the risky receives"
     },
     wiki: {
-      title: "WIKI  ·  Etheria Island",
-      sub: "World map of the series  ·  Pins mark homes",
+      title: "World map",
+      sub: "Etheria Island  ·  Tap a pin to see a home",
       tabStory: "Story",
       tabRules: "Rules",
       tabCast: "The four elements",
