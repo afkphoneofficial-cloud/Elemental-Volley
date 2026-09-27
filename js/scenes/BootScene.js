@@ -16,6 +16,7 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
     });
     this.load.image("ball-art", "assets/sprites/ball.png");
+    this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
       this.load.image("court-" + s, "assets/sprites/court-" + s + ".png");
       this.load.image("ref-" + s, "assets/sprites/ref-" + s + ".png");

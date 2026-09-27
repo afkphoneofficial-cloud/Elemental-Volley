@@ -27,7 +27,7 @@ export const RULES = {
           "ตบแรง 4 ครั้งเต็มเกจ",
           "หลังได้แต้มแล้ว ตีไม่เติมเกจจนกว่าเสิร์ฟใหม่",
           "ติดสถานะอยู่แล้ว ติดเพิ่มไม่ได้จนกว่าจะหมด",
-          "สกิลแต่ละตัวดูที่แท็บธาตุทั้งสี่"
+          "สกิลแต่ละตัวดูที่หมุดบนแผนที่เกาะ"
         ]
       }
     ]
@@ -60,7 +60,7 @@ export const RULES = {
           "4 power hits fill the gauge.",
           "After a point, hits do not fill until the next serve.",
           "Statuses do not stack. Wait until it ends.",
-          "Each fighter’s ult is on the Elements tab."
+          "Each fighter’s ult is on their island pin."
         ]
       }
     ]
