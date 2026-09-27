@@ -295,12 +295,12 @@ export async function mountLobbyStage() {
     const ground = Math.min(H - 16, g.bottom + 18);
     const landscape = W > H;
     const showMascots = padL >= 200 && padR >= 200 && !(landscape && H < 560);
+    let edge = null;
     if (showMascots) {
       const charSize = Math.min(150, Math.max(110, Math.min(padL, padR) * 0.7));
       drawSprite(layer, "volt_r", 72, ground + bob(2.2), charSize * 0.72, 0, 0.92);
       drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
-      drawSprite(layer, "ignis_r", g.left - 8, ground + jumpL, charSize * squashL);
-      drawSprite(layer, "aqua_l", g.right + 8, ground + jumpR, charSize * squashR);
+      edge = { charSize, ignisY: ground + jumpL, aquaY: ground + jumpR, squashL, squashR };
     }
     if (padT >= 60) {
       const refSize = Math.min(132, padT - 8);
@@ -413,6 +413,10 @@ export async function mountLobbyStage() {
       layer.restore();
     }
     if (clipped) fg.restore();
+    if (edge) {
+      drawSprite(layer, "ignis_r", g.left - 8, edge.ignisY, edge.charSize * edge.squashL);
+      drawSprite(layer, "aqua_l", g.right + 8, edge.aquaY, edge.charSize * edge.squashR);
+    }
 
     if (!reduced) raf = requestAnimationFrame(loop);
   };
