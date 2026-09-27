@@ -44,9 +44,32 @@ I18n.load();
 I18n.mountToggle();
 mountLobbyStage();
 TouchControls.mount();
-const refreshScale = () => {
-  if (window.game && window.game.scale) window.game.scale.refresh();
+const layoutShell = () => {
+  const wrap = document.getElementById("wrap");
+  const box = document.getElementById("game");
+  const vv = window.visualViewport;
+  const vw = vv ? vv.width : window.innerWidth;
+  const vh = vv ? vv.height : window.innerHeight;
+  if (wrap) {
+    wrap.style.top = (vv ? vv.offsetTop : 0) + "px";
+    wrap.style.left = (vv ? vv.offsetLeft : 0) + "px";
+    wrap.style.width = vw + "px";
+    wrap.style.height = vh + "px";
+  }
   TouchControls.sync();
+  if (box) {
+    const cap = document.documentElement.dataset.control === "pc" ? 1280 : Number.POSITIVE_INFINITY;
+    const width = Math.min(vw, vh * (16 / 9), cap);
+    const height = width * (9 / 16);
+    box.style.width = Math.round(width) + "px";
+    box.style.height = Math.round(height) + "px";
+  }
+  if (window.game && window.game.scale) window.game.scale.refresh();
 };
-window.addEventListener("resize", refreshScale);
-window.addEventListener("orientationchange", () => setTimeout(refreshScale, 200));
+window.addEventListener("resize", layoutShell);
+window.addEventListener("orientationchange", () => setTimeout(layoutShell, 200));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", layoutShell);
+  window.visualViewport.addEventListener("scroll", layoutShell);
+}
+layoutShell();
