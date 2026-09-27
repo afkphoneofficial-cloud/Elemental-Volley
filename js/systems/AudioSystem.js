@@ -53,15 +53,23 @@ function pickMenuSrc(avoid) {
   return src;
 }
 
+function resumeMusic() {
+  ensure();
+  if (!musicEl || !musicEl.paused) return;
+  const p = musicEl.play();
+  if (p && p.catch) p.catch(() => {});
+}
+
 function playFileTheme(id) {
-  if (themeId === id && musicEl && !musicEl.paused) {
+  if (themeId === id && musicEl) {
     applyMusicVol();
+    resumeMusic();
     return true;
   }
   haltMusic();
   themeId = id;
   const src = id === "menu" ? pickMenuSrc() : (BGM_SRC[id] || BGM_SRC.menu);
-  attachMusic(id, src, id === "menu" ? [src] : []);
+  attachMusic(id, src, []);
   return true;
 }
 
@@ -306,11 +314,7 @@ function jumpTerra() {
 
 export const AudioSystem = {
   unlock() {
-    ensure();
-    if (musicEl && musicEl.paused) {
-      const p = musicEl.play();
-      if (p && p.catch) p.catch(() => {});
-    }
+    resumeMusic();
   },
 
   getMusicVol() {
@@ -335,6 +339,10 @@ export const AudioSystem = {
 
   mountDock() {
     readStoredVol();
+    const kick = () => this.unlock();
+    window.addEventListener("pointerdown", kick, true);
+    window.addEventListener("keydown", kick, true);
+    window.addEventListener("touchstart", kick, true);
     const slider = document.getElementById("vol-slider");
     const label = document.getElementById("vol-pct");
     if (!slider) return;
