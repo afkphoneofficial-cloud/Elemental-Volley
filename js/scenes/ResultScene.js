@@ -67,9 +67,9 @@ export class ResultScene extends Phaser.Scene {
     this.keep(v, card);
 
     const refKey = this.textures.exists("vis_ref_" + this.courtId) ? "vis_ref_" + this.courtId : "vis_ignis";
-    this.keep(v, this.add.circle(W / 2 - 248, 250, 118, pal.glow, 0.22).setDepth(7));
-    this.keep(v, this.add.image(W / 2 - 248, 250, refKey).setDisplaySize(210, 210).setDepth(8));
-    this.keep(v, this.add.circle(W / 2 - 248, 250, 108, 0x000000, 0).setStrokeStyle(6, pal.glow, 0.95).setDepth(8));
+    this.keep(v, this.add.circle(W / 2 - 248, 250, 128, pal.glow, 0.22).setDepth(7));
+    this.keep(v, this.add.image(W / 2 - 248, 250, refKey).setDisplaySize(248, 248).setDepth(8));
+    this.keep(v, this.add.circle(W / 2 - 248, 250, 118, 0x000000, 0).setStrokeStyle(6, pal.glow, 0.95).setDepth(8));
 
     this.mark = this.keep(v, this.add.text(W / 2 + 150, 128, "", {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: this.win ? "#c8ff3a" : "#ffb0c8"
@@ -111,9 +111,9 @@ export class ResultScene extends Phaser.Scene {
     this.keep(g, card);
 
     const refKey = this.textures.exists("vis_ref_" + this.courtId) ? "vis_ref_" + this.courtId : "vis_ignis";
-    this.keep(g, this.add.circle(168, 168, 78, pal.glow, 0.28).setDepth(7));
-    this.keep(g, this.add.image(168, 168, refKey).setDisplaySize(140, 140).setDepth(8));
-    this.keep(g, this.add.circle(168, 168, 72, 0x000000, 0).setStrokeStyle(5, pal.glow, 0.95).setDepth(8));
+    this.keep(g, this.add.circle(168, 168, 90, pal.glow, 0.28).setDepth(7));
+    this.keep(g, this.add.image(168, 168, refKey).setDisplaySize(168, 168).setDepth(8));
+    this.keep(g, this.add.circle(168, 168, 84, 0x000000, 0).setStrokeStyle(5, pal.glow, 0.95).setDepth(8));
     this.statsRef = this.keep(g, this.add.text(168, 258, "", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5).setDepth(8));

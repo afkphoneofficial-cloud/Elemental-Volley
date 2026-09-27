@@ -225,7 +225,7 @@ export class PlayScene extends Phaser.Scene {
     const key = this.textures.exists("vis_ref_" + this.season) ? "vis_ref_" + this.season : "vis_ignis";
     const x = GAME.netX;
     const y = GAME.netTop + 6;
-    this.ref = this.add.image(x, y, key).setDisplaySize(86, 86).setOrigin(0.5, 1).setDepth(6);
+    this.ref = this.add.image(x, y, key).setDisplaySize(CHAR * 1.12, CHAR * 1.12).setOrigin(0.5, 1).setDepth(6);
     this.tweens.add({
       targets: this.ref,
       y: y - 5,

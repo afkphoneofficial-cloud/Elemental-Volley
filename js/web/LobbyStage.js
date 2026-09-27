@@ -287,7 +287,7 @@ export async function mountLobbyStage() {
     drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
     drawSprite(layer, "ignis_r", leftX, ground + jumpL, charSize * squashL);
     drawSprite(layer, "aqua_l", rightX, ground + jumpR, charSize * squashR);
-    drawSprite(layer, "ref_" + courtA, midX, Math.max(86, g.top - 6) + bob(0.4), 86, 0, 0.95);
+    drawSprite(layer, "ref_" + courtA, midX, Math.max(86, g.top - 6) + bob(0.4), 148, 0, 0.95);
 
     const box = { x0: 40, y0: 36, x1: W - 40, y1: Math.max(110, Math.min(H * 0.5, (g.top || H * 0.5) - 16)) };
     if (!reduced) {
