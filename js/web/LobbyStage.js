@@ -257,14 +257,12 @@ export async function mountLobbyStage() {
 
     const game = document.getElementById("game");
     const g = game ? game.getBoundingClientRect() : { left: W * 0.18, right: W * 0.82, top: H * 0.12, bottom: H * 0.82, width: W * 0.64, height: H * 0.7 };
-    const ground = Math.min(H - 28, g.bottom + 18);
-    const leftX = g.left > 88 ? g.left - 8 : 70;
-    const rightX = W - g.right > 88 ? g.right + 8 : W - 70;
-    const midX = (g.left + g.right) * 0.5;
-    const charSize = Math.max(100, Math.min(150, Math.max(g.left, W - g.right, 110) * 1.15));
-    const hitPulse = reduced ? 0 : (Math.sin(t * 4.2) + 1) * 0.5;
-    const hitL = hitPulse > 0.86;
-    const hitR = hitPulse < 0.14;
+    const padL = g.left;
+    const padR = W - g.right;
+    const padT = g.top;
+    const padB = H - g.bottom;
+    const foot = document.getElementById("site-foot");
+    if (foot) foot.style.visibility = padB > 28 ? "visible" : "hidden";
 
     spark.forEach((p) => {
       const y = ((p.y + t * p.sp) % 1.15) - 0.08;
@@ -278,19 +276,48 @@ export async function mountLobbyStage() {
 
     const layer = fg || ctx;
     const bob = (k) => reduced ? 0 : Math.sin(t * 3.2 + k) * 7;
+    const hitPulse = reduced ? 0 : (Math.sin(t * 4.2) + 1) * 0.5;
+    const hitL = hitPulse > 0.86;
+    const hitR = hitPulse < 0.14;
     const squashL = hitL ? 0.86 : 1;
     const squashR = hitR ? 0.86 : 1;
     const jumpL = hitL ? -18 : bob(0);
     const jumpR = hitR ? -18 : bob(1.7);
+    const clipped = !!fg;
+    if (clipped) {
+      fg.save();
+      fg.beginPath();
+      fg.rect(0, 0, W, H);
+      fg.rect(g.left, g.top, g.width, g.height);
+      fg.clip("evenodd");
+    }
 
-    drawSprite(layer, "volt_r", 72, ground + bob(2.2), charSize * 0.72, 0, 0.92);
-    drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
-    drawSprite(layer, "ignis_r", leftX, ground + jumpL, charSize * squashL);
-    drawSprite(layer, "aqua_l", rightX, ground + jumpR, charSize * squashR);
-    drawSprite(layer, "ref_" + courtA, midX, Math.max(86, g.top - 6) + bob(0.4), 148, 0, 0.95);
+    const ground = H - Math.max(10, Math.min(22, padB * 0.35));
+    if (padL >= 70) {
+      const sz = Math.min(150, padL * 1.15);
+      const x = Math.max(sz * 0.42, padL * 0.48);
+      drawSprite(layer, "volt_r", Math.max(36, x * 0.55), ground + bob(2.2), sz * 0.72, 0, 0.92);
+      drawSprite(layer, "ignis_r", x, ground + jumpL, sz * squashL);
+    }
+    if (padR >= 70) {
+      const sz = Math.min(150, padR * 1.15);
+      const x = W - Math.max(sz * 0.42, padR * 0.48);
+      drawSprite(layer, "terra_l", W - Math.max(32, padR * 0.28), ground + bob(3.1), sz * 0.72, 0, 0.92);
+      drawSprite(layer, "aqua_l", x, ground + jumpR, sz * squashR);
+    }
+    if (padT >= 60) {
+      const refSize = Math.min(132, padT - 8);
+      drawSprite(layer, "ref_" + courtA, (g.left + g.right) * 0.5, g.top - 2 + bob(0.4), refSize, 0, 0.95);
+    }
 
-    const box = { x0: 40, y0: 36, x1: W - 40, y1: Math.max(110, Math.min(H * 0.5, (g.top || H * 0.5) - 16)) };
-    if (!reduced) {
+    const box = {
+      x0: 24,
+      y0: Math.max(18, 8),
+      x1: W - 24,
+      y1: padT - 12
+    };
+    const showBall = box.y1 - box.y0 >= 36;
+    if (showBall && !reduced) {
       flyer.vx += Math.sin(t * 0.7) * 18 * dt + (Math.random() - 0.5) * 40 * dt;
       flyer.vy += Math.cos(t * 0.93) * 16 * dt + (Math.random() - 0.5) * 36 * dt;
       const spd = Math.hypot(flyer.vx, flyer.vy);
@@ -322,70 +349,73 @@ export async function mountLobbyStage() {
       if (flyer.bits.length > 90) flyer.bits.splice(0, flyer.bits.length - 90);
     }
 
-    const pal = ULT_FX[flyer.id] || ULT_FX.ignis;
-    for (let i = flyer.bits.length - 1; i >= 0; i -= 1) {
-      const b = flyer.bits[i];
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      if (flyer.id === "ignis") b.vy -= 40 * dt;
-      if (flyer.id === "aqua") b.vy += 30 * dt;
-      b.life -= dt * 1.6;
-      if (b.life <= 0) flyer.bits.splice(i, 1);
-      else {
-        layer.globalAlpha = Math.max(0, b.life);
-        layer.fillStyle = b.c;
-        layer.beginPath();
-        layer.arc(b.x, b.y, b.r * b.life, 0, Math.PI * 2);
-        layer.fill();
+    if (showBall) {
+      const pal = ULT_FX[flyer.id] || ULT_FX.ignis;
+      for (let i = flyer.bits.length - 1; i >= 0; i -= 1) {
+        const b = flyer.bits[i];
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        if (flyer.id === "ignis") b.vy -= 40 * dt;
+        if (flyer.id === "aqua") b.vy += 30 * dt;
+        b.life -= dt * 1.6;
+        if (b.life <= 0) flyer.bits.splice(i, 1);
+        else {
+          layer.globalAlpha = Math.max(0, b.life);
+          layer.fillStyle = b.c;
+          layer.beginPath();
+          layer.arc(b.x, b.y, b.r * b.life, 0, Math.PI * 2);
+          layer.fill();
+        }
       }
-    }
-    layer.globalAlpha = 1;
-
-    layer.save();
-    const pulse = 26 + Math.sin(t * 6) * 6;
-    const glow = layer.createRadialGradient(flyer.x, flyer.y, 6, flyer.x, flyer.y, pulse + 18);
-    glow.addColorStop(0, pal.glow);
-    glow.addColorStop(1, "rgba(255,255,255,0)");
-    layer.fillStyle = glow;
-    layer.beginPath();
-    layer.arc(flyer.x, flyer.y, pulse + 18, 0, Math.PI * 2);
-    layer.fill();
-    if (flyer.id === "volt" && Math.random() < 0.14) {
-      layer.strokeStyle = pal.rim;
-      layer.lineWidth = 2;
-      layer.beginPath();
-      layer.moveTo(flyer.x, flyer.y);
-      let lx = flyer.x;
-      let ly = flyer.y;
-      for (let k = 0; k < 4; k += 1) {
-        lx += (Math.random() - 0.5) * 28;
-        ly += 10 + Math.random() * 16;
-        layer.lineTo(lx, ly);
-      }
-      layer.stroke();
-    }
-    if (flyer.id === "aqua") {
-      layer.strokeStyle = pal.rim;
-      layer.lineWidth = 2;
-      layer.globalAlpha = 0.55;
-      layer.beginPath();
-      layer.arc(flyer.x, flyer.y, 22 + (t * 40) % 18, 0, Math.PI * 2);
-      layer.stroke();
       layer.globalAlpha = 1;
-    }
-    if (arts.ball) {
+
       layer.save();
-      layer.translate(flyer.x, flyer.y);
-      layer.rotate(flyer.rot);
-      layer.drawImage(arts.ball, -28, -28, 56, 56);
+      const pulse = 26 + Math.sin(t * 6) * 6;
+      const glow = layer.createRadialGradient(flyer.x, flyer.y, 6, flyer.x, flyer.y, pulse + 18);
+      glow.addColorStop(0, pal.glow);
+      glow.addColorStop(1, "rgba(255,255,255,0)");
+      layer.fillStyle = glow;
       layer.beginPath();
-      layer.arc(0, 0, 27, 0, Math.PI * 2);
-      layer.strokeStyle = pal.rim;
-      layer.lineWidth = 4;
-      layer.stroke();
+      layer.arc(flyer.x, flyer.y, pulse + 18, 0, Math.PI * 2);
+      layer.fill();
+      if (flyer.id === "volt" && Math.random() < 0.14) {
+        layer.strokeStyle = pal.rim;
+        layer.lineWidth = 2;
+        layer.beginPath();
+        layer.moveTo(flyer.x, flyer.y);
+        let lx = flyer.x;
+        let ly = flyer.y;
+        for (let k = 0; k < 4; k += 1) {
+          lx += (Math.random() - 0.5) * 28;
+          ly += 10 + Math.random() * 16;
+          layer.lineTo(lx, ly);
+        }
+        layer.stroke();
+      }
+      if (flyer.id === "aqua") {
+        layer.strokeStyle = pal.rim;
+        layer.lineWidth = 2;
+        layer.globalAlpha = 0.55;
+        layer.beginPath();
+        layer.arc(flyer.x, flyer.y, 22 + (t * 40) % 18, 0, Math.PI * 2);
+        layer.stroke();
+        layer.globalAlpha = 1;
+      }
+      if (arts.ball) {
+        layer.save();
+        layer.translate(flyer.x, flyer.y);
+        layer.rotate(flyer.rot);
+        layer.drawImage(arts.ball, -28, -28, 56, 56);
+        layer.beginPath();
+        layer.arc(0, 0, 27, 0, Math.PI * 2);
+        layer.strokeStyle = pal.rim;
+        layer.lineWidth = 4;
+        layer.stroke();
+        layer.restore();
+      }
       layer.restore();
     }
-    layer.restore();
+    if (clipped) fg.restore();
 
     if (!reduced) raf = requestAnimationFrame(loop);
   };
