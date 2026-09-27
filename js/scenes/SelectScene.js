@@ -12,10 +12,12 @@ export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
 
   create() {
-    this.input.setTopOnly(false);
+    this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;
-    this.pick = SaveSystem.data.starterId;
+    this.pick = SaveSystem.isUnlocked(SaveSystem.data.starterId)
+      ? SaveSystem.data.starterId
+      : ROSTER_IDS.find((id) => SaveSystem.isUnlocked(id)) || SaveSystem.data.starterId;
     this.diff = "normal";
     this.cards = [];
 
@@ -34,6 +36,7 @@ export class SelectScene extends Phaser.Scene {
         emitting: false
       });
       this.hopSpark.setDepth(12);
+      if (this.hopSpark.disableInteractive) this.hopSpark.disableInteractive();
     } catch (e) {
       this.hopSpark = null;
     }
@@ -48,7 +51,6 @@ export class SelectScene extends Phaser.Scene {
       const plate = this.add.circle(x, y, PLATE_R, SELECT_PLATE[id], 1)
         .setStrokeStyle(3, 0xfff6ea, 0.95)
         .setDepth(5);
-      const hit = this.add.circle(x, y, PLATE_R, 0x000000, 0.001).setDepth(15);
       const orbit = this.add.graphics().setDepth(8);
       const hopGfx = this.add.graphics().setDepth(9);
       const sprite = this.add.image(x, y + 8, key)
@@ -56,6 +58,7 @@ export class SelectScene extends Phaser.Scene {
         .setAlpha(unlocked ? 1 : 0.28)
         .setDepth(10);
       const form = this.add.image(x, y, "jump-fire").setDepth(11).setVisible(false);
+      if (form.disableInteractive) form.disableInteractive();
       const lockGfx = this.add.graphics().setDepth(13);
       if (!unlocked) drawLock(lockGfx, x, y);
 
@@ -70,30 +73,14 @@ export class SelectScene extends Phaser.Scene {
 
       const card = {
         id, x, y, unlocked, plate, sprite, form, orbit, hopGfx, lockGfx,
-        hover: false, hopping: false, landY: y + 8, main: data.colors.main
+        hopping: false, landY: y + 8, main: data.colors.main
       };
       this.cards.push(card);
 
-      hit.setInteractive({
-        hitArea: new Phaser.Geom.Circle(0, 0, PLATE_R),
-        hitAreaCallback: Phaser.Geom.Circle.Contains,
-        useHandCursor: unlocked
-      });
-      hit.on("pointerover", () => {
-        if (!unlocked) return;
-        card.hover = true;
-        this.hopOnce(card);
-      });
-      hit.on("pointerout", () => {
-        card.hover = false;
-        card.orbit.clear();
-        paintHopFx(card.hopGfx, card.form, null, card.x, card.sprite.y, card.landY, card.id, 0, 130, false);
-        this.tweens.killTweensOf(card.sprite);
-        card.hopping = false;
-        card.sprite.y = card.landY;
-      });
       if (unlocked) {
-        hit.on("pointerdown", () => {
+        plate.setInteractive({ useHandCursor: true });
+        plate.on("pointerdown", () => {
+          if (this.pick === id) return;
           this.pick = id;
           this.refreshPick();
           AudioSystem.ui();
@@ -132,8 +119,20 @@ export class SelectScene extends Phaser.Scene {
     makeButton(this, 120, 48, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
   }
 
+  isActiveCard(card) {
+    return card.unlocked && card.id === this.pick;
+  }
+
+  stopHop(card) {
+    this.tweens.killTweensOf(card.sprite);
+    card.hopping = false;
+    card.sprite.y = card.landY;
+    card.orbit.clear();
+    paintHopFx(card.hopGfx, card.form, null, card.x, card.sprite.y, card.landY, card.id, 0, 130, false);
+  }
+
   hopOnce(card) {
-    if (!card.hover || !card.unlocked || card.hopping) return;
+    if (!this.isActiveCard(card) || card.hopping) return;
     card.hopping = true;
     this.tweens.add({
       targets: card.sprite,
@@ -145,7 +144,7 @@ export class SelectScene extends Phaser.Scene {
       onComplete: () => {
         card.hopping = false;
         card.sprite.y = card.landY;
-        if (card.hover) this.time.delayedCall(90, () => this.hopOnce(card));
+        if (this.isActiveCard(card)) this.time.delayedCall(90, () => this.hopOnce(card));
       }
     });
   }
@@ -156,22 +155,23 @@ export class SelectScene extends Phaser.Scene {
       diff: t("select.diff" + this.diff[0].toUpperCase() + this.diff.slice(1))
     }));
     this.cards.forEach((card) => {
-      const selected = card.id === this.pick;
+      const selected = this.isActiveCard(card);
       card.plate.setStrokeStyle(selected ? 6 : 3, selected ? card.main : 0xfff6ea, selected ? 1 : 0.95);
+      if (selected) this.hopOnce(card);
+      else this.stopHop(card);
     });
   }
 
   update(_t, now) {
     this.cards.forEach((card) => {
-      if (card.hover && card.unlocked) {
-        card.orbit.clear();
-        drawOrbit(card.orbit, card.x, card.y, PLATE_R + 6, now, card.id);
-        const rising = card.sprite.y < card.landY - 2;
-        paintHopFx(
-          card.hopGfx, card.form, this.hopSpark,
-          card.x, card.sprite.y, card.landY, card.id, now, 130, rising
-        );
-      }
+      if (!this.isActiveCard(card)) return;
+      card.orbit.clear();
+      drawOrbit(card.orbit, card.x, card.y, PLATE_R + 6, now, card.id);
+      const rising = card.sprite.y < card.landY - 2;
+      paintHopFx(
+        card.hopGfx, card.form, this.hopSpark,
+        card.x, card.sprite.y, card.landY, card.id, now, 130, rising
+      );
     });
   }
 }
