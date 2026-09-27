@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.evolley.dev" }],
+      "destination": "https://evolley.dev/:path*",
+      "permanent": true
+    }
+  ]
+}

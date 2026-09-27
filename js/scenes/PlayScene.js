@@ -16,6 +16,7 @@ import {
 import { HitFx, ELEMENT_FX } from "../fx/HitFx.js";
 import { syncJumpForm } from "../fx/JumpForm.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
+import { UltCutIn } from "../fx/UltCutIn.js";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import {
@@ -50,6 +51,11 @@ export class PlayScene extends Phaser.Scene {
     this.matchOver = false;
     this.roundEnded = false;
     this.slowMoLeft = 0;
+    this.pointSlowMs = 0;
+    this.roundHoldMs = 0;
+    this.worldRate = 1;
+    this.ultFreezeLeft = 0;
+    this.justUlted = false;
     this.readyFrames = 25;
     this.physAcc = 0;
     this.stepMs = 1000 / PHYSICS.fps;
@@ -127,9 +133,13 @@ export class PlayScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(12);
     try { this.fx = new HitFx(this); } catch (e) { this.fx = { pop() {}, ultPop() {} }; }
     this.cheer = new CheerPopup(this);
+    this.ultCut = new UltCutIn(this);
     this.events.once("shutdown", () => {
       window.removeEventListener("ev-lang", this._onLang);
       try { this.cheer.destroy(); } catch (e) {}
+      try { this.ultCut.destroy(); } catch (e) {}
+      this.tweens.timeScale = 1;
+      if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
       AudioSystem.playMenu();
     });
     this.buildHud();
@@ -388,6 +398,11 @@ export class PlayScene extends Phaser.Scene {
     this.physicsPack.ball.initializeForNewRound(this.p2Serves);
     this.roundEnded = false;
     this.slowMoLeft = 0;
+    this.pointSlowMs = 0;
+    this.roundHoldMs = 0;
+    this.worldRate = 1;
+    this.tweens.timeScale = 1;
+    if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
     this.readyFrames = 25;
     this.showBanner(t("play.ready"), "#fff4e8");
     this.syncSprites();
@@ -396,9 +411,10 @@ export class PlayScene extends Phaser.Scene {
   update(_t, delta) {
     this.tickWeather();
     this.pulseMatchPoint();
-    if (this.matchOver) return;
+    this.tickPointSlow(delta);
+    if (this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) return;
 
-    this.physAcc += Math.min(delta, 80);
+    this.physAcc += Math.min(delta, 80) * this.worldRate;
     let stepped = false;
     while (this.physAcc >= this.stepMs) {
       this.physAcc -= this.stepMs;
@@ -408,9 +424,31 @@ export class PlayScene extends Phaser.Scene {
     if (!stepped) this.syncSprites();
   }
 
+  tickPointSlow(delta) {
+    if (this.roundEnded) this.roundHoldMs -= delta;
+    if (this.pointSlowMs > 0) {
+      this.pointSlowMs -= delta;
+      this.worldRate = 0.4;
+      this.tweens.timeScale = 0.4;
+      if (this.pointSlowMs <= 0) {
+        this.worldRate = 1;
+        this.tweens.timeScale = 1;
+        if (this.cameras && this.cameras.main) this.cameras.main.zoomTo(1, 160);
+      }
+    } else {
+      this.worldRate = 1;
+      this.tweens.timeScale = 1;
+    }
+  }
+
   stepPhysics() {
     if (this.readyFrames > 0) {
       this.readyFrames -= 1;
+      this.syncSprites();
+      return;
+    }
+    if (this.ultFreezeLeft > 0) {
+      this.ultFreezeLeft -= 1;
       this.syncSprites();
       return;
     }
@@ -422,9 +460,8 @@ export class PlayScene extends Phaser.Scene {
     this.handleSounds();
 
     if (hitGround && !this.roundEnded) this.onPoint();
-    if (this.roundEnded) {
-      if (this.slowMoLeft > 0) this.slowMoLeft -= 1;
-      else if (!this.matchOver) this.resetRound();
+    if (this.roundEnded && !this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
+      this.resetRound();
     }
 
     this.syncSprites();
@@ -535,7 +572,12 @@ export class PlayScene extends Phaser.Scene {
 
   onPoint() {
     this.roundEnded = true;
-    this.slowMoLeft = 38;
+    this.justUlted = false;
+    this.pointSlowMs = 500;
+    this.roundHoldMs = 1400;
+    this.worldRate = 0.4;
+    this.tweens.timeScale = 0.4;
+    if (this.cameras && this.cameras.main) this.cameras.main.zoomTo(1.06, 90);
     const leftLand = this.physicsPack.ball.punchEffectX < GROUND_HALF_WIDTH;
     if (leftLand) {
       this.score[1] += 1;
@@ -574,10 +616,13 @@ export class PlayScene extends Phaser.Scene {
       this.matchOver = true;
       this.mpL.setText("");
       this.mpR.setText("");
-      this.time.delayedCall(1700, () => {
+      this.time.delayedCall(2200, () => {
         this.scene.start("result", {
           winner: youScore >= GAME.winScore ? 1 : 2,
-          score: { p1: youScore, p2: botScore }
+          score: { p1: youScore, p2: botScore },
+          courtId: this.season,
+          youId: this.youData.id,
+          botId: this.botData.id
         });
       });
     } else if ((mpL || mpR) && !this.hadMatchPoint) {
@@ -629,6 +674,13 @@ export class PlayScene extends Phaser.Scene {
 
   playUlt(ult) {
     if (!ult) return;
+    const courtSide = ult.side === 0 ? 1 : 2;
+    this.ultFreezeLeft = 13;
+    this.justUlted = true;
+    this.ultArmed = false;
+    this.enterHold = 0;
+    this.ultCut.show(courtSide, ult.id, this.faceKey(ult.id, courtSide));
+    this.cameras.main.flash(70, 255, 236, 210);
     const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };
     this.showBanner(names[ult.id] || "ULTIMATE", "#ffe08a");
     if (ult.id === "ignis") this.cameras.main.shake(280, 0.01);

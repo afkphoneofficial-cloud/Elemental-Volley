@@ -7,8 +7,8 @@ export const WORLD = {
   height: 304,
   half: GROUND_HALF_WIDTH,
   playerGroundY: 244,
-  ballGroundY: 252,
-  ballR: 20,
+  ballGroundY: 257,
+  ballR: 15,
   playerLen: 64
 };
 

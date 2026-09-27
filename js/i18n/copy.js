@@ -84,7 +84,12 @@ export const COPY = {
       total: "รวมตอนนี้  PVP {pvp}   ·   ตรา {tokens}",
       again: "เล่นอีกครั้ง",
       shop: "ร้านค้าปลดล็อก",
-      hub: "กลับล็อบบี้"
+      hub: "กลับล็อบบี้",
+      winMark: "ชนะการแข่งขัน",
+      loseMark: "แพ้การแข่งขัน",
+      refLabel: "คำตัดสินจาก {name}",
+      youTag: "คุณ  ·  {name}",
+      botTag: "คู่แข่ง  ·  {name}"
     },
     wiki: {
       title: "WIKI  ·  เกาะอีเธเรีย",
@@ -133,12 +138,16 @@ export const COPY = {
     court: {
       summer: "ฤดูร้อน",
       summerFlavor: "ชายหาดแดดจัด",
+      summerRef: "กรรมการแดด",
       rain: "ฤดูฝน",
       rainFlavor: "ฝนตกพรำๆ",
+      rainRef: "กรรมการฝน",
       spring: "ฤดูใบไม้ผลิ",
       springFlavor: "กลีบซากุระร่วง",
+      springRef: "กรรมการซากุระ",
       winter: "ฤดูหนาว",
-      winterFlavor: "หิมะโปรยปราย"
+      winterFlavor: "หิมะโปรยปราย",
+      winterRef: "กรรมการหิมะ"
     }
   },
   en: {
@@ -224,7 +233,12 @@ export const COPY = {
       total: "Now  PVP {pvp}   ·   Tokens {tokens}",
       again: "Play again",
       shop: "Unlock shop",
-      hub: "Back to lobby"
+      hub: "Back to lobby",
+      winMark: "Match won",
+      loseMark: "Match lost",
+      refLabel: "Ruling from {name}",
+      youTag: "You  ·  {name}",
+      botTag: "Rival  ·  {name}"
     },
     wiki: {
       title: "WIKI  ·  Etheria Island",
@@ -273,12 +287,16 @@ export const COPY = {
     court: {
       summer: "Summer",
       summerFlavor: "A blazing beach",
+      summerRef: "Sun ref",
       rain: "Rainy season",
       rainFlavor: "A light, steady rain",
+      rainRef: "Rain ref",
       spring: "Spring",
       springFlavor: "Falling cherry petals",
+      springRef: "Sakura ref",
       winter: "Winter",
-      winterFlavor: "Snow drifting down"
+      winterFlavor: "Snow drifting down",
+      winterRef: "Snow ref"
     }
   }
 };

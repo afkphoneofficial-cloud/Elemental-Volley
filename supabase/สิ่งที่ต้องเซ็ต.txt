@@ -1,26 +1,41 @@
-สิ่งที่ต้องไปเปิด (ทำครั้งเดียว)
+สิ่งที่ต้องไปเปิด (ทำครั้งเดียว) — เมื่อจะเปิดล็อกอิน
+
+เว็บจริงตอนนี้
+  https://evolley.dev
+  https://www.evolley.dev  (เด้งมาโดเมนหลัก)
+  https://elemental-volley.vercel.app
+
+ยังไม่ต้องทำจนกว่าจะเริ่มงานล็อกอิน
+ไม่ต้องใช้ Cloudflare
+
 
 1) Google Cloud Console
    - OAuth client ที่ให้มาใช้ได้ (นี่คือ Client ID ไม่ใช่รหัสลับ)
-   - Authorized JavaScript origins ใส่ URL ที่เปิดเกมจริง เช่น
+   - Authorized JavaScript origins ใส่
+       https://evolley.dev
+       https://www.evolley.dev
+       https://elemental-volley.vercel.app
        http://localhost:5500
        http://127.0.0.1:5500
-       https://โดเมนจริงของคุณ
    - อย่าเปิดเกมด้วยไฟล์ file:// Google จะไม่ยอม
    - คัดลอก Client Secret ไปใส่ใน Supabase เท่านั้น ห้ามใส่ในเกม
 
-2) Supabase (แนะนำ — เป็นฐานข้อมูลลูกค้า + login)
+2) Supabase (ฐานข้อมูลลูกค้า + login คลาวด์)
    - สร้างโปรเจกต์
    - Authentication → Providers → Google
        Client IDs = 441173887104-aked2gdmq0co0fou4hlq3vsj0ra4q6ms.apps.googleusercontent.com
        Client Secret = จาก Google Cloud
+   - Authentication → URL Configuration
+       Site URL = https://evolley.dev
+       Redirect URLs ใส่โดเมนด้านบนทั้งหมด และ
+       https://<โปรเจกต์>.supabase.co/auth/v1/callback
    - SQL Editor รันไฟล์ supabase/schema.sql
    - Settings → API คัดลอก Project URL กับ anon public key
    - วางลง js/config/backend.js ที่ supabaseUrl และ supabaseAnonKey
+   - ค่อยให้ BootScene ไปหน้า auth แทน menu
 
-3) Vercel (ตอนจะขึ้นเน็ต)
-   - Deploy โฟลเดอร์เกม
-   - เอาโดเมน Vercel ไปเพิ่มใน Google origins และ Supabase redirect URLs
-       https://<โปรเจกต์>.supabase.co/auth/v1/callback
+3) Vercel
+   - Deploy จาก GitHub แล้ว (โปรเจกต์ elemental-volley)
+   - โดเมนผูกแล้ว ไม่ต้องซื้อโฮสต์ Porkbun ไม่ต้องย้าย nameserver
 
 ยังไม่ต้องใช้ Stripe จนกว่าร้านค้าจะรับเงินจริง

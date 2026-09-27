@@ -40,10 +40,12 @@ const PLAYER_LENGTH = 64;
 const PLAYER_HALF_LENGTH = (PLAYER_LENGTH / 2) | 0; // integer division
 /** @constant @type {number} player's y coordinate when they are touching ground */
 const PLAYER_TOUCHING_GROUND_Y_COORD = 244;
-/** @constant @type {number} ball's radius */
-const BALL_RADIUS = 20;
+/** @constant @type {number} original ball radius was 20; 75% size for a tighter hit */
+const BALL_RADIUS = 15;
+/** Player AABB half-size vs ball, shrunk with the smaller ball */
+const BALL_HIT_HALF = PLAYER_HALF_LENGTH - (20 - BALL_RADIUS);
 /** @constant @type {number} ball's y coordinate when it is touching ground */
-const BALL_TOUCHING_GROUND_Y_COORD = 252;
+const BALL_TOUCHING_GROUND_Y_COORD = 252 + (20 - BALL_RADIUS);
 /** @constant @type {number} net pillar's half width (this value is on this physics engine only, not on the sprite pixel size) */
 const NET_PILLAR_HALF_WIDTH = 25;
 /** @constant @type {number} net pillar top's top side y coordinate */
@@ -391,9 +393,9 @@ function physicsEngine(player1, player2, ball, userInputArray) {
  */
 function isCollisionBetweenBallAndPlayerHappened(ball, playerX, playerY) {
  let diff = ball.x - playerX;
- if (Math.abs(diff) <= PLAYER_HALF_LENGTH) {
+ if (Math.abs(diff) <= BALL_HIT_HALF) {
  diff = ball.y - playerY;
- if (Math.abs(diff) <= PLAYER_HALF_LENGTH) {
+ if (Math.abs(diff) <= BALL_HIT_HALF) {
  return true;
  }
  }
