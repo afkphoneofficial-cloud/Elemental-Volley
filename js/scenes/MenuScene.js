@@ -13,7 +13,7 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: UI_FONT,
       fontSize: "18px",
       fontStyle: "700",
-      color: "#ffb56a",
+      color: "#c45a16",
       letterSpacing: 10
     }).setOrigin(0.5);
 
@@ -21,7 +21,7 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: UI_FONT,
       fontSize: "72px",
       fontStyle: "900",
-      color: "#fff6ea",
+      color: "#3a2418",
       stroke: "#ff6a22",
       strokeThickness: 1
     }).setOrigin(0.5).setShadow(0, 10, "#ff6a2288", 24, true, true);
@@ -29,23 +29,23 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(W / 2, 268, t("menu.tag"), {
       fontFamily: UI_FONT,
       fontSize: "20px",
-      color: "#cbb8e8"
+      color: "#7a4a30"
     }).setOrigin(0.5);
     AudioSystem.playMenu();
 
-    makeButton(this, W / 2, 430, 340, 58, t("menu.enter"), () => {
+    makeButton(this, W / 2, 400, 380, 64, t("menu.enter"), () => {
       AudioSystem.unlock();
       AudioSystem.playMenu();
       AudioSystem.ui();
       this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
     });
-    makeButton(this, W / 2, 510, 340, 50, t("menu.wiki"), () => {
+    makeButton(this, W / 2 - 170, 490, 200, 48, t("menu.wiki"), () => {
       AudioSystem.unlock();
       AudioSystem.playMenu();
       AudioSystem.ui();
       this.scene.start("wiki", { from: "menu" });
     }, 0x7d5cff);
-    makeButton(this, W / 2, 580, 340, 50, t("menu.settings"), () => {
+    makeButton(this, W / 2 + 170, 490, 200, 48, t("menu.settings"), () => {
       AudioSystem.unlock();
       AudioSystem.ui();
       this.scene.start("settings", { from: "menu" });

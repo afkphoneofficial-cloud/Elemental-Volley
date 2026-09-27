@@ -16,12 +16,12 @@ export class ShopScene extends Phaser.Scene {
     const refresh = () => this.scene.restart();
 
     this.add.text(W / 2, 50, t("shop.title"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "34px", fontStyle: "800", color: "#fff4e8"
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "34px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
     this.add.text(W / 2, 96,
       t("shop.wallet", { tokens: c.tokens, pvp: c.pvp, premium: c.premium, cost: ECONOMY.unlockTokenCost }),
-      { fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#c8bdd8" }
+      { fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30" }
     ).setOrigin(0.5);
 
     ROSTER_IDS.forEach((id, i) => {
@@ -48,7 +48,7 @@ export class ShopScene extends Phaser.Scene {
     });
 
     this.add.text(W / 2, 400, t("shop.cheerHead"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "18px", fontStyle: "800", color: "#ffe08a"
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "18px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
 
     CHEER_THEME_IDS.forEach((id, i) => {

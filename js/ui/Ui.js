@@ -6,27 +6,53 @@ export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22) 
   const gfx = scene.add.graphics().setDepth(40);
   const draw = (hover) => {
     gfx.clear();
-    gfx.fillStyle(hover ? 0x2c1a22 : 0x141018, hover ? 0.98 : 0.92);
+    gfx.fillStyle(hover ? 0xffe0b0 : 0xfff6ea, 0.96);
     gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, Math.min(18, h / 2));
-    gfx.lineStyle(2, color, hover ? 1 : 0.72);
+    gfx.lineStyle(2, color, hover ? 1 : 0.78);
     gfx.strokeRoundedRect(x - w / 2, y - h / 2, w, h, Math.min(18, h / 2));
     if (hover) {
-      gfx.lineStyle(6, color, 0.18);
+      gfx.lineStyle(6, color, 0.2);
       gfx.strokeRoundedRect(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4, Math.min(20, h / 2 + 2));
     }
   };
   draw(false);
   const text = scene.add.text(x, y, label, {
     fontFamily: UI_FONT,
-    fontSize: h >= 52 ? "20px" : "16px",
-    fontStyle: "700",
-    color: "#fff6ea"
+    fontSize: h >= 58 ? "22px" : h >= 52 ? "20px" : "16px",
+    fontStyle: "800",
+    color: "#3a2418"
   }).setOrigin(0.5).setDepth(41);
   const zone = scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(42);
   zone.on("pointerover", () => draw(true));
   zone.on("pointerout", () => draw(false));
   zone.on("pointerdown", onClick);
   return { bg: zone, text, gfx };
+}
+
+export function makeSlider(scene, x, y, w, value01, onChange) {
+  const g = scene.add.graphics().setDepth(40);
+  const knob = scene.add.circle(0, y, 13, 0xff6a22).setDepth(41);
+  const paint = (v) => {
+    const clamped = Math.max(0, Math.min(1, v));
+    g.clear();
+    g.fillStyle(0xffe8c8, 1);
+    g.fillRoundedRect(x - w / 2, y - 7, w, 14, 7);
+    g.fillStyle(0xff8a3a, 1);
+    g.fillRoundedRect(x - w / 2, y - 7, w * clamped, 14, 7);
+    knob.setPosition(x - w / 2 + w * clamped, y);
+    return clamped;
+  };
+  paint(value01);
+  const fromPx = (px) => {
+    const v = paint((px - (x - w / 2)) / w);
+    onChange(v);
+  };
+  knob.setInteractive({ useHandCursor: true, draggable: true });
+  scene.input.setDraggable(knob);
+  knob.on("drag", (_p, dragX) => fromPx(dragX));
+  const zone = scene.add.zone(x, y, w + 24, 32).setInteractive({ useHandCursor: true }).setDepth(42);
+  zone.on("pointerdown", (p) => fromPx(p.worldX));
+  return { g, knob, zone, paint };
 }
 
 export function roundPanel(scene, x, y, w, h, stroke = 0xff8a3a, fill = 0x120e18) {
@@ -41,15 +67,15 @@ export function roundPanel(scene, x, y, w, h, stroke = 0xff8a3a, fill = 0x120e18
 export function drawGrid(scene) {
   const W = scene.scale.width;
   const H = scene.scale.height;
-  scene.add.rectangle(W / 2, H / 2, W, H, 0x0b0812);
+  scene.add.rectangle(W / 2, H / 2, W, H, 0xfff1dc);
   const g = scene.add.graphics();
-  g.fillStyle(0xff7a28, 0.14);
+  g.fillStyle(0xff9a4a, 0.22);
   g.fillCircle(W * 0.18, -40, 260);
-  g.fillStyle(0x6d4cff, 0.12);
+  g.fillStyle(0x7ad4ff, 0.2);
   g.fillCircle(W * 0.86, H + 40, 300);
-  g.fillStyle(0xffc24a, 0.05);
+  g.fillStyle(0xffe08a, 0.16);
   g.fillCircle(W * 0.5, H * 0.35, 220);
-  g.lineStyle(1, 0xffffff, 0.04);
+  g.lineStyle(1, 0xc45a16, 0.07);
   for (let x = 0; x <= W; x += 72) g.lineBetween(x, 0, x, H);
   for (let y = 0; y <= H; y += 72) g.lineBetween(0, y, W, y);
 }

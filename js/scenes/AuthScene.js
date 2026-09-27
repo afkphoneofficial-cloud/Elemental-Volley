@@ -14,10 +14,10 @@ export class AuthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#ffb56a"
     }).setOrigin(0.5);
     this.add.text(W / 2, 210, t("menu.title"), {
-      fontFamily: UI_FONT, fontSize: "64px", fontStyle: "900", color: "#fff6ea"
+      fontFamily: UI_FONT, fontSize: "64px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
     this.add.text(W / 2, 280, t("auth.login"), {
-      fontFamily: UI_FONT, fontSize: "22px", color: "#cbb8e8"
+      fontFamily: UI_FONT, fontSize: "22px", color: "#7a4a30"
     }).setOrigin(0.5);
     AudioSystem.playMenu();
     AuthSystem.showOverlay();

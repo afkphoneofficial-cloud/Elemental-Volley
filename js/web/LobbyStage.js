@@ -188,7 +188,7 @@ export async function mountLobbyStage() {
       const im = arts["court_" + key];
       if (!im || a < 0.02) return;
       ctx.save();
-      ctx.globalAlpha = 0.22 * a;
+      ctx.globalAlpha = 0.5 * a;
       const scale = Math.max(W / im.naturalWidth, H / im.naturalHeight);
       const dw = im.naturalWidth * scale;
       const dh = im.naturalHeight * scale;

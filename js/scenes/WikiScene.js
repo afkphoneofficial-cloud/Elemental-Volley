@@ -15,10 +15,10 @@ export class WikiScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 34, t("wiki.title"), {
-      fontFamily: UI_FONT, fontSize: "34px", fontStyle: "800", color: "#fff6ea"
+      fontFamily: UI_FONT, fontSize: "34px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
     this.add.text(W / 2, 66, t("wiki.sub"), {
-      fontFamily: UI_FONT, fontSize: "18px", color: "#cbb8e8"
+      fontFamily: UI_FONT, fontSize: "18px", color: "#7a4a30"
     }).setOrigin(0.5);
 
     makeButton(this, 198, 110, 150, 44, t("wiki.tabRules"), () => this.show("rules"), 0xff8a3a);

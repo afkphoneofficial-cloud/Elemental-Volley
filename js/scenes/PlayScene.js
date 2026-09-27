@@ -19,6 +19,7 @@ import { CheerPopup } from "../fx/CheerPopup.js";
 import { UltCutIn } from "../fx/UltCutIn.js";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
+import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import {
   GAUGE_MAX,
@@ -72,6 +73,7 @@ export class PlayScene extends Phaser.Scene {
     this.streak = 0;
     this.streakSide = 0;
     this.hadMatchPoint = false;
+    this.paused = false;
     resetMatchUlt();
 
     this.buildCourt();
@@ -139,6 +141,7 @@ export class PlayScene extends Phaser.Scene {
       window.removeEventListener("ev-lang", this._onLang);
       try { this.cheer.destroy(); } catch (e) {}
       try { this.ultCut.destroy(); } catch (e) {}
+      try { this.pauseUi.destroy(); } catch (e) {}
       TouchControls.setPlayActive(false);
       this.tweens.timeScale = 1;
       if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
@@ -148,6 +151,10 @@ export class PlayScene extends Phaser.Scene {
     this._onLang = () => this.applyLang();
     window.addEventListener("ev-lang", this._onLang);
     this.bindKeys();
+    this.pauseUi = new PauseOverlay(this, {
+      onResume: () => this.setPaused(false),
+      onQuit: () => this.scene.start("hub")
+    });
     TouchControls.setPlayActive(true);
     this.layoutHudMode();
     this.syncSprites();
@@ -338,8 +345,8 @@ export class PlayScene extends Phaser.Scene {
       fontFamily: f, fontSize: "14px", fontStyle: "700", color: "#6a4a30"
     }).setOrigin(0.5).setDepth(12);
 
-    this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.quit"), () => {
-      this.scene.start("hub");
+    this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.pause"), () => {
+      this.setPaused(true);
     }, 0xff8ab8);
   }
 
@@ -355,7 +362,8 @@ export class PlayScene extends Phaser.Scene {
     if (this.courtFlavor) this.courtFlavor.setText(I18n.courtFlavor(this.season));
     if (this.hintHud) this.hintHud.setText(preferTouch() ? t("play.hudHintTouch") : t("play.hudHint"));
     this.layoutHudMode();
-    if (this.exitBtn && this.exitBtn.text) this.exitBtn.text.setText(t("play.quit"));
+    if (this.exitBtn && this.exitBtn.text) this.exitBtn.text.setText(t("play.pause"));
+    if (this.pauseUi) this.pauseUi.applyLang();
     if (this.mpL && this.mpL.text) this.mpL.setText(t("play.matchPoint"));
     if (this.mpR && this.mpR.text) this.mpR.setText(t("play.matchPoint"));
   }
@@ -369,13 +377,27 @@ export class PlayScene extends Phaser.Scene {
     }
   }
 
+  setPaused(on) {
+    this.paused = Boolean(on);
+    if (this.pauseUi) this.pauseUi.setOpen(this.paused);
+  }
+
   bindKeys() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    this.input.keyboard.on("keydown-ESC", () => this.scene.start("hub"));
+    this.input.keyboard.on("keydown-ESC", () => this.setPaused(!this.paused));
   }
 
   readHuman() {
+    if (this.paused) {
+      this.p1In.xDirection = 0;
+      this.p1In.yDirection = 0;
+      this.p1In.powerHit = 0;
+      this.p2In.xDirection = 0;
+      this.p2In.yDirection = 0;
+      this.p2In.powerHit = 0;
+      return;
+    }
     const pad = TouchControls.snapshot();
     const c = this.cursors;
     const input = this.youSide === 1 ? this.p1In : this.p2In;
@@ -429,6 +451,7 @@ export class PlayScene extends Phaser.Scene {
   update(_t, delta) {
     this.tickWeather();
     this.pulseMatchPoint();
+    if (this.paused) return;
     this.tickPointSlow(delta);
     if (this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) return;
 

@@ -16,7 +16,7 @@ export class SelectScene extends Phaser.Scene {
     this.diff = "normal";
 
     this.add.text(W / 2, 48, t("select.title"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#fff4e8"
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
     ROSTER_IDS.forEach((id, i) => {
@@ -32,7 +32,7 @@ export class SelectScene extends Phaser.Scene {
         .setAlpha(unlocked ? 1 : 0.28)
         .setDepth(6);
       this.add.text(x, y + 70, I18n.charName(id), {
-        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "22px", fontStyle: "800", color: unlocked ? "#fff4e8" : "#6a6078"
+        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "22px", fontStyle: "800", color: unlocked ? "#3a2418" : "#8a7a90"
       }).setOrigin(0.5);
       this.add.text(x, y + 102, unlocked ? t("select.ready") : t("select.locked"), {
         fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "14px", color: unlocked ? "#c8ff3a" : "#ff8a6a"
@@ -48,7 +48,7 @@ export class SelectScene extends Phaser.Scene {
     });
 
     this.pickText = this.add.text(W / 2, 470, "", {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#c8bdd8"
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30"
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 

@@ -8,7 +8,9 @@ let accentTimer = null;
 let liveNodes = [];
 let musicEl = null;
 let musicVol = 0.55;
+let sfxVol = 1;
 const VOL_KEY = "ev-music-vol";
+const SFX_KEY = "ev-sfx-vol";
 const BGM_SRC = {
   menu: "assets/audio/bgm-menu.mp3",
   summer: "assets/audio/bgm-summer.mp3",
@@ -22,10 +24,18 @@ function readStoredVol() {
     const v = parseFloat(localStorage.getItem(VOL_KEY));
     if (!Number.isNaN(v)) musicVol = Math.max(0, Math.min(1, v));
   } catch (e) { /* keep default */ }
+  try {
+    const s = parseFloat(localStorage.getItem(SFX_KEY));
+    if (!Number.isNaN(s)) sfxVol = Math.max(0, Math.min(1, s));
+  } catch (e) { /* keep default */ }
 }
 
 function applyMusicVol() {
   if (musicEl) musicEl.volume = musicVol;
+}
+
+function applySfxVol() {
+  if (sfxBus) sfxBus.gain.value = 1.15 * sfxVol;
 }
 
 function playFileTheme(id) {
@@ -64,7 +74,7 @@ function ensure() {
       master.gain.value = 1;
       master.connect(ctx.destination);
       sfxBus = ctx.createGain();
-      sfxBus.gain.value = 1.15;
+      sfxBus.gain.value = 1.15 * sfxVol;
       sfxBus.connect(master);
       musicBus = ctx.createGain();
       musicBus.gain.value = 0.22;
@@ -275,6 +285,16 @@ export const AudioSystem = {
     applyMusicVol();
   },
 
+  getSfxVol() {
+    return sfxVol;
+  },
+
+  setSfxVol(v) {
+    sfxVol = Math.max(0, Math.min(1, v));
+    try { localStorage.setItem(SFX_KEY, String(sfxVol)); } catch (e) {}
+    applySfxVol();
+  },
+
   mountDock() {
     readStoredVol();
     const slider = document.getElementById("vol-slider");
@@ -283,6 +303,7 @@ export const AudioSystem = {
     slider.value = String(Math.round(musicVol * 100));
     if (label) label.textContent = slider.value + "%";
     applyMusicVol();
+    applySfxVol();
     const sync = () => {
       this.unlock();
       this.setMusicVol(Number(slider.value) / 100);

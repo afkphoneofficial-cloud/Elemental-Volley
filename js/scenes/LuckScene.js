@@ -14,11 +14,11 @@ export class LuckScene extends Phaser.Scene {
     const f = "Segoe UI, Kanit, sans-serif";
 
     this.add.text(W / 2, 42, t("luck.title"), {
-      fontFamily: f, fontSize: "36px", fontStyle: "800", color: "#fff4e8"
+      fontFamily: f, fontSize: "36px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
     this.add.text(W / 2, 88, t("luck.sub"), {
-      fontFamily: f, fontSize: "18px", color: "#c8bdd8"
+      fontFamily: f, fontSize: "18px", color: "#7a4a30"
     }).setOrigin(0.5);
 
     this.youRoll = this.add.text(W / 2 - 220, 190, "00", {

@@ -13,10 +13,10 @@ export class HubScene extends Phaser.Scene {
     const c = save.currencies;
 
     this.add.text(W / 2, 64, t("hub.title"), {
-      fontFamily: UI_FONT, fontSize: "40px", fontStyle: "800", color: "#fff6ea"
+      fontFamily: UI_FONT, fontSize: "40px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
-    roundPanel(this, W / 2, 128, 380, 48, 0xffc07a, 0x141018);
+    roundPanel(this, W / 2, 128, 420, 48, 0xff8a3a, 0xfff6ea);
     this.add.text(W / 2, 128,
       t("hub.stats", {
         name: charName(save.starterId),
@@ -24,26 +24,30 @@ export class HubScene extends Phaser.Scene {
         tokens: c.tokens,
         pvp: c.pvp
       }),
-      { fontFamily: UI_FONT, fontSize: "15px", fontStyle: "600", color: "#e8dcc8" }
+      { fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#3a2418" }
     ).setOrigin(0.5).setDepth(6);
 
-    makeButton(this, W / 2, 236, 380, 54, t("hub.play"), () => {
+    makeButton(this, W / 2, 230, 400, 64, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("select");
     });
-    makeButton(this, W / 2, 306, 380, 54, t("hub.shop"), () => {
+    makeButton(this, W / 2, 314, 360, 50, t("hub.shop"), () => {
       AudioSystem.ui();
       this.scene.start("shop");
     }, 0xc8ff3a);
-    makeButton(this, W / 2, 376, 380, 54, t("hub.wiki"), () => {
+    makeButton(this, W / 2, 380, 360, 50, t("hub.wiki"), () => {
       AudioSystem.ui();
       this.scene.start("wiki", { from: "hub" });
     }, 0xffb14a);
-    makeButton(this, W / 2, 446, 380, 54, t("hub.settings"), () => {
+    makeButton(this, W / 2, 446, 360, 50, t("hub.settings"), () => {
       AudioSystem.ui();
       this.scene.start("settings", { from: "hub" });
     }, 0xffe08a);
-    makeButton(this, W / 2, 516, 380, 54, t("hub.home"), () => this.scene.start("menu"), 0x7d5cff);
+
+    const back = this.add.text(W / 2, 540, t("hub.home"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#7a4a30"
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    back.on("pointerdown", () => this.scene.start("menu"));
 
     AudioSystem.playMenu();
   }

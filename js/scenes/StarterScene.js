@@ -11,10 +11,10 @@ export class StarterScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 64, t("starter.title"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "36px", fontStyle: "800", color: "#fff4e8"
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "36px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
     this.add.text(W / 2, 108, t("starter.sub"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#c8bdd8",
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30",
       wordWrap: { width: 1000 }, align: "center"
     }).setOrigin(0.5);
 

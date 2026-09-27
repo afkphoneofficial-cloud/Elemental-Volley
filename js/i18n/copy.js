@@ -22,8 +22,8 @@ export const COPY = {
       kicker: "ELEMENTAL VOLLEY",
       title: "SPIKE IT !!",
       tag: "วอลเลย์อาร์เคด  •  อสูรธาตุจิ๋ว  •  1v1 กับบอท",
-      enter: "เข้าล็อบบี้",
-      wiki: "Wiki เกาะอีเธเรีย",
+      enter: "เล่น",
+      wiki: "Wiki",
       settings: "ตั้งค่า"
     },
     auth: {
@@ -37,7 +37,7 @@ export const COPY = {
       shop: "ร้านค้า / ปลดล็อกตัวละคร",
       wiki: "Wiki เกาะอีเธเรีย",
       home: "กลับหน้าแรก",
-      settings: "ตั้งค่าการควบคุม",
+      settings: "ตั้งค่า",
       hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ"
     },
     starter: {
@@ -120,7 +120,8 @@ export const COPY = {
       para: "ช็อก",
       slip: "ลื่น!",
       statusBlocked: "ติดสถานะอยู่แล้ว!",
-      ultReady: "พร้อมอัลติ!"
+      ultReady: "พร้อมอัลติ!",
+      pause: "พัก"
     },
     streak: {
       2: "{name} เริ่มไหลแล้ว!",
@@ -136,12 +137,22 @@ export const COPY = {
       rotate: "หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด"
     },
     settings: {
-      title: "ตั้งค่าการควบคุม",
-      sub: "เลือกวิธีเล่นบนเครื่องนี้  บันทึกอัตโนมัติ",
+      title: "ตั้งค่า",
+      sub: "บันทึกอัตโนมัติบนเครื่องนี้",
       auto: "อัตโนมัติ",
       pc: "คอมพิวเตอร์  ·  คีย์บอร์ด",
       mobile: "มือถือ  ·  ปุ่มสัมผัส",
-      note: "มือถือใช้วงกลมซ้ายเลื่อนทิศทาง วงกลมขวากดตบ ค้างไว้เพื่ออัลติ"
+      note: "มือถือใช้วงกลมซ้ายเลื่อนทิศทาง วงกลมขวากดตบ ค้างไว้เพื่ออัลติ",
+      lang: "ภาษา",
+      music: "เพลง",
+      sfx: "เอฟเฟกต์",
+      controls: "การควบคุม",
+      credits: "Elemental Volley : Spike It !!  ·  เกมอาร์เคดต้นฉบับบนเว็บ"
+    },
+    pause: {
+      title: "พักการแข่ง",
+      resume: "เล่นต่อ",
+      quit: "ออกจากแมตช์"
     },
     cheer: {
       classic: "คลาสสิก",
@@ -187,8 +198,8 @@ export const COPY = {
       kicker: "ELEMENTAL VOLLEY",
       title: "SPIKE IT !!",
       tag: "Arcade volleyball  •  Tiny elementals  •  1v1 vs a bot",
-      enter: "Enter lobby",
-      wiki: "Etheria Island Wiki",
+      enter: "Play",
+      wiki: "Wiki",
       settings: "Settings"
     },
     auth: {
@@ -202,7 +213,7 @@ export const COPY = {
       shop: "Shop / unlock fighters",
       wiki: "Etheria Island Wiki",
       home: "Back to title",
-      settings: "Control settings",
+      settings: "Settings",
       hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult"
     },
     starter: {
@@ -285,7 +296,8 @@ export const COPY = {
       para: "SHOCK",
       slip: "SLIP!",
       statusBlocked: "Already afflicted!",
-      ultReady: "ULT READY!"
+      ultReady: "ULT READY!",
+      pause: "Pause"
     },
     streak: {
       2: "{name} is on a run!",
@@ -301,12 +313,22 @@ export const COPY = {
       rotate: "Turn the phone sideways for a bigger court  ·  Tap to hide"
     },
     settings: {
-      title: "Control settings",
-      sub: "Pick how you play on this device. Saved automatically.",
+      title: "Settings",
+      sub: "Saved automatically on this device",
       auto: "Automatic",
       pc: "Computer  ·  Keyboard",
       mobile: "Phone  ·  Touch pads",
-      note: "On phone, left stick moves, right tap hits, hold right to fire your ult."
+      note: "On phone, left stick moves, right tap hits, hold right to fire your ult.",
+      lang: "Language",
+      music: "Music",
+      sfx: "Effects",
+      controls: "Controls",
+      credits: "Elemental Volley : Spike It !!  ·  An original web arcade game"
+    },
+    pause: {
+      title: "Paused",
+      resume: "Resume",
+      quit: "Leave match"
     },
     cheer: {
       classic: "Classic",

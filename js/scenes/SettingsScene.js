@@ -1,7 +1,7 @@
-import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, makeSlider, UI_FONT } from "../ui/Ui.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t } from "../i18n/I18n.js";
+import { t, I18n } from "../i18n/I18n.js";
 import { TouchControls } from "../ui/TouchControls.js";
 
 const MODES = ["auto", "pc", "mobile"];
@@ -16,15 +16,40 @@ export class SettingsScene extends Phaser.Scene {
   create() {
     drawGrid(this);
     const W = this.scale.width;
-    this.add.text(W / 2, 88, t("settings.title"), {
-      fontFamily: UI_FONT, fontSize: "40px", fontStyle: "800", color: "#fff6ea"
+    this.add.text(W / 2, 48, t("settings.title"), {
+      fontFamily: UI_FONT, fontSize: "36px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
-    this.sub = this.add.text(W / 2, 138, t("settings.sub"), {
-      fontFamily: UI_FONT, fontSize: "16px", color: "#cbb8e8", align: "center", wordWrap: { width: 720 }
+    this.sub = this.add.text(W / 2, 88, t("settings.sub"), {
+      fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
+    }).setOrigin(0.5);
+
+    this.add.text(W / 2 - 210, 140, t("settings.lang"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
+    makeButton(this, W / 2 - 70, 140, 100, 42, "ไทย", () => I18n.setLang("th"), 0xff6a22);
+    makeButton(this, W / 2 + 50, 140, 100, 42, "EN", () => I18n.setLang("en"), 0xff6a22);
+
+    this.add.text(W / 2 - 240, 204, t("settings.music"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0, 0.5);
+    makeSlider(this, W / 2 + 80, 204, 320, AudioSystem.getMusicVol(), (v) => {
+      AudioSystem.unlock();
+      AudioSystem.setMusicVol(v);
+    });
+
+    this.add.text(W / 2 - 240, 258, t("settings.sfx"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0, 0.5);
+    makeSlider(this, W / 2 + 80, 258, 320, AudioSystem.getSfxVol(), (v) => {
+      AudioSystem.setSfxVol(v);
+    });
+
+    this.add.text(W / 2, 312, t("settings.controls"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5);
 
     this.modeBtns = MODES.map((id, i) => {
-      const btn = makeButton(this, W / 2, 240 + i * 78, 420, 58, t("settings." + id), () => {
+      const btn = makeButton(this, W / 2, 358 + i * 56, 420, 48, t("settings." + id), () => {
         AudioSystem.ui();
         if (!SaveSystem.data.settings) SaveSystem.data.settings = {};
         SaveSystem.data.settings.controlMode = id;
@@ -36,11 +61,14 @@ export class SettingsScene extends Phaser.Scene {
       return btn;
     });
 
-    this.note = this.add.text(W / 2, 490, t("settings.note"), {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#8e82a8", align: "center", wordWrap: { width: 640 }
+    this.note = this.add.text(W / 2, 540, t("settings.note"), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#8a6a50", align: "center", wordWrap: { width: 640 }
+    }).setOrigin(0.5);
+    this.credits = this.add.text(W / 2, 586, t("settings.credits"), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 700 }
     }).setOrigin(0.5);
 
-    makeButton(this, W / 2, 580, 280, 50, t("nav.back"), () => {
+    makeButton(this, W / 2, 650, 260, 48, t("nav.back"), () => {
       const to = this.backTo === "menu" ? "menu" : "hub";
       this.scene.start(to);
     }, 0x7d5cff);
@@ -56,5 +84,6 @@ export class SettingsScene extends Phaser.Scene {
     });
     if (this.sub) this.sub.setText(t("settings.sub"));
     if (this.note) this.note.setText(t("settings.note"));
+    if (this.credits) this.credits.setText(t("settings.credits"));
   }
 }
