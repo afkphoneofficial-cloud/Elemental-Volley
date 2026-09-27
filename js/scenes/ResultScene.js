@@ -1,6 +1,7 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
@@ -28,6 +29,7 @@ export class ResultScene extends Phaser.Scene {
   }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     const H = this.scale.height;

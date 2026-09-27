@@ -1,5 +1,6 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
 
@@ -7,6 +8,7 @@ export class MenuScene extends Phaser.Scene {
   constructor() { super("menu"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 128, t("menu.kicker"), {
@@ -30,6 +32,12 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: UI_FONT,
       fontSize: "20px",
       color: "#7a4a30"
+    }).setOrigin(0.5);
+    this.add.text(W / 2, 308, t("menu.signedIn", { name: AuthSystem.displayName() }), {
+      fontFamily: UI_FONT,
+      fontSize: "16px",
+      fontStyle: "700",
+      color: "#c45a16"
     }).setOrigin(0.5);
     AudioSystem.playMenu();
 

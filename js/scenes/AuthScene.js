@@ -21,6 +21,10 @@ export class AuthScene extends Phaser.Scene {
     }).setOrigin(0.5);
     AudioSystem.playMenu();
     AuthSystem.showOverlay();
+    if (AuthSystem.canPlay()) {
+      this.enterGame();
+      return;
+    }
     makeButton(this, W / 2, 620, 280, 44, t("auth.wikiFirst"), () => {
       AuthSystem.hideOverlay();
       this.scene.start("wiki", { from: "auth" });
@@ -28,6 +32,10 @@ export class AuthScene extends Phaser.Scene {
   }
 
   enterGame() {
+    if (!AuthSystem.canPlay()) {
+      AuthSystem.showOverlay();
+      return;
+    }
     AuthSystem.hideOverlay();
     AudioSystem.unlock();
     this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");

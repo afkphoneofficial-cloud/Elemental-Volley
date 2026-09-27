@@ -1,4 +1,4 @@
-const KEY = "elemental-volley-save-v1";
+const BASE_KEY = "elemental-volley-save-v1";
 
 const empty = () => ({
   starterId: null,
@@ -10,37 +10,57 @@ const empty = () => ({
   equippedCheer: "classic"
 });
 
+function finish(data) {
+  data.settings = { ...empty().settings, ...(data.settings || {}) };
+  if (!Array.isArray(data.unlockedCheers) || !data.unlockedCheers.length) {
+    data.unlockedCheers = ["classic"];
+  }
+  if (!data.equippedCheer) data.equippedCheer = "classic";
+  if (!Array.isArray(data.unlocked)) data.unlocked = [];
+  if (!data.currencies) data.currencies = empty().currencies;
+  return data;
+}
+
 export const SaveSystem = {
+  accountId: null,
   data: empty(),
 
+  bootEmpty() {
+    this.accountId = null;
+    this.data = finish(empty());
+    return this.data;
+  },
+
   load() {
+    return this.bootEmpty();
+  },
+
+  attachAccount(userId) {
+    this.accountId = userId;
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) this.data = { ...empty(), ...JSON.parse(raw) };
+      const raw = localStorage.getItem(BASE_KEY + ":" + userId);
+      if (raw) this.data = finish({ ...empty(), ...JSON.parse(raw) });
+      else this.data = finish(empty());
     } catch (e) {
-      this.data = empty();
+      this.data = finish(empty());
     }
-    this.data.settings = { ...empty().settings, ...(this.data.settings || {}) };
-    if (!Array.isArray(this.data.unlockedCheers) || !this.data.unlockedCheers.length) {
-      this.data.unlockedCheers = ["classic"];
-    }
-    if (!this.data.equippedCheer) this.data.equippedCheer = "classic";
     return this.data;
   },
 
   applyCloud(save) {
     if (!save || typeof save !== "object") return;
-    this.data = { ...empty(), ...save };
-    this.data.settings = { ...empty().settings, ...(this.data.settings || {}) };
-    if (!Array.isArray(this.data.unlockedCheers) || !this.data.unlockedCheers.length) {
-      this.data.unlockedCheers = ["classic"];
-    }
-    localStorage.setItem(KEY, JSON.stringify(this.data));
+    this.data = finish({ ...empty(), ...save });
+    this.persist({ push: false });
   },
 
-  persist() {
-    localStorage.setItem(KEY, JSON.stringify(this.data));
-    if (window.AuthSystem && window.AuthSystem.schedulePush) window.AuthSystem.schedulePush();
+  persist(opts) {
+    if (!this.accountId) return;
+    try {
+      localStorage.setItem(BASE_KEY + ":" + this.accountId, JSON.stringify(this.data));
+    } catch (e) { /* quota */ }
+    if (!opts || opts.push !== false) {
+      if (window.AuthSystem && window.AuthSystem.schedulePush) window.AuthSystem.schedulePush();
+    }
   },
 
   hasStarter() {

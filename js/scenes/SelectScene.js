@@ -3,6 +3,7 @@ import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { SELECT_PLATE, drawOrbit, drawLock, paintHopFx } from "../fx/SelectHover.js";
 
@@ -12,6 +13,7 @@ export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;

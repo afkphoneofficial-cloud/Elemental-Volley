@@ -2,12 +2,14 @@ import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { COURTS } from "../data/courts.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 
 export class LuckScene extends Phaser.Scene {
   constructor() { super("luck"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     this.input.setTopOnly(false);
     drawGrid(this);
     const W = this.scale.width;

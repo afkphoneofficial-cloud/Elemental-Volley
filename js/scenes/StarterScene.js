@@ -1,6 +1,7 @@
 import { drawGrid } from "../ui/Ui.js";
 import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 
@@ -8,6 +9,7 @@ export class StarterScene extends Phaser.Scene {
   constructor() { super("starter"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 64, t("starter.title"), {

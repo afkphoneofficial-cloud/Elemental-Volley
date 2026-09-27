@@ -9,7 +9,7 @@ export const COPY = {
       authName: "ชื่อบัญชีในเกม",
       authSave: "บันทึกชื่อ",
       authGmailOnly: "เข้าสู่ระบบด้วย Gmail เท่านั้น",
-      authNoBackend: "กด Google ได้เลย แล้วค่อยใส่คีย์ Supabase เพื่อเก็บข้อมูลลูกค้า",
+      authNoBackend: "ยังไม่ได้เชื่อมฐานสมาชิก — ใส่ supabaseUrl และ anon key ใน js/config/backend.js แล้วรีเฟรช",
       authSetName: "ตั้งชื่อบัญชีที่จะแสดงในเกม",
       authWelcome: "ยินดีต้อนรับ ตั้งชื่อบัญชีได้เลย",
       authBadMail: "รับเฉพาะบัญชี @gmail.com",
@@ -24,15 +24,16 @@ export const COPY = {
       tag: "วอลเลย์อาร์เคด  •  อสูรธาตุจิ๋ว  •  1v1 กับบอท",
       enter: "เล่น",
       wiki: "Wiki",
-      settings: "ตั้งค่า"
+      settings: "ตั้งค่า",
+      signedIn: "บัญชี  ·  {name}"
     },
     auth: {
-      login: "ลงทะเบียน / เข้าสู่ระบบด้วย Gmail",
+      login: "ต้องเข้าสู่ระบบด้วย Gmail ก่อน จึงจะเล่นและเห็นข้อมูลในไอดีได้",
       wikiFirst: "อ่าน Wiki ก่อน"
     },
     hub: {
       title: "ล็อบบี้",
-      stats: "{name}   ·   ปลดล็อก {n}/4   ·   ตรา {tokens}   ·   PVP {pvp}",
+      stats: "{account}   ·   {name}   ·   ปลดล็อก {n}/4   ·   ตรา {tokens}   ·   PVP {pvp}",
       play: "เล่นกับบอท",
       shop: "ร้านค้า / ปลดล็อกตัวละคร",
       wiki: "Wiki เกาะอีเธเรีย",
@@ -169,7 +170,7 @@ export const COPY = {
     },
     settings: {
       title: "ตั้งค่า",
-      sub: "บันทึกอัตโนมัติบนเครื่องนี้",
+      sub: "เซฟผูกกับบัญชี Gmail บนคลาวด์",
       auto: "อัตโนมัติ",
       pc: "คอมพิวเตอร์  ·  คีย์บอร์ด",
       mobile: "มือถือ  ·  ปุ่มสัมผัส",
@@ -178,6 +179,7 @@ export const COPY = {
       music: "เพลง",
       sfx: "เอฟเฟกต์",
       controls: "การควบคุม",
+      logout: "ออกจากระบบ",
       credits: "Elemental Volley : Spike It !!  ·  เกมอาร์เคดต้นฉบับบนเว็บ"
     },
     pause: {
@@ -216,7 +218,7 @@ export const COPY = {
       authName: "In-game name",
       authSave: "Save name",
       authGmailOnly: "Sign in with Gmail only",
-      authNoBackend: "You can use Google now. Add a Supabase key later to save customer data.",
+      authNoBackend: "Member cloud is not connected — paste supabaseUrl and the anon key into js/config/backend.js, then refresh",
       authSetName: "Set the name shown in-game",
       authWelcome: "Welcome. Choose a display name.",
       authBadMail: "Only @gmail.com accounts are allowed",
@@ -231,15 +233,16 @@ export const COPY = {
       tag: "Arcade volleyball  •  Tiny elementals  •  1v1 vs a bot",
       enter: "Play",
       wiki: "Wiki",
-      settings: "Settings"
+      settings: "Settings",
+      signedIn: "Signed in  ·  {name}"
     },
     auth: {
-      login: "Register / sign in with Gmail",
+      login: "Sign in with Gmail to play and load your account",
       wikiFirst: "Read the wiki first"
     },
     hub: {
       title: "Lobby",
-      stats: "{name}   ·   Unlocked {n}/4   ·   Tokens {tokens}   ·   PVP {pvp}",
+      stats: "{account}   ·   {name}   ·   Unlocked {n}/4   ·   Tokens {tokens}   ·   PVP {pvp}",
       play: "Play vs bot",
       shop: "Shop / unlock fighters",
       wiki: "Etheria Island Wiki",
@@ -376,7 +379,7 @@ export const COPY = {
     },
     settings: {
       title: "Settings",
-      sub: "Saved automatically on this device",
+      sub: "Progress is saved to your Gmail account in the cloud",
       auto: "Automatic",
       pc: "Computer  ·  Keyboard",
       mobile: "Phone  ·  Touch pads",
@@ -385,6 +388,7 @@ export const COPY = {
       music: "Music",
       sfx: "Effects",
       controls: "Controls",
+      logout: "Sign out",
       credits: "Elemental Volley : Spike It !!  ·  An original web arcade game"
     },
     pause: {

@@ -2,6 +2,7 @@ import { GAME, PHYSICS } from "../config/gameConfig.js";
 import { COURTS } from "../data/courts.js";
 import { getCharacter, pickMatchRef } from "../data/roster.js";
 import { Session } from "../systems/Session.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import {
   PikaPhysics,
@@ -44,6 +45,7 @@ export class PlayScene extends Phaser.Scene {
   constructor() { super("play"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     this.youSide = Session.youSide === 2 ? 2 : 1;
     this.youData = getCharacter(Session.playerId);
     this.botData = getCharacter(Session.botId);

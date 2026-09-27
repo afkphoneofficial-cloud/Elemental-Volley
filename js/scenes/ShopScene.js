@@ -3,6 +3,7 @@ import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { ECONOMY } from "../data/economy.js";
 import { CHEER_THEMES, CHEER_THEME_IDS, cheerThemeLabel, cheerThemeBlurb } from "../data/cheers.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 
@@ -10,6 +11,7 @@ export class ShopScene extends Phaser.Scene {
   constructor() { super("shop"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     const c = SaveSystem.data.currencies;

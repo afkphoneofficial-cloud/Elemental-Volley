@@ -55,7 +55,17 @@ export const AuthSystem = {
   displayName: () => (profile && profile.display_name) || "",
 
   isLoggedIn() {
-    return Boolean(session && session.email);
+    return Boolean(session && session.id && session.email);
+  },
+
+  canPlay() {
+    return this.cloudOn() && this.isLoggedIn() && !this.needsName();
+  },
+
+  guard(scene) {
+    if (this.canPlay()) return true;
+    if (scene && scene.scene) scene.scene.start("auth");
+    return false;
   },
 
   needsName() {
@@ -73,15 +83,6 @@ export const AuthSystem = {
       if (data && data.session && data.session.user) {
         await this.adoptUser(data.session.user, data.session);
       }
-    } else {
-      try {
-        const raw = sessionStorage.getItem("ev-auth");
-        if (raw) session = JSON.parse(raw);
-      } catch (e) { session = null; }
-      try {
-        const raw = sessionStorage.getItem("ev-profile");
-        if (raw) profile = JSON.parse(raw);
-      } catch (e) { profile = null; }
     }
     this.prepareGoogle();
     const form = document.getElementById("auth-name-form");
@@ -139,6 +140,13 @@ export const AuthSystem = {
     const el = overlay();
     if (el) el.hidden = false;
     this.prepareGoogle();
+    if (!backendReady()) {
+      showPanel("google");
+      const host = document.getElementById("google-btn");
+      if (host) host.innerHTML = "";
+      setAuthMsg(t("web.authNoBackend"), true);
+      return;
+    }
     if (this.needsName()) {
       showPanel("name");
       setAuthMsg(t("web.authSetName"), false);
@@ -162,23 +170,13 @@ export const AuthSystem = {
       throw new Error(t("web.authBadMail"));
     }
     const sb = await getSb();
-    if (sb) {
-      const { data, error } = await sb.auth.signInWithIdToken({
-        provider: "google",
-        token: credential
-      });
-      if (error) throw new Error(error.message);
-      await this.adoptUser(data.user, data.session);
-    } else {
-      session = {
-        email,
-        sub: payload.sub,
-        local: true
-      };
-      profile = profile && profile.email === email ? profile : { email, display_name: "" };
-      sessionStorage.setItem("ev-auth", JSON.stringify(session));
-      sessionStorage.setItem("ev-profile", JSON.stringify(profile));
-    }
+    if (!sb) throw new Error(t("web.authNoBackend"));
+    const { data, error } = await sb.auth.signInWithIdToken({
+      provider: "google",
+      token: credential
+    });
+    if (error) throw new Error(error.message);
+    await this.adoptUser(data.user, data.session);
     if (this.needsName()) {
       showPanel("name");
       setAuthMsg(t("web.authWelcome"), false);
@@ -198,6 +196,7 @@ export const AuthSystem = {
     if (!sb) return;
     const { data, error } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
     if (error) throw new Error(error.message);
+    SaveSystem.attachAccount(user.id);
     profile = data || { id: user.id, email: user.email, display_name: "", save_data: {} };
     if (!data) {
       await sb.from("profiles").insert({
@@ -207,6 +206,8 @@ export const AuthSystem = {
       });
     } else if (data.save_data && typeof data.save_data === "object") {
       SaveSystem.applyCloud(data.save_data);
+    } else if (SaveSystem.hasStarter()) {
+      this.schedulePush();
     }
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
   },
@@ -220,20 +221,18 @@ export const AuthSystem = {
       throw new Error(t("web.authNameChars"));
     }
     const sb = await getSb();
-    if (sb && session && session.id) {
-      const { error } = await sb.from("profiles").update({
-        display_name: clean,
-        display_name_set_at: new Date().toISOString()
-      }).eq("id", session.id);
-      if (error) {
-        if (error.code === "23505" || /duplicate/i.test(error.message || "")) {
-          throw new Error(t("web.authNameTaken"));
-        }
-        throw new Error(error.message);
+    if (!sb || !session || !session.id) throw new Error(t("web.authNoBackend"));
+    const { error } = await sb.from("profiles").update({
+      display_name: clean,
+      display_name_set_at: new Date().toISOString()
+    }).eq("id", session.id);
+    if (error) {
+      if (error.code === "23505" || /duplicate/i.test(error.message || "")) {
+        throw new Error(t("web.authNameTaken"));
       }
+      throw new Error(error.message);
     }
     profile = { ...(profile || {}), display_name: clean, email: session && session.email };
-    sessionStorage.setItem("ev-profile", JSON.stringify(profile));
     this.hideOverlay();
     this.onAuthed();
   },
@@ -265,8 +264,7 @@ export const AuthSystem = {
     if (sb) await sb.auth.signOut();
     session = null;
     profile = null;
-    sessionStorage.removeItem("ev-auth");
-    sessionStorage.removeItem("ev-profile");
+    SaveSystem.bootEmpty();
     this.hideOverlay();
     const g = window.game;
     if (g && g.scene) {

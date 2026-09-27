@@ -12,6 +12,7 @@ export class WikiScene extends Phaser.Scene {
   }
 
   create() {
+    if (this.from !== "auth" && !AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     const H = this.scale.height;
@@ -30,7 +31,10 @@ export class WikiScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     makeButton(this, 96, 42, 132, 40, t("nav.back"), () => {
-      if (this.from === "auth") AuthSystem.showOverlay();
+      if (this.from === "auth") {
+        this.scene.start("auth");
+        return;
+      }
       this.scene.start(this.from);
     }, 0x7d5cff);
     makeButton(this, W - 96, 42, 132, 40, t("wiki.tabRules"), () => this.openRules(), 0xff8a3a);

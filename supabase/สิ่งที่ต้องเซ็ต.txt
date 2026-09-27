@@ -1,41 +1,70 @@
-สิ่งที่ต้องไปเปิด (ทำครั้งเดียว) — เมื่อจะเปิดล็อกอิน
+สิ่งที่ต้องไปเปิด (ทำครั้งเดียว) — ล็อกอินบังคับก่อนเล่น
 
-เว็บจริงตอนนี้
+เว็บจริง
   https://evolley.dev
-  https://www.evolley.dev  (เด้งมาโดเมนหลัก)
+  https://www.evolley.dev
   https://elemental-volley.vercel.app
 
-ยังไม่ต้องทำจนกว่าจะเริ่มงานล็อกอิน
+ทดสอบในเครื่อง (ใส่ทุก origin ที่จะเปิดเกม)
+  http://localhost:5500
+  http://127.0.0.1:5500
+  http://localhost:8765
+  http://127.0.0.1:8765
+
+อย่าเปิดเกมด้วยไฟล์ file://  Google จะไม่ยอม
 ไม่ต้องใช้ Cloudflare
 
 
-1) Google Cloud Console
-   - OAuth client ที่ให้มาใช้ได้ (นี่คือ Client ID ไม่ใช่รหัสลับ)
-   - Authorized JavaScript origins ใส่
-       https://evolley.dev
-       https://www.evolley.dev
-       https://elemental-volley.vercel.app
-       http://localhost:5500
-       http://127.0.0.1:5500
-   - อย่าเปิดเกมด้วยไฟล์ file:// Google จะไม่ยอม
-   - คัดลอก Client Secret ไปใส่ใน Supabase เท่านั้น ห้ามใส่ในเกม
+------------------------------------------------------------
+1) Google Cloud Console  →  APIs & Services  →  Credentials
+------------------------------------------------------------
+OAuth 2.0 Client ID ที่มีอยู่ใช้ได้
+  441173887104-aked2gdmq0co0fou4hlq3vsj0ra4q6ms.apps.googleusercontent.com
 
-2) Supabase (ฐานข้อมูลลูกค้า + login คลาวด์)
-   - สร้างโปรเจกต์
-   - Authentication → Providers → Google
-       Client IDs = 441173887104-aked2gdmq0co0fou4hlq3vsj0ra4q6ms.apps.googleusercontent.com
-       Client Secret = จาก Google Cloud
-   - Authentication → URL Configuration
-       Site URL = https://evolley.dev
-       Redirect URLs ใส่โดเมนด้านบนทั้งหมด และ
-       https://<โปรเจกต์>.supabase.co/auth/v1/callback
-   - SQL Editor รันไฟล์ supabase/schema.sql
-   - Settings → API คัดลอก Project URL กับ anon public key
-   - วางลง js/config/backend.js ที่ supabaseUrl และ supabaseAnonKey
-   - ค่อยให้ BootScene ไปหน้า auth แทน menu
+Authorized JavaScript origins ใส่โดเมนด้านบนทั้งหมด
 
-3) Vercel
-   - Deploy จาก GitHub แล้ว (โปรเจกต์ elemental-volley)
-   - โดเมนผูกแล้ว ไม่ต้องซื้อโฮสต์ Porkbun ไม่ต้องย้าย nameserver
+Authorized redirect URIs ไม่ต้องใส่ GIS popup ก็ได้
+แต่ถ้า Supabase ขอ ให้ใส่
+  https://<รหัสโปรเจกต์>.supabase.co/auth/v1/callback
 
-ยังไม่ต้องใช้ Stripe จนกว่าร้านค้าจะรับเงินจริง
+คัดลอก Client Secret ไปใส่ใน Supabase เท่านั้น
+ห้ามวางในเกม ห้าม commit
+
+
+------------------------------------------------------------
+2) Supabase  →  New project
+------------------------------------------------------------
+Authentication → Providers → Google
+  Client IDs = Client ID ด้านบน
+  Client Secret = จาก Google Cloud
+  เปิด Enable
+
+Authentication → URL Configuration
+  Site URL = https://evolley.dev
+  Redirect URLs ใส่ทุกโดเมนในลิสต์บน และ
+  https://<รหัสโปรเจกต์>.supabase.co/auth/v1/callback
+
+SQL Editor  →  วางทั้งไฟล์ supabase/schema.sql  →  Run
+
+Settings → API
+  Project URL          →  คัดลอก
+  anon public          →  คัดลอก
+  service_role         →  ห้ามใส่ในเกม
+
+วางสองค่าลง js/config/backend.js
+  supabaseUrl: "https://xxxx.supabase.co"
+  supabaseAnonKey: "eyJ..."
+
+จากนั้น git commit / push แล้วกด Create Deployment ที่ Vercel
+หรือทดสอบ local แล้วรีเฟรชหน้าเกม
+
+
+------------------------------------------------------------
+3) ตรวจว่าติด
+------------------------------------------------------------
+เปิดเกม ต้องเจอหน้าเข้าสู่ระบบ ไม่ข้ามไปเมนู
+กด Google ด้วย Gmail ตั้งชื่อ 2–16 ตัว แล้วเข้าล็อบบี้
+Dashboard → Authentication → Users ต้องมีอีเมล
+Table Editor → profiles ต้องมีแถว + save_data หลังเลือกตัวละครแรก
+
+ยังไม่ต้องเปิด Stripe

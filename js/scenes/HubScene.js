@@ -1,5 +1,6 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 
@@ -7,6 +8,7 @@ export class HubScene extends Phaser.Scene {
   constructor() { super("hub"); }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     const save = SaveSystem.data;
@@ -16,9 +18,10 @@ export class HubScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "40px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
-    roundPanel(this, W / 2, 128, 420, 48, 0xff8a3a, 0xfff6ea);
+    roundPanel(this, W / 2, 128, 640, 48, 0xff8a3a, 0xfff6ea);
     this.add.text(W / 2, 128,
       t("hub.stats", {
+        account: AuthSystem.displayName(),
         name: charName(save.starterId),
         n: save.unlocked.length,
         tokens: c.tokens,

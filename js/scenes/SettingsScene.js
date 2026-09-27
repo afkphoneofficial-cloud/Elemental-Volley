@@ -1,5 +1,6 @@
 import { drawGrid, makeButton, makeSlider, UI_FONT } from "../ui/Ui.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { TouchControls } from "../ui/TouchControls.js";
@@ -14,6 +15,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create() {
+    if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 48, t("settings.title"), {
@@ -61,10 +63,14 @@ export class SettingsScene extends Phaser.Scene {
       return btn;
     });
 
-    makeButton(this, W / 2, 560, 260, 48, t("nav.back"), () => {
+    makeButton(this, W / 2, 548, 260, 46, t("nav.back"), () => {
       const to = this.backTo === "menu" ? "menu" : "hub";
       this.scene.start(to);
     }, 0x7d5cff);
+    makeButton(this, W / 2, 608, 280, 46, t("settings.logout"), () => {
+      AudioSystem.ui();
+      AuthSystem.logout();
+    }, 0xff5a1f);
     this.paint();
     AudioSystem.playMenu();
   }
