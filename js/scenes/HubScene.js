@@ -1,8 +1,10 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
+import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
+import { formatEtherWait } from "../systems/Ether.js";
 
 export class HubScene extends Phaser.Scene {
   constructor() { super("hub"); }
@@ -12,46 +14,76 @@ export class HubScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     const save = SaveSystem.data;
-    const c = save.currencies;
+    const cur = save.currencies;
+    SaveSystem.etherNow();
 
-    this.add.text(W / 2, 64, t("hub.title"), {
-      fontFamily: UI_FONT, fontSize: "40px", fontStyle: "800", color: "#3a2418"
+    this.add.text(W / 2, 48, t("hub.title"), {
+      fontFamily: UI_FONT, fontSize: "36px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
-    roundPanel(this, W / 2, 128, 640, 48, 0xff8a3a, 0xfff6ea);
-    this.add.text(W / 2, 128,
+    roundPanel(this, W / 2, 108, 720, 44, 0xff8a3a, 0xfff6ea);
+    this.add.text(W / 2, 108,
       t("hub.stats", {
         account: AuthSystem.displayName(),
         name: charName(save.starterId),
         n: save.unlocked.length,
-        tokens: c.tokens,
-        pvp: c.pvp
+        tokens: cur.tokens,
+        pvp: cur.pvp
       }),
       { fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#3a2418" }
     ).setOrigin(0.5).setDepth(6);
 
-    makeButton(this, W / 2, 230, 400, 64, t("hub.play"), () => {
+    const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : (this.textures.exists("ether-art") ? "ether-art" : null);
+    if (etherKey) {
+      this.add.image(W / 2 - 210, 162, etherKey).setDisplaySize(42, 42).setDepth(8);
+    } else {
+      this.add.circle(W / 2 - 210, 162, 16, 0x3ad6ff, 1).setStrokeStyle(3, 0xffe08a, 0.9).setDepth(8);
+    }
+    this.etherText = this.add.text(W / 2 - 182, 162, "", {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0, 0.5).setDepth(8);
+    this.etherHint = this.add.text(W / 2 + 20, 162, "", {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
+    }).setOrigin(0, 0.5).setDepth(8);
+    this.paintEther();
+
+    makeButton(this, W / 2, 228, 400, 58, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("select");
     });
-    makeButton(this, W / 2, 314, 360, 50, t("hub.shop"), () => {
+    makeButton(this, W / 2, 292, 360, 46, t("hub.career"), () => {
+      AudioSystem.ui();
+      this.scene.start("career");
+    }, 0x7d5cff);
+    makeButton(this, W / 2, 348, 360, 46, t("hub.shop"), () => {
       AudioSystem.ui();
       this.scene.start("shop");
     }, 0xc8ff3a);
-    makeButton(this, W / 2, 380, 360, 50, t("hub.wiki"), () => {
+    makeButton(this, W / 2, 404, 360, 46, t("hub.wiki"), () => {
       AudioSystem.ui();
       this.scene.start("wiki", { from: "hub" });
     }, 0xffb14a);
-    makeButton(this, W / 2, 446, 360, 50, t("hub.settings"), () => {
+    makeButton(this, W / 2, 460, 360, 46, t("hub.settings"), () => {
       AudioSystem.ui();
       this.scene.start("settings", { from: "hub" });
     }, 0xffe08a);
 
-    const back = this.add.text(W / 2, 540, t("hub.home"), {
+    const back = this.add.text(W / 2, 530, t("hub.home"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#7a4a30"
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     back.on("pointerdown", () => this.scene.start("menu"));
 
     AudioSystem.playMenu();
+  }
+
+  paintEther() {
+    const st = SaveSystem.etherNow();
+    this.etherText.setText(t("hub.ether", { n: st.n, max: ECONOMY.etherMax }));
+    const wait = st.full ? t("hub.etherFull") : t("hub.etherWait", { t: formatEtherWait(st.nextMs) });
+    this.etherHint.setText(wait + "  ·  " + t("hub.etherBot"));
+  }
+
+  update() {
+    if (this.etherText) this.paintEther();
   }
 }

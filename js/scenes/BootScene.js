@@ -17,7 +17,7 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
     });
-    this.load.image("ball-art", "assets/sprites/ball.png");
+    this.load.image("ether-art", "assets/sprites/ether.png");
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
       this.load.image("court-" + s, "assets/sprites/court-" + s + ".png");
@@ -31,6 +31,7 @@ export class BootScene extends Phaser.Scene {
     try {
       TextureFactory.build(this);
       TextureFactory.applyBall(this, "ball-art", "ball");
+      TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       COURTS.forEach((s) => TextureFactory.applyChibi(this, "ref-" + s, "vis_ref_" + s));
       IDS.forEach((id) => {
         TextureFactory.applyChibi(this, "chibi-" + id, "vis_" + id);

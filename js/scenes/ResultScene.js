@@ -2,6 +2,7 @@ import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
+import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
@@ -41,6 +42,17 @@ export class ResultScene extends Phaser.Scene {
     this.bonus = 0;
     if (this.win) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
     this.pvpGain = pvp;
+    const sc = this.payload.score || {};
+    SaveSystem.recordMatch({
+      win: this.win,
+      mode: "bot",
+      youId: this.payload.youId,
+      foeId: this.payload.botId,
+      youScore: sc.p1,
+      foeScore: sc.p2,
+      diff: Session.difficulty,
+      stats: this.payload.stats || {}
+    });
 
     this.buildVerdict(W, H, pal);
     this.buildStats(W, H, pal);

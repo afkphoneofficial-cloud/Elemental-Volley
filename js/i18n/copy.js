@@ -35,11 +35,16 @@ export const COPY = {
       title: "ล็อบบี้",
       stats: "{account}   ·   {name}   ·   ปลดล็อก {n}/4   ·   ตรา {tokens}   ·   PVP {pvp}",
       play: "เล่นกับบอท",
+      career: "โปรไฟล์ / สถิติ",
       shop: "ร้านค้า / ปลดล็อกตัวละคร",
       wiki: "แผนที่โลก",
       home: "กลับหน้าแรก",
       settings: "ตั้งค่า",
-      hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ"
+      hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ",
+      ether: "เอเธอร์  {n}/{max}",
+      etherWait: "อีก {t}",
+      etherFull: "เต็มแล้ว",
+      etherBot: "บอทไม่กินเอเธอร์"
     },
     starter: {
       title: "เลือกตัวละครแรก",
@@ -51,6 +56,19 @@ export const COPY = {
       cheerTitle: "ยินดีด้วย!",
       cheerSub: "{name} คือคู่หูคนแรกของคุณบนเกาะอีเธเรีย",
       continue: "เข้าล็อบบี้"
+    },
+    career: {
+      title: "โปรไฟล์",
+      sub: "บัญชี  ·  {name}",
+      totals: "แมตช์ {m}   ·   ชนะ {w}   ·   แพ้ {l}   ·   เอซ {aces}   ·   อัลติ {ults}   ·   เวลา {time}   ·   สตรีคสูงสุด {streak}   ·   ลูกยาวสุด {rally}",
+      logHead: "แมตช์ล่าสุด  {n} เกม",
+      empty: "ยังไม่มีแมตช์ในไอดีนี้",
+      row: "{result}  ·  {mode}  ·  {you} {a}–{b} {foe}",
+      win: "ชนะ",
+      lose: "แพ้",
+      bot: "บอท",
+      pvp: "PVP",
+      more: "อีก {n} เกมในคลัง (เก็บสูงสุด 30)"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
@@ -250,11 +268,16 @@ export const COPY = {
       title: "Lobby",
       stats: "{account}   ·   {name}   ·   Unlocked {n}/4   ·   Tokens {tokens}   ·   PVP {pvp}",
       play: "Play vs bot",
+      career: "Profile / stats",
       shop: "Shop / unlock fighters",
       wiki: "World map",
       home: "Back to title",
       settings: "Settings",
-      hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult"
+      hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult",
+      ether: "Ether  {n}/{max}",
+      etherWait: "Next in {t}",
+      etherFull: "Full",
+      etherBot: "Bots do not spend ether"
     },
     starter: {
       title: "Pick your first fighter",
@@ -266,6 +289,19 @@ export const COPY = {
       cheerTitle: "Welcome aboard!",
       cheerSub: "{name} is your first partner on Etheria Island",
       continue: "Enter the lobby"
+    },
+    career: {
+      title: "Profile",
+      sub: "Account  ·  {name}",
+      totals: "Matches {m}   ·   Wins {w}   ·   Losses {l}   ·   Aces {aces}   ·   Ults {ults}   ·   Time {time}   ·   Best streak {streak}   ·   Longest rally {rally}",
+      logHead: "Recent matches  {n}",
+      empty: "No matches on this ID yet",
+      row: "{result}  ·  {mode}  ·  {you} {a}–{b} {foe}",
+      win: "Win",
+      lose: "Loss",
+      bot: "Bot",
+      pvp: "PVP",
+      more: "{n} more in the vault (keeps 30)"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",

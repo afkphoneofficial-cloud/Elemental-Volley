@@ -1,3 +1,6 @@
+import { ECONOMY } from "../data/economy.js";
+import { emptyCareer, tickEther } from "./Ether.js";
+
 const BASE_KEY = "elemental-volley-save-v1";
 
 const empty = () => ({
@@ -7,7 +10,11 @@ const empty = () => ({
   firstWinDate: null,
   settings: { lang: "th", controlMode: "auto" },
   unlockedCheers: ["classic"],
-  equippedCheer: "classic"
+  equippedCheer: "classic",
+  career: emptyCareer(),
+  matchLog: [],
+  ether: ECONOMY.etherMax,
+  etherAt: 0
 });
 
 function finish(data) {
@@ -18,6 +25,10 @@ function finish(data) {
   if (!data.equippedCheer) data.equippedCheer = "classic";
   if (!Array.isArray(data.unlocked)) data.unlocked = [];
   if (!data.currencies) data.currencies = empty().currencies;
+  data.career = { ...emptyCareer(), ...(data.career || {}) };
+  if (!Array.isArray(data.matchLog)) data.matchLog = [];
+  if (data.ether == null) data.ether = ECONOMY.etherMax;
+  if (!data.etherAt) data.etherAt = Date.now();
   return data;
 }
 
@@ -151,5 +162,55 @@ export const SaveSystem = {
     this.data.equippedCheer = id;
     this.persist();
     return true;
+  },
+
+  etherNow() {
+    const before = this.data.ether;
+    const status = tickEther(this.data, Date.now());
+    if (status.n !== before) this.persist();
+    return status;
+  },
+
+  spendEther(cost) {
+    const need = cost | 0;
+    const status = tickEther(this.data, Date.now());
+    if (status.n < need) return false;
+    const max = ECONOMY.etherMax;
+    const wasFull = status.n >= max;
+    this.data.ether = status.n - need;
+    if (wasFull) this.data.etherAt = Date.now();
+    this.persist();
+    return true;
+  },
+
+  recordMatch(entry) {
+    const stats = entry.stats || {};
+    const career = this.data.career;
+    career.matches += 1;
+    if (entry.win) career.wins += 1;
+    else career.losses += 1;
+    career.aces += stats.aces | 0;
+    career.ults += stats.ults | 0;
+    career.hits += stats.hits | 0;
+    career.powerHits += stats.powerHits | 0;
+    career.errors += stats.errors | 0;
+    career.playMs += stats.ms | 0;
+    career.bestStreak = Math.max(career.bestStreak | 0, stats.bestStreak | 0);
+    career.longestRally = Math.max(career.longestRally | 0, stats.longestRally | 0);
+    this.data.matchLog.unshift({
+      t: Date.now(),
+      mode: entry.mode || "bot",
+      win: Boolean(entry.win),
+      you: entry.youId,
+      foe: entry.foeId,
+      youScore: entry.youScore | 0,
+      foeScore: entry.foeScore | 0,
+      diff: entry.diff || "normal",
+      stats
+    });
+    if (this.data.matchLog.length > ECONOMY.matchLogMax) {
+      this.data.matchLog.length = ECONOMY.matchLogMax;
+    }
+    this.persist();
   }
 };
