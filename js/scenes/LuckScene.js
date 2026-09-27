@@ -1,4 +1,4 @@
-import { drawGrid, makeButton } from "../ui/Ui.js";
+import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { COURTS } from "../data/courts.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -11,31 +11,42 @@ export class LuckScene extends Phaser.Scene {
     this.input.setTopOnly(false);
     drawGrid(this);
     const W = this.scale.width;
-    const f = "Segoe UI, Kanit, sans-serif";
+    const f = UI_FONT;
+    const dark = { stroke: "#fff6ea", strokeThickness: 7 };
 
     this.add.text(W / 2, 42, t("luck.title"), {
-      fontFamily: f, fontSize: "36px", fontStyle: "800", color: "#3a2418"
+      fontFamily: f, fontSize: "36px", fontStyle: "900", color: "#3a2418",
+      stroke: "#fff6ea", strokeThickness: 6
     }).setOrigin(0.5);
 
     this.add.text(W / 2, 88, t("luck.sub"), {
-      fontFamily: f, fontSize: "18px", color: "#7a4a30"
+      fontFamily: f, fontSize: "18px", fontStyle: "700", color: "#5a3828",
+      stroke: "#fff6ea", strokeThickness: 5
     }).setOrigin(0.5);
 
     this.youRoll = this.add.text(W / 2 - 220, 190, "00", {
-      fontFamily: f, fontSize: "88px", fontStyle: "800", color: "#ffe08a"
+      fontFamily: f, fontSize: "88px", fontStyle: "900", color: "#c45a16", ...dark
     }).setOrigin(0.5);
     this.botRoll = this.add.text(W / 2 + 220, 190, "00", {
-      fontFamily: f, fontSize: "88px", fontStyle: "800", color: "#d8e8ff"
+      fontFamily: f, fontSize: "88px", fontStyle: "900", color: "#1a6aa8", ...dark
     }).setOrigin(0.5);
     this.add.text(W / 2 - 220, 258, t("play.you"), {
-      fontFamily: f, fontSize: "18px", fontStyle: "800", color: "#c8ff3a"
+      fontFamily: f, fontSize: "20px", fontStyle: "800", color: "#2a7a18",
+      stroke: "#fff6ea", strokeThickness: 5
     }).setOrigin(0.5);
     this.add.text(W / 2 + 220, 258, t("play.bot"), {
-      fontFamily: f, fontSize: "18px", fontStyle: "800", color: "#ff8a6a"
+      fontFamily: f, fontSize: "20px", fontStyle: "800", color: "#c45a16",
+      stroke: "#fff6ea", strokeThickness: 5
     }).setOrigin(0.5);
 
-    this.status = this.add.text(W / 2, 310, t("luck.rolling"), {
-      fontFamily: f, fontSize: "22px", fontStyle: "800", color: "#fff4e8"
+    const pill = this.add.graphics();
+    pill.fillStyle(0xfff6ea, 0.96);
+    pill.fillRoundedRect(W / 2 - 360, 288, 720, 56, 18);
+    pill.lineStyle(3, 0xc45a16, 0.55);
+    pill.strokeRoundedRect(W / 2 - 360, 288, 720, 56, 18);
+    this.status = this.add.text(W / 2, 316, t("luck.rolling"), {
+      fontFamily: f, fontSize: "22px", fontStyle: "800", color: "#3a2418",
+      align: "center", wordWrap: { width: 680 }
     }).setOrigin(0.5);
 
     this.pickBits = [];

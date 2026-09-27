@@ -2,6 +2,12 @@
 
 const CHAR_IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
+const ULT_FX = {
+  ignis: { glow: "rgba(255, 90, 31, 0.55)", rim: "#ff6a22", bits: ["#ff5a1f", "#ffd24a", "#fff4e8"] },
+  aqua: { glow: "rgba(58, 214, 255, 0.5)", rim: "#3ad6ff", bits: ["#2aa0ff", "#ffffff", "#6ee7ff"] },
+  volt: { glow: "rgba(200, 255, 58, 0.5)", rim: "#c8ff3a", bits: ["#e8ff00", "#ffffff", "#c8ff3a"] },
+  terra: { glow: "rgba(224, 162, 74, 0.5)", rim: "#e0a24a", bits: ["#c87830", "#ffc070", "#fff0d0"] }
+};
 
 function punchChibi(img) {
   const w = img.naturalWidth || img.width;
@@ -126,8 +132,10 @@ function loadImg(src) {
 
 export async function mountLobbyStage() {
   const canvas = document.getElementById("lobby-bg");
+  const fgCanvas = document.getElementById("lobby-fg");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
+  const fg = fgCanvas ? fgCanvas.getContext("2d") : null;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const arts = {};
@@ -152,34 +160,83 @@ export async function mountLobbyStage() {
 
   let raf = 0;
   let start = performance.now();
+  let lastNow = start;
+  const flyer = {
+    x: window.innerWidth * 0.5,
+    y: 72,
+    vx: 160,
+    vy: 70,
+    rot: 0,
+    id: CHAR_IDS[(Math.random() * 4) | 0],
+    nextSwap: 10,
+    bits: []
+  };
+
+  function fitCanvas(node, context) {
+    if (!node || !context) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    node.width = Math.floor(window.innerWidth * dpr);
+    node.height = Math.floor(window.innerHeight * dpr);
+    node.style.width = window.innerWidth + "px";
+    node.style.height = window.innerHeight + "px";
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
 
   function size() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-    canvas.width = Math.floor(window.innerWidth * dpr);
-    canvas.height = Math.floor(window.innerHeight * dpr);
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fitCanvas(canvas, ctx);
+    fitCanvas(fgCanvas, fg);
   }
   size();
   window.addEventListener("resize", size);
 
-  const drawSprite = (key, x, y, size, rot = 0, alpha = 1) => {
+  const drawSprite = (target, key, x, y, size, rot = 0, alpha = 1) => {
     const im = arts[key];
-    if (!im) return;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(x, y);
-    ctx.rotate(rot);
-    ctx.drawImage(im, -size / 2, -size, size, size);
-    ctx.restore();
+    if (!im || !target) return;
+    target.save();
+    target.globalAlpha = alpha;
+    target.translate(x, y);
+    target.rotate(rot);
+    target.drawImage(im, -size / 2, -size, size, size);
+    target.restore();
+  };
+
+  const pickUlt = () => {
+    let id = CHAR_IDS[(Math.random() * CHAR_IDS.length) | 0];
+    if (CHAR_IDS.length > 1) {
+      let guard = 0;
+      while (id === flyer.id && guard < 8) {
+        id = CHAR_IDS[(Math.random() * CHAR_IDS.length) | 0];
+        guard += 1;
+      }
+    }
+    flyer.id = id;
+  };
+
+  const burstBits = (n) => {
+    const pal = ULT_FX[flyer.id] || ULT_FX.ignis;
+    for (let i = 0; i < n; i += 1) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 40 + Math.random() * 180;
+      flyer.bits.push({
+        x: flyer.x,
+        y: flyer.y,
+        vx: Math.cos(ang) * spd,
+        vy: flyer.id === "ignis" ? -30 - Math.random() * 90 : Math.sin(ang) * spd,
+        life: 0.45 + Math.random() * 0.55,
+        c: pal.bits[i % pal.bits.length],
+        r: 2 + Math.random() * 5
+      });
+    }
   };
 
   const loop = (now) => {
     const W = window.innerWidth;
     const H = window.innerHeight;
     const t = (now - start) / 1000;
+    const dt = Math.min(0.05, (now - lastNow) / 1000);
+    lastNow = now;
     ctx.clearRect(0, 0, W, H);
+    if (fg) fg.clearRect(0, 0, W, H);
 
     const courtA = COURTS[Math.floor(t / 16) % 4];
     const courtB = COURTS[Math.floor(t / 16 + 1) % 4];
@@ -201,18 +258,13 @@ export async function mountLobbyStage() {
     const game = document.getElementById("game");
     const g = game ? game.getBoundingClientRect() : { left: W * 0.18, right: W * 0.82, top: H * 0.12, bottom: H * 0.82, width: W * 0.64, height: H * 0.7 };
     const ground = Math.min(H - 28, g.bottom + 18);
-    const leftX = g.left > 88 ? g.left - 6 : 70;
-    const rightX = W - g.right > 88 ? g.right + 6 : W - 70;
-    const midX = (leftX + rightX) * 0.5;
+    const leftX = g.left > 88 ? g.left - 8 : 70;
+    const rightX = W - g.right > 88 ? g.right + 8 : W - 70;
+    const midX = (g.left + g.right) * 0.5;
     const charSize = Math.max(100, Math.min(150, Math.max(g.left, W - g.right, 110) * 1.15));
-    const rally = reduced ? 0.5 : (t % 2.35) / 2.35;
-    const goingRight = Math.floor(t / 2.35) % 2 === 0;
-    const u = goingRight ? rally : 1 - rally;
-    const ballX = leftX + (rightX - leftX) * u;
-    const topBand = Math.max(52, g.top);
-    const ballY = topBand - 8 - Math.sin(u * Math.PI) * Math.min(42, Math.max(18, topBand * 0.42));
-    const hitL = (!goingRight && rally < 0.14) || (goingRight && rally > 0.86);
-    const hitR = (goingRight && rally < 0.14) || (!goingRight && rally > 0.86);
+    const hitPulse = reduced ? 0 : (Math.sin(t * 4.2) + 1) * 0.5;
+    const hitL = hitPulse > 0.86;
+    const hitR = hitPulse < 0.14;
 
     spark.forEach((p) => {
       const y = ((p.y + t * p.sp) % 1.15) - 0.08;
@@ -224,43 +276,116 @@ export async function mountLobbyStage() {
     });
     ctx.globalAlpha = 1;
 
-    if (g.top > 70) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(255, 246, 234, 0.4)";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(midX, 18);
-      ctx.lineTo(midX, g.top - 8);
-      ctx.stroke();
-      ctx.restore();
-    }
-
+    const layer = fg || ctx;
     const bob = (k) => reduced ? 0 : Math.sin(t * 3.2 + k) * 7;
     const squashL = hitL ? 0.86 : 1;
     const squashR = hitR ? 0.86 : 1;
     const jumpL = hitL ? -18 : bob(0);
     const jumpR = hitR ? -18 : bob(1.7);
 
-    drawSprite("volt_r" , 72, ground + bob(2.2), charSize * 0.72, 0, 0.92);
-    drawSprite("terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
-    drawSprite("ignis_r", leftX, ground + jumpL, charSize * squashL);
-    drawSprite("aqua_l", rightX, ground + jumpR, charSize * squashR);
+    drawSprite(layer, "volt_r", 72, ground + bob(2.2), charSize * 0.72, 0, 0.92);
+    drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
+    drawSprite(layer, "ignis_r", leftX, ground + jumpL, charSize * squashL);
+    drawSprite(layer, "aqua_l", rightX, ground + jumpR, charSize * squashR);
+    drawSprite(layer, "ref_" + courtA, midX, Math.max(86, g.top - 6) + bob(0.4), 86, 0, 0.95);
 
-    const season = courtA;
-    drawSprite("ref_" + season, midX, Math.max(86, g.top - 6) + bob(0.4), 86, 0, 0.95);
-
-    const ball = arts.ball;
-    if (ball) {
-      ctx.save();
-      ctx.translate(ballX, ballY);
-      ctx.rotate(t * 4.2 * (goingRight ? 1 : -1));
-      ctx.drawImage(ball, -28, -28, 56, 56);
-      ctx.restore();
-      ctx.fillStyle = "rgba(0,0,0,0.22)";
-      ctx.beginPath();
-      ctx.ellipse(ballX, ground - 6, 16, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
+    const box = { x0: 40, y0: 36, x1: W - 40, y1: Math.max(110, Math.min(H * 0.5, (g.top || H * 0.5) - 16)) };
+    if (!reduced) {
+      flyer.vx += Math.sin(t * 0.7) * 18 * dt + (Math.random() - 0.5) * 40 * dt;
+      flyer.vy += Math.cos(t * 0.93) * 16 * dt + (Math.random() - 0.5) * 36 * dt;
+      const spd = Math.hypot(flyer.vx, flyer.vy);
+      if (spd < 90) {
+        flyer.vx *= 1.04;
+        flyer.vy *= 1.04;
+      } else if (spd > 240) {
+        flyer.vx *= 0.96;
+        flyer.vy *= 0.96;
+      }
+      flyer.x += flyer.vx * dt;
+      flyer.y += flyer.vy * dt;
+      if (flyer.x < box.x0) { flyer.x = box.x0; flyer.vx = Math.abs(flyer.vx); }
+      if (flyer.x > box.x1) { flyer.x = box.x1; flyer.vx = -Math.abs(flyer.vx); }
+      if (flyer.y < box.y0) { flyer.y = box.y0; flyer.vy = Math.abs(flyer.vy); }
+      if (flyer.y > box.y1) { flyer.y = box.y1; flyer.vy = -Math.abs(flyer.vy); }
+      flyer.rot += (flyer.vx * 0.02) * dt;
+      flyer.nextSwap -= dt;
+      if (flyer.nextSwap <= 0) {
+        pickUlt();
+        burstBits(28);
+        flyer.nextSwap = 10;
+      }
+      flyer.spawn = (flyer.spawn || 0) + dt;
+      if (flyer.spawn > 0.045) {
+        burstBits(2);
+        flyer.spawn = 0;
+      }
+      if (flyer.bits.length > 90) flyer.bits.splice(0, flyer.bits.length - 90);
     }
+
+    const pal = ULT_FX[flyer.id] || ULT_FX.ignis;
+    for (let i = flyer.bits.length - 1; i >= 0; i -= 1) {
+      const b = flyer.bits[i];
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if (flyer.id === "ignis") b.vy -= 40 * dt;
+      if (flyer.id === "aqua") b.vy += 30 * dt;
+      b.life -= dt * 1.6;
+      if (b.life <= 0) flyer.bits.splice(i, 1);
+      else {
+        layer.globalAlpha = Math.max(0, b.life);
+        layer.fillStyle = b.c;
+        layer.beginPath();
+        layer.arc(b.x, b.y, b.r * b.life, 0, Math.PI * 2);
+        layer.fill();
+      }
+    }
+    layer.globalAlpha = 1;
+
+    layer.save();
+    const pulse = 26 + Math.sin(t * 6) * 6;
+    const glow = layer.createRadialGradient(flyer.x, flyer.y, 6, flyer.x, flyer.y, pulse + 18);
+    glow.addColorStop(0, pal.glow);
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    layer.fillStyle = glow;
+    layer.beginPath();
+    layer.arc(flyer.x, flyer.y, pulse + 18, 0, Math.PI * 2);
+    layer.fill();
+    if (flyer.id === "volt" && Math.random() < 0.14) {
+      layer.strokeStyle = pal.rim;
+      layer.lineWidth = 2;
+      layer.beginPath();
+      layer.moveTo(flyer.x, flyer.y);
+      let lx = flyer.x;
+      let ly = flyer.y;
+      for (let k = 0; k < 4; k += 1) {
+        lx += (Math.random() - 0.5) * 28;
+        ly += 10 + Math.random() * 16;
+        layer.lineTo(lx, ly);
+      }
+      layer.stroke();
+    }
+    if (flyer.id === "aqua") {
+      layer.strokeStyle = pal.rim;
+      layer.lineWidth = 2;
+      layer.globalAlpha = 0.55;
+      layer.beginPath();
+      layer.arc(flyer.x, flyer.y, 22 + (t * 40) % 18, 0, Math.PI * 2);
+      layer.stroke();
+      layer.globalAlpha = 1;
+    }
+    if (arts.ball) {
+      layer.save();
+      layer.translate(flyer.x, flyer.y);
+      layer.rotate(flyer.rot);
+      layer.drawImage(arts.ball, -28, -28, 56, 56);
+      layer.beginPath();
+      layer.arc(0, 0, 27, 0, Math.PI * 2);
+      layer.strokeStyle = pal.rim;
+      layer.lineWidth = 4;
+      layer.stroke();
+      layer.restore();
+    }
+    layer.restore();
 
     if (!reduced) raf = requestAnimationFrame(loop);
   };
