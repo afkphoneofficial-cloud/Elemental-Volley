@@ -43,8 +43,14 @@ export const COPY = {
     },
     starter: {
       title: "เลือกตัวละครแรก",
-      sub: "เลือกได้ 1 ตัวฟรี  อีก 3 ตัวล็อกไว้จนกว่าจะมีตราตัวละคร 100 ดวง",
-      free: "ตัวแรก ฟรี"
+      sub: "เลือกได้ 1 ตัวฟรีจากทั้ง 4 ตัว  ตัวที่เหลือค่อยปลดด้วยตราภายหลัง",
+      free: "ตัวแรก ฟรี",
+      hint: "แตะกรอบเพื่อเลือกคู่หูคนแรก",
+      pick: "คุณเลือก: {name}",
+      confirm: "ยืนยันตัวนี้",
+      cheerTitle: "ยินดีด้วย!",
+      cheerSub: "{name} คือคู่หูคนแรกของคุณบนเกาะอีเธเรีย",
+      continue: "เข้าล็อบบี้"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
@@ -252,8 +258,14 @@ export const COPY = {
     },
     starter: {
       title: "Pick your first fighter",
-      sub: "One starter is free. The other three stay locked until you have 100 character tokens.",
-      free: "FREE STARTER"
+      sub: "Any of the four is free as your starter. Unlock the rest later with character tokens.",
+      free: "FREE STARTER",
+      hint: "Tap a plate to choose your first partner",
+      pick: "You picked: {name}",
+      confirm: "Confirm this fighter",
+      cheerTitle: "Welcome aboard!",
+      cheerSub: "{name} is your first partner on Etheria Island",
+      continue: "Enter the lobby"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",

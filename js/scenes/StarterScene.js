@@ -1,49 +1,268 @@
-import { drawGrid } from "../ui/Ui.js";
+import { drawGrid, makeButton } from "../ui/Ui.js";
 import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
+import { SELECT_PLATE, drawOrbit, paintHopFx } from "../fx/SelectHover.js";
+
+const PLATE_R = 118;
 
 export class StarterScene extends Phaser.Scene {
   constructor() { super("starter"); }
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;
-    this.add.text(W / 2, 64, t("starter.title"), {
-      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "36px", fontStyle: "800", color: "#3a2418"
+    this.pick = null;
+    this.cards = [];
+    this.page = "pick";
+    this.cheer = null;
+
+    this.title = this.add.text(W / 2, 48, t("starter.title"), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 108, t("starter.sub"), {
+    this.sub = this.add.text(W / 2, 86, t("starter.sub"), {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30",
       wordWrap: { width: 1000 }, align: "center"
     }).setOrigin(0.5);
 
+    try {
+      this.hopSpark = this.add.particles(0, 0, "dot", {
+        lifespan: { min: 260, max: 560 },
+        speed: { min: 40, max: 240 },
+        scale: { start: 0.9, end: 0 },
+        alpha: { start: 1, end: 0 },
+        gravityY: 110,
+        blendMode: "ADD",
+        emitting: false
+      });
+      this.hopSpark.setDepth(12);
+      if (this.hopSpark.disableInteractive) this.hopSpark.disableInteractive();
+    } catch (e) {
+      this.hopSpark = null;
+    }
+
     ROSTER_IDS.forEach((id, i) => {
       const data = ROSTER[id];
       const x = 190 + i * 300;
-      const y = 380;
-      const card = this.add.rectangle(x, y, 250, 380, 0x161022, 0.94)
-        .setStrokeStyle(2, data.colors.main, 0.85)
-        .setInteractive({ useHandCursor: true });
-      this.add.image(x, y - 80, "vis_" + id).setDisplaySize(140, 140).setDepth(6);
-      this.add.text(x, y + 48, I18n.charName(id), {
-        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "24px", fontStyle: "800",
-        color: "#" + data.colors.main.toString(16).padStart(6, "0")
+      const y = 262;
+      const key = this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id;
+
+      const plate = this.add.circle(x, y, PLATE_R, SELECT_PLATE[id], 1)
+        .setStrokeStyle(3, 0xfff6ea, 0.95)
+        .setDepth(5);
+      const orbit = this.add.graphics().setDepth(8);
+      const hopGfx = this.add.graphics().setDepth(9);
+      const sprite = this.add.image(x, y + 8, key)
+        .setDisplaySize(148, 148)
+        .setDepth(10);
+      const form = this.add.image(x, y, "jump-fire").setDepth(11).setVisible(false);
+      if (form.disableInteractive) form.disableInteractive();
+
+      const name = this.add.text(x, y + 142, I18n.charName(id), {
+        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "22px", fontStyle: "800", color: "#3a2418"
       }).setOrigin(0.5);
-      this.add.text(x, y + 84, I18n.charBlurb(id), {
-        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "14px", color: "#b8a8d0",
-        wordWrap: { width: 220 }, align: "center"
+      const tag = this.add.text(x, y + 168, t("starter.free"), {
+        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "14px", color: "#2a7a38"
       }).setOrigin(0.5);
-      this.add.text(x, y + 128, t("starter.free"), {
-        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "14px", color: "#c8ff3a"
-      }).setOrigin(0.5);
-      card.on("pointerdown", () => {
+
+      const card = {
+        id, x, y, unlocked: true, plate, sprite, form, orbit, hopGfx,
+        hopping: false, landY: y + 8, main: data.colors.main, name, tag
+      };
+      this.cards.push(card);
+
+      plate.setInteractive({ useHandCursor: true });
+      plate.on("pointerdown", () => {
+        if (this.page !== "pick") return;
+        if (this.pick === id) return;
+        this.pick = id;
+        this.refreshPick();
         AudioSystem.ui();
-        SaveSystem.chooseStarter(id);
-        this.scene.start("hub");
       });
     });
+
+    this.pickText = this.add.text(W / 2, 470, t("starter.hint"), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30"
+    }).setOrigin(0.5).setDepth(20);
+
+    this.confirmBtn = makeButton(this, W / 2, 560, 280, 52, t("starter.confirm"), () => {
+      if (!this.pick || this.page !== "pick") return;
+      SaveSystem.chooseStarter(this.pick);
+      AudioSystem.ui();
+      this.showCheer();
+    });
+    this.setConfirmOn(false);
+  }
+
+  setConfirmOn(on) {
+    this.confirmBtn.bg.disableInteractive();
+    this.confirmBtn.bg.setAlpha(on ? 1 : 0.35);
+    this.confirmBtn.text.setAlpha(on ? 1 : 0.35);
+    this.confirmBtn.gfx.setAlpha(on ? 1 : 0.35);
+    if (on) this.confirmBtn.bg.setInteractive({ useHandCursor: true });
+  }
+
+  isActiveCard(card) {
+    return this.page === "pick" && card.id === this.pick;
+  }
+
+  stopHop(card) {
+    this.tweens.killTweensOf(card.sprite);
+    card.hopping = false;
+    card.sprite.y = card.landY;
+    card.orbit.clear();
+    paintHopFx(card.hopGfx, card.form, null, card.x, card.sprite.y, card.landY, card.id, 0, 130, false);
+  }
+
+  hopOnce(card) {
+    if (!this.isActiveCard(card) || card.hopping) return;
+    card.hopping = true;
+    this.tweens.add({
+      targets: card.sprite,
+      y: card.landY - 16,
+      duration: 150,
+      yoyo: true,
+      ease: "Sine.easeOut",
+      hold: 30,
+      onComplete: () => {
+        card.hopping = false;
+        card.sprite.y = card.landY;
+        if (this.isActiveCard(card)) this.time.delayedCall(90, () => this.hopOnce(card));
+      }
+    });
+  }
+
+  refreshPick() {
+    if (!this.pick) {
+      this.pickText.setText(t("starter.hint"));
+      this.setConfirmOn(false);
+      this.cards.forEach((card) => {
+        card.plate.setStrokeStyle(3, 0xfff6ea, 0.95);
+        this.stopHop(card);
+      });
+      return;
+    }
+    this.pickText.setText(t("starter.pick", { name: I18n.charName(this.pick) }));
+    this.setConfirmOn(true);
+    this.cards.forEach((card) => {
+      const selected = card.id === this.pick;
+      card.plate.setStrokeStyle(selected ? 6 : 3, selected ? card.main : 0xfff6ea, selected ? 1 : 0.95);
+      if (selected) this.hopOnce(card);
+      else this.stopHop(card);
+    });
+  }
+
+  showCheer() {
+    this.page = "cheer";
+    this.cards.forEach((card) => {
+      this.stopHop(card);
+      card.plate.disableInteractive();
+      card.plate.setVisible(false);
+      card.sprite.setVisible(false);
+      card.form.setVisible(false);
+      card.orbit.clear();
+      card.hopGfx.clear();
+      card.name.setVisible(false);
+      card.tag.setVisible(false);
+    });
+    this.title.setVisible(false);
+    this.sub.setVisible(false);
+    this.pickText.setVisible(false);
+    this.confirmBtn.bg.setVisible(false);
+    this.confirmBtn.text.setVisible(false);
+    this.confirmBtn.gfx.setVisible(false);
+
+    const W = this.scale.width;
+    const id = this.pick;
+    const data = ROSTER[id];
+    const key = this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id;
+    const x = W / 2;
+    const y = 280;
+
+    this.add.text(W / 2, 56, t("starter.cheerTitle"), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "40px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(20);
+    this.add.text(W / 2, 108, t("starter.cheerSub", { name: I18n.charName(id) }), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "20px", fontStyle: "700", color: "#c45a16",
+      wordWrap: { width: 900 }, align: "center"
+    }).setOrigin(0.5).setDepth(20);
+
+    const plate = this.add.circle(x, y, 150, SELECT_PLATE[id], 1)
+      .setStrokeStyle(7, data.colors.main, 1)
+      .setDepth(5);
+    const orbit = this.add.graphics().setDepth(8);
+    const hopGfx = this.add.graphics().setDepth(9);
+    const sprite = this.add.image(x, y + 6, key).setDisplaySize(200, 200).setDepth(10);
+    const form = this.add.image(x, y, "jump-fire").setDepth(11).setVisible(false);
+
+    this.add.text(W / 2, 470, I18n.charName(id), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "32px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(20);
+    this.add.text(W / 2, 512, I18n.charBlurb(id), {
+      fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30",
+      wordWrap: { width: 720 }, align: "center"
+    }).setOrigin(0.5).setDepth(20);
+
+    makeButton(this, W / 2, 600, 300, 52, t("starter.continue"), () => {
+      AudioSystem.ui();
+      this.scene.start("hub");
+    });
+
+    this.cheer = {
+      id, x, y, plate, sprite, form, orbit, hopGfx,
+      hopping: false, landY: y + 6, unlocked: true, main: data.colors.main
+    };
+    this.hopOnceCheer();
+    if (this.hopSpark) {
+      try { this.hopSpark.emitParticleAt(x, y, 28); } catch (e) { /* optional */ }
+    }
+  }
+
+  hopOnceCheer() {
+    const card = this.cheer;
+    if (!card || this.page !== "cheer" || card.hopping) return;
+    card.hopping = true;
+    this.tweens.add({
+      targets: card.sprite,
+      y: card.landY - 18,
+      duration: 180,
+      yoyo: true,
+      ease: "Sine.easeOut",
+      hold: 40,
+      onComplete: () => {
+        card.hopping = false;
+        card.sprite.y = card.landY;
+        if (this.page === "cheer") this.time.delayedCall(100, () => this.hopOnceCheer());
+      }
+    });
+  }
+
+  update(_t, now) {
+    if (this.page === "pick") {
+      this.cards.forEach((card) => {
+        if (!this.isActiveCard(card)) return;
+        card.orbit.clear();
+        drawOrbit(card.orbit, card.x, card.y, PLATE_R + 6, now, card.id);
+        const rising = card.sprite.y < card.landY - 2;
+        paintHopFx(
+          card.hopGfx, card.form, this.hopSpark,
+          card.x, card.sprite.y, card.landY, card.id, now, 130, rising
+        );
+      });
+      return;
+    }
+    const card = this.cheer;
+    if (!card) return;
+    card.orbit.clear();
+    drawOrbit(card.orbit, card.x, card.y, 156, now, card.id);
+    const rising = card.sprite.y < card.landY - 2;
+    paintHopFx(
+      card.hopGfx, card.form, this.hopSpark,
+      card.x, card.sprite.y, card.landY, card.id, now, 170, rising
+    );
   }
 }
