@@ -17,6 +17,9 @@ import { ResultScene } from "./scenes/ResultScene.js";
 import { SettingsScene } from "./scenes/SettingsScene.js";
 import { TouchControls } from "./ui/TouchControls.js";
 
+AudioSystem.mountDock();
+AudioSystem.playMenu();
+
 window.game = new Phaser.Game({
   type: Phaser.AUTO,
   width: GAME.width,
@@ -38,7 +41,6 @@ window.game = new Phaser.Game({
   scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene]
 });
 
-AudioSystem.mountDock();
 SaveSystem.load();
 I18n.load();
 I18n.mountToggle();

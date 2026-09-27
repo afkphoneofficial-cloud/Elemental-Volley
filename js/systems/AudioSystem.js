@@ -54,19 +54,45 @@ function pickMenuSrc(avoid) {
 }
 
 function resumeMusic() {
-  ensure();
   if (!musicEl || !musicEl.paused) return;
   const p = musicEl.play();
   if (p && p.catch) p.catch(() => {});
 }
 
+function bindMusicEl(el) {
+  if (!el || el._evBound) return el;
+  el._evBound = true;
+  el.autoplay = true;
+  el.preload = "auto";
+  el.setAttribute("playsinline", "true");
+  el.addEventListener("ended", () => {
+    if (themeId !== "menu") return;
+    attachMusic("menu", pickMenuSrc(), []);
+  });
+  el.addEventListener("canplay", () => resumeMusic());
+  return el;
+}
+
+function musicNode() {
+  if (musicEl) return musicEl;
+  musicEl = bindMusicEl(document.getElementById("ev-bgm"));
+  if (!musicEl) {
+    musicEl = document.createElement("audio");
+    musicEl.id = "ev-bgm";
+    document.body.appendChild(musicEl);
+    bindMusicEl(musicEl);
+  }
+  return musicEl;
+}
+
 function playFileTheme(id) {
-  if (themeId === id && musicEl) {
-    applyMusicVol();
+  const el = musicNode();
+  applyMusicVol();
+  if (themeId === id && el.currentSrc && !el.paused) return true;
+  if (themeId === id && el.currentSrc) {
     resumeMusic();
     return true;
   }
-  haltMusic();
   themeId = id;
   const src = id === "menu" ? pickMenuSrc() : (BGM_SRC[id] || BGM_SRC.menu);
   attachMusic(id, src, []);
@@ -74,19 +100,11 @@ function playFileTheme(id) {
 }
 
 function attachMusic(id, src, failed) {
-  if (musicEl) {
-    try { musicEl.pause(); } catch (e) {}
-  }
-  const el = new Audio(src);
+  const el = musicNode();
   el.loop = id !== "menu";
-  el.preload = "auto";
   el.volume = musicVol;
-  musicEl = el;
-  const start = () => {
-    const p = el.play();
-    if (p && p.catch) p.catch(() => {});
-  };
-  el.addEventListener("error", () => {
+  el.muted = false;
+  el.onerror = () => {
     if (id === "menu") {
       const next = MENU_BGM.find((s) => failed.indexOf(s) === -1 && s !== src);
       if (!next) return;
@@ -96,19 +114,16 @@ function attachMusic(id, src, failed) {
     }
     if (!String(el.src).endsWith(".mp3.mp3")) {
       el.src = src + ".mp3";
-      start();
+      el.load();
+      resumeMusic();
     }
-  }, { once: true });
-  if (id === "menu") {
-    el.addEventListener("ended", () => {
-      if (themeId !== "menu" || musicEl !== el) return;
-      el.src = pickMenuSrc();
-      el.loop = false;
-      el.volume = musicVol;
-      start();
-    });
+  };
+  if (el.dataset.track !== src) {
+    el.dataset.track = src;
+    el.src = src;
+    el.load();
   }
-  start();
+  resumeMusic();
 }
 
 function ensure() {
@@ -223,7 +238,6 @@ function haltMusic() {
   liveNodes = [];
   if (musicEl) {
     try { musicEl.pause(); } catch (e) {}
-    musicEl = null;
   }
 }
 
@@ -314,6 +328,7 @@ function jumpTerra() {
 
 export const AudioSystem = {
   unlock() {
+    ensure();
     resumeMusic();
   },
 
@@ -357,6 +372,7 @@ export const AudioSystem = {
     };
     slider.addEventListener("input", sync);
     slider.addEventListener("change", sync);
+    this.playMenu();
   },
 
   playMenu() {
