@@ -61,14 +61,7 @@ export class SettingsScene extends Phaser.Scene {
       return btn;
     });
 
-    this.note = this.add.text(W / 2, 540, t("settings.note"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#8a6a50", align: "center", wordWrap: { width: 640 }
-    }).setOrigin(0.5);
-    this.credits = this.add.text(W / 2, 586, t("settings.credits"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 700 }
-    }).setOrigin(0.5);
-
-    makeButton(this, W / 2, 650, 260, 48, t("nav.back"), () => {
+    makeButton(this, W / 2, 560, 260, 48, t("nav.back"), () => {
       const to = this.backTo === "menu" ? "menu" : "hub";
       this.scene.start(to);
     }, 0x7d5cff);
@@ -83,7 +76,5 @@ export class SettingsScene extends Phaser.Scene {
       btn.text.setText((on ? "●  " : "○  ") + t("settings." + btn.modeId));
     });
     if (this.sub) this.sub.setText(t("settings.sub"));
-    if (this.note) this.note.setText(t("settings.note"));
-    if (this.credits) this.credits.setText(t("settings.credits"));
   }
 }

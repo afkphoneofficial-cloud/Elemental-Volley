@@ -21,6 +21,7 @@ import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
+import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -66,7 +67,7 @@ export class PlayScene extends Phaser.Scene {
     this.p2In = new PikaUserInput();
     this.enterWasDown = false;
     this.prevHit = [false, false];
-    this.lastHitter = 1;
+    this.lastHitter = 0;
     this.season = Session.courtId || "summer";
     this.enterHold = 0;
     this.ultArmed = false;
@@ -74,6 +75,7 @@ export class PlayScene extends Phaser.Scene {
     this.streakSide = 0;
     this.hadMatchPoint = false;
     this.paused = false;
+    this.matchStats = emptyMatchStats();
     resetMatchUlt();
 
     this.buildCourt();
@@ -444,6 +446,7 @@ export class PlayScene extends Phaser.Scene {
     this.tweens.timeScale = 1;
     if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
     this.readyFrames = 25;
+    this.lastHitter = 0;
     this.showBanner(t("play.ready"), "#fff4e8");
     this.syncSprites();
   }
@@ -452,6 +455,7 @@ export class PlayScene extends Phaser.Scene {
     this.tickWeather();
     this.pulseMatchPoint();
     if (this.paused) return;
+    if (!this.matchOver) this.matchStats.ms += delta;
     this.tickPointSlow(delta);
     if (this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) return;
 
@@ -533,6 +537,14 @@ export class PlayScene extends Phaser.Scene {
         this.applyUltBall(ult, a);
       } else if (power) {
         if (addGauge(idx, 1) && human) this.showUltPopup();
+      }
+    }
+    if (!this.roundEnded) {
+      this.matchStats.rallyBySide[idx] += 1;
+      this.matchStats.rallyTouches += 1;
+      if (human) {
+        this.matchStats.hits += 1;
+        if (power && !usedUlt) this.matchStats.powerHits += 1;
       }
     }
     if (this.fx && this.fx.pop) {
@@ -638,6 +650,7 @@ export class PlayScene extends Phaser.Scene {
       this.streakSide = winSide;
     }
     this.cheer.show(winSide, winData.id);
+    this.notePointStats(winSide);
     this.showBanner(winData.name, leftLand ? "#c8ff3a" : "#ff8a3a");
     if (this.streak >= 2) {
       this.time.delayedCall(180, () => this.showStreak(this.streak, charName(winData.id)));
@@ -663,7 +676,8 @@ export class PlayScene extends Phaser.Scene {
           score: { p1: youScore, p2: botScore },
           courtId: this.season,
           youId: this.youData.id,
-          botId: this.botData.id
+          botId: this.botData.id,
+          stats: snapshotMatchStats(this.matchStats)
         });
       });
     } else if ((mpL || mpR) && !this.hadMatchPoint) {
@@ -735,6 +749,21 @@ export class PlayScene extends Phaser.Scene {
       if (ult.para) this.time.delayedCall(420, () => this.showBanner(t("play.para"), "#c8ff3a"));
     }
     this.boltTrail = [];
+    if (courtSide === this.youSide) this.matchStats.ults += 1;
+  }
+
+  notePointStats(winSide) {
+    const s = this.matchStats;
+    s.longestRally = Math.max(s.longestRally, s.rallyTouches);
+    if (winSide === this.youSide) {
+      s.bestStreak = Math.max(s.bestStreak, this.streak);
+      const botIdx = this.youSide === 1 ? 1 : 0;
+      if (s.rallyBySide[botIdx] === 0) s.aces += 1;
+    } else if (this.lastHitter === this.youSide) {
+      s.errors += 1;
+    }
+    s.rallyTouches = 0;
+    s.rallyBySide = [0, 0];
   }
 
   applyUltBall(ult, ball) {
