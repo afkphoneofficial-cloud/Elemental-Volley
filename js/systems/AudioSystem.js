@@ -25,10 +25,32 @@ const MENU_BGM = [
 ];
 let lastMenuSrc = "";
 
+const VOL_STEPS = [0, 0.33, 0.67, 1];
+
+function volStepIndex(v) {
+  let best = 0;
+  let dist = 99;
+  VOL_STEPS.forEach((s, i) => {
+    const d = Math.abs(s - v);
+    if (d < dist) {
+      dist = d;
+      best = i;
+    }
+  });
+  return best;
+}
+
+function paintVolSteps() {
+  const on = volStepIndex(musicVol);
+  document.querySelectorAll("[data-vol-step]").forEach((btn) => {
+    btn.classList.toggle("on", Number(btn.getAttribute("data-vol-step")) === on);
+  });
+}
+
 function readStoredVol() {
   try {
     const v = parseFloat(localStorage.getItem(VOL_KEY));
-    if (!Number.isNaN(v)) musicVol = Math.max(0, Math.min(1, v));
+    if (!Number.isNaN(v)) musicVol = VOL_STEPS[volStepIndex(Math.max(0, Math.min(1, v)))];
   } catch (e) { /* keep default */ }
   try {
     const s = parseFloat(localStorage.getItem(SFX_KEY));
@@ -337,9 +359,10 @@ export const AudioSystem = {
   },
 
   setMusicVol(v) {
-    musicVol = Math.max(0, Math.min(1, v));
+    musicVol = VOL_STEPS[volStepIndex(Math.max(0, Math.min(1, v)))];
     try { localStorage.setItem(VOL_KEY, String(musicVol)); } catch (e) {}
     applyMusicVol();
+    paintVolSteps();
   },
 
   getSfxVol() {
@@ -354,24 +377,23 @@ export const AudioSystem = {
 
   mountDock() {
     readStoredVol();
+    this.setMusicVol(musicVol);
     const kick = () => this.unlock();
     window.addEventListener("pointerdown", kick, true);
     window.addEventListener("keydown", kick, true);
     window.addEventListener("touchstart", kick, true);
-    const slider = document.getElementById("vol-slider");
-    const label = document.getElementById("vol-pct");
-    if (!slider) return;
-    slider.value = String(Math.round(musicVol * 100));
-    if (label) label.textContent = slider.value + "%";
+    const steps = document.getElementById("vol-steps");
     applyMusicVol();
     applySfxVol();
-    const sync = () => {
-      this.unlock();
-      this.setMusicVol(Number(slider.value) / 100);
-      if (label) label.textContent = slider.value + "%";
-    };
-    slider.addEventListener("input", sync);
-    slider.addEventListener("change", sync);
+    paintVolSteps();
+    if (steps) {
+      steps.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-vol-step]");
+        if (!btn) return;
+        this.unlock();
+        this.setMusicVol(VOL_STEPS[Number(btn.getAttribute("data-vol-step")) | 0]);
+      });
+    }
     this.playMenu();
   },
 

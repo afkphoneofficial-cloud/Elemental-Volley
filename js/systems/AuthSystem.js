@@ -215,7 +215,7 @@ export const AuthSystem = {
 
   async submitName(name) {
     const clean = String(name || "").trim().replace(/\s+/g, " ");
-    if (clean.length < 2 || clean.length > 16) {
+    if (clean.length < 2 || clean.length > 12) {
       throw new Error(t("web.authNameLen"));
     }
     if (!/^[\u0E00-\u0E7Fa-zA-Z0-9_ ]+$/.test(clean)) {

@@ -19,8 +19,12 @@
   <canvas id="lobby-fg" aria-hidden="true"></canvas>
   <div id="vol-dock">
     <span class="vol-ico" data-i18n="web.music">♪ เพลง</span>
-    <input id="vol-slider" type="range" min="0" max="100" value="55" />
-    <span id="vol-pct">55%</span>
+    <div id="vol-steps" role="group" aria-label="music volume">
+      <button type="button" data-vol-step="0" aria-label="0"></button>
+      <button type="button" data-vol-step="1" aria-label="1"></button>
+      <button type="button" data-vol-step="2" aria-label="2"></button>
+      <button type="button" data-vol-step="3" aria-label="3"></button>
+    </div>
   </div>
   <div id="lang-dock">
     <button type="button" data-lang="th">ไทย</button>
@@ -35,7 +39,7 @@
       </div>
       <form id="auth-name-form" class="auth-name-panel" hidden>
         <div id="auth-name-panel">
-          <input id="auth-name-input" maxlength="16" data-i18n-placeholder="web.authName" placeholder="ชื่อบัญชีในเกม" autocomplete="nickname" />
+          <input id="auth-name-input" maxlength="12" data-i18n-placeholder="web.authName" placeholder="ชื่อบัญชีในเกม" autocomplete="nickname" />
           <button type="submit" data-i18n="web.authSave">บันทึกชื่อ</button>
         </div>
       </form>
@@ -90,6 +94,6 @@
     <a class="foot-brand" href="https://afkphone.com" target="_blank" rel="noopener noreferrer">afkphone</a>
   </footer>
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
-  <script type="module" src="js/main.js?v=local51"></script>
+  <script type="module" src="js/main.js?v=local52"></script>
 </body>
 </html>

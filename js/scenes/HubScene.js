@@ -11,6 +11,8 @@ import { ROSTER_IDS } from "../data/roster.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
+import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
+import { ChatSystem } from "../systems/ChatSystem.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -68,7 +70,7 @@ export class HubScene extends Phaser.Scene {
     if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
       this.add.image(PAD + 48, TOP + 16, badgeKey(medal.id)).setDisplaySize(24, 24).setDepth(22);
     }
-    this.add.text(PAD + 54, TOP, AuthSystem.displayName() || "—", {
+    this.add.text(PAD + 54, TOP, (AuthSystem.displayName() || "—").slice(0, 12), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(21);
     this.add.zone(PAD + pw / 2, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
@@ -130,13 +132,20 @@ export class HubScene extends Phaser.Scene {
       this.scene.start("mode");
     });
 
+    const navY = H - HUB_NAV.y;
+    const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
+      AudioSystem.ui();
+      ChatSystem.setOpen(!ChatSystem.open);
+    }, 0x3ad6ff);
+    this.chatLabel = chatBtn.text;
+    ChatSystem.bindHub(this);
     const nav = [
-      [W / 2 - 186, t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
-      [W / 2, t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
-      [W / 2 + 186, t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
+      [hubNavX(1, W), t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
+      [hubNavX(2, W), t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
+      [hubNavX(3, W), t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
     ];
     nav.forEach(([x, label, col, fn]) => {
-      makeButton(this, x, H - 48, 164, 42, label, () => {
+      makeButton(this, x, navY, HUB_NAV.w, HUB_NAV.h, label, () => {
         AudioSystem.ui();
         fn();
       }, col);
@@ -216,5 +225,9 @@ export class HubScene extends Phaser.Scene {
     Mailbox.refresh().then(() => {
       if (this.sys && this.sys.isActive() && this.paintMailbox) this.paintMailbox();
     });
+  }
+
+  shutdown() {
+    ChatSystem.bindHub(null);
   }
 }

@@ -2,6 +2,7 @@ import { AuthSystem } from "./AuthSystem.js";
 import { ChatFilter } from "./ChatFilter.js";
 import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
+import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 
 const SHOW = new Set(["hub", "friends", "shop", "wiki", "settings", "career", "mode", "rank", "menu"]);
 
@@ -40,6 +41,13 @@ export const ChatSystem = {
   unread: 0,
   channel: null,
   visible: false,
+  hubScene: null,
+
+  bindHub(scene) {
+    this.hubScene = scene;
+    this.paintChrome();
+    this.layout();
+  },
 
   mount() {
     const ui = els();
@@ -85,14 +93,9 @@ export const ChatSystem = {
   },
 
   setVisible(on) {
-    const ui = els();
-    if (!ui.dock) return;
     this.visible = Boolean(on);
-    ui.dock.hidden = !this.visible;
-    if (this.visible) {
-      this.layout();
-      if (!this.channel) this.listen("world");
-    }
+    if (this.visible && !this.channel) this.listen("world");
+    this.layout();
   },
 
   setOpen(on) {
@@ -101,6 +104,7 @@ export const ChatSystem = {
     const ui = els();
     if (ui.dock) ui.dock.classList.toggle("open", this.open);
     this.paintChrome();
+    this.layout();
     if (this.open) this.reload();
   },
 
@@ -128,8 +132,10 @@ export const ChatSystem = {
   paintChrome() {
     const ui = els();
     if (!ui.dock) return;
-    const badge = this.unread > 0 && !this.open ? " (" + (this.unread > 9 ? "9+" : this.unread) + ")" : "";
-    ui.toggle.textContent = (this.open ? "▾ " : "▸ ") + t("chat.title") + badge;
+    const badge = this.unread > 0 && !this.open ? " · " + (this.unread > 9 ? "9+" : this.unread) : "";
+    const title = t("chat.title") + badge;
+    if (ui.toggle) ui.toggle.textContent = (this.open ? "▾ " : "▸ ") + title;
+    if (this.hubScene && this.hubScene.chatLabel) this.hubScene.chatLabel.setText(title);
     ui.tabWorld.textContent = t("chat.world");
     ui.tabFriends.textContent = t("chat.friends");
     ui.tabWorld.classList.toggle("on", this.tab === "world");
@@ -303,10 +309,20 @@ export const ChatSystem = {
     if (!ui.dock || !box) return;
     const r = box.getBoundingClientRect();
     const scale = r.height / 720;
-    ui.dock.style.left = (r.left + 16 * scale) + "px";
-    ui.dock.style.bottom = (window.innerHeight - r.bottom + 72 * scale) + "px";
-    ui.dock.style.width = Math.round(256 * scale) + "px";
+    const onHub = Boolean(this.hubScene);
+    ui.dock.hidden = !this.visible || (onHub && !this.open);
+    if (ui.toggle) ui.toggle.hidden = onHub;
+    ui.dock.classList.toggle("on-hub", onHub);
+    const panelW = 268;
+    const cx = hubNavX(0, 1280);
+    ui.dock.style.left = (r.left + (cx - panelW / 2) * scale) + "px";
+    ui.dock.style.bottom = (window.innerHeight - r.bottom + (HUB_NAV.y + HUB_NAV.h / 2 + 10) * scale) + "px";
+    ui.dock.style.width = Math.round(panelW * scale) + "px";
     ui.dock.style.setProperty("--chat-scale", String(scale));
+    if (!onHub) {
+      ui.dock.style.left = (r.left + (cx - HUB_NAV.w / 2) * scale) + "px";
+      ui.dock.style.width = Math.round(Math.max(HUB_NAV.w, this.open ? panelW : HUB_NAV.w) * scale) + "px";
+    }
   }
 };
 

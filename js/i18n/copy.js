@@ -13,7 +13,7 @@ export const COPY = {
       authSetName: "ตั้งชื่อบัญชีที่จะแสดงในเกม",
       authWelcome: "ยินดีต้อนรับ ตั้งชื่อบัญชีได้เลย",
       authBadMail: "รับเฉพาะบัญชี @gmail.com",
-      authNameLen: "ชื่อต้องมี 2–16 ตัวอักษร",
+      authNameLen: "ชื่อต้องมี 2–12 ตัวอักษร",
       authNameChars: "ใช้ได้เฉพาะไทย อังกฤษ ตัวเลข และ _",
       authNameTaken: "ชื่อนี้มีคนใช้แล้ว",
       authFail: "ล็อกอินไม่สำเร็จ"
@@ -369,7 +369,7 @@ export const COPY = {
       authSetName: "Set the name shown in-game",
       authWelcome: "Welcome. Choose a display name.",
       authBadMail: "Only @gmail.com accounts are allowed",
-      authNameLen: "Name must be 2–16 characters",
+      authNameLen: "Name must be 2–12 characters",
       authNameChars: "Thai, English, numbers, and _ only",
       authNameTaken: "That name is already taken",
       authFail: "Sign-in failed"
