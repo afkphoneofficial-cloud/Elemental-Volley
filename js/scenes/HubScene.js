@@ -61,10 +61,13 @@ export class HubScene extends Phaser.Scene {
         AudioSystem.ui();
         this.scene.start("career");
       });
-    makeButton(this, 360, 52, 120, 44, t("hub.navFriends"), () => {
+    chip(this, 388, 52, 132, 0xff8ab8, () => {
       AudioSystem.ui();
       this.scene.start("friends");
-    }, 0xff8ab8);
+    });
+    this.add.text(388, 52, t("hub.navFriends"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(21);
 
     const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
     chip(this, W - 430, 52, 188, 0x3ad6ff, () => this.openInfo("ether"));

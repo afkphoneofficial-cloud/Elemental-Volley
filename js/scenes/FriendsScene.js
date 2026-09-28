@@ -15,6 +15,7 @@ export class FriendsScene extends Phaser.Scene {
     this.pickMode = Boolean(data && data.pick);
     this.page = 0;
     this.note = "";
+    this.suggests = [];
   }
 
   create() {
@@ -22,6 +23,7 @@ export class FriendsScene extends Phaser.Scene {
     drawGrid(this);
     this.draw();
     AudioSystem.playMenu();
+    this.rollSuggest();
   }
 
   draw() {
@@ -51,22 +53,57 @@ export class FriendsScene extends Phaser.Scene {
       this.hideForm();
       this.scene.start(this.pickMode ? "mode" : "hub");
     }, 0x7d5cff);
-    makeButton(this, W - 140, 42, 180, 40, t("friends.add"), () => {
+    makeButton(this, W - 330, 42, 200, 40, t("friends.suggest"), () => {
+      AudioSystem.ui();
+      this.rollSuggest();
+    }, 0x3ad6ff);
+    makeButton(this, W - 120, 42, 200, 40, t("friends.add"), () => {
       AudioSystem.ui();
       this.showForm();
     }, 0xff8ab8);
 
+    const suggests = this.suggests || [];
+    let listY = 168;
+    if (suggests.length) {
+      listY = 300;
+      this.add.text(W / 2, 128, t("friends.suggestHead"), {
+        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
+      }).setOrigin(0.5);
+      suggests.forEach((pal, i) => {
+        const n = suggests.length;
+        const x = W / 2 - ((n - 1) * 210) / 2 + i * 210;
+        const y = 200;
+        roundPanel(this, x, y, 196, 120, 0x3ad6ff, 0xfff6ea);
+        const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
+        this.add.image(x - 58, y - 8, av).setDisplaySize(52, 52).setDepth(8);
+        this.add.text(x + 18, y - 22, pal.name || "—", {
+          fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418", wordWrap: { width: 110 }
+        }).setOrigin(0, 0.5).setDepth(8);
+        makeButton(this, x, y + 36, 150, 36, t("friends.addOne"), () => {
+          AudioSystem.ui();
+          const res = Friends.addPacked(pal);
+          if (!res.ok) {
+            this.note = t("friends.err" + (res.reason === "dup" ? "Dup" : res.reason === "full" ? "Full" : "Cloud"));
+          } else {
+            this.note = t("friends.added", { name: pal.name });
+            this.suggests = this.suggests.filter((p) => p.id !== pal.id);
+          }
+          this.draw();
+        }, 0xff8ab8);
+      });
+    }
+
     if (!list.length) {
-      roundPanel(this, W / 2, 360, 640, 220, 0xff8ab8, 0xfff6ea);
-      this.add.text(W / 2, 330, t("friends.empty"), {
+      roundPanel(this, W / 2, suggests.length ? 430 : 400, 640, 160, 0xff8ab8, 0xfff6ea);
+      this.add.text(W / 2, suggests.length ? 410 : 380, t("friends.empty"), {
         fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 560 }
       }).setOrigin(0.5).setDepth(6);
-      this.add.text(W / 2, 390, t("friends.emptySub"), {
+      this.add.text(W / 2, suggests.length ? 450 : 420, t("friends.emptySub"), {
         fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
       }).setOrigin(0.5).setDepth(6);
     } else {
       slice.forEach((pal, i) => {
-        const y = 168 + i * 112;
+        const y = listY + i * 112;
         roundPanel(this, W / 2, y, 980, 96, 0xffb14a, 0xfff6ea);
         const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
         this.add.image(W / 2 - 420, y, av).setDisplaySize(72, 72).setDepth(8);
@@ -105,10 +142,25 @@ export class FriendsScene extends Phaser.Scene {
       }
     }
     if (this.note) {
-      this.add.text(W / 2, 118, this.note, {
+      this.add.text(W / 2, 102, this.note, {
         fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
       }).setOrigin(0.5);
     }
+  }
+
+  async rollSuggest() {
+    const res = await Friends.suggestFromServer();
+    if (!res.ok) {
+      this.note = t("friends.errCloud");
+      this.suggests = [];
+    } else if (!res.list.length) {
+      this.note = t("friends.suggestNone");
+      this.suggests = [];
+    } else {
+      this.suggests = res.list;
+      this.note = t("friends.suggestOk", { n: res.list.length });
+    }
+    this.draw();
   }
 
   showForm() {

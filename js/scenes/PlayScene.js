@@ -581,7 +581,6 @@ export class PlayScene extends Phaser.Scene {
       if (this.pointSlowMs <= 0) {
         this.worldRate = 1;
         this.tweens.timeScale = 1;
-        if (this.cameras && this.cameras.main) this.cameras.main.zoomTo(1, 160);
       }
     } else {
       this.worldRate = 1;
@@ -733,7 +732,6 @@ export class PlayScene extends Phaser.Scene {
     this.roundHoldMs = 1400;
     this.worldRate = 0.4;
     this.tweens.timeScale = 0.4;
-    if (this.cameras && this.cameras.main) this.cameras.main.zoomTo(1.06, 90);
     const leftLand = this.physicsPack.ball.punchEffectX < GROUND_HALF_WIDTH;
     if (leftLand) {
       this.score[1] += 1;
