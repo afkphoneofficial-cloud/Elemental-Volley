@@ -23,6 +23,12 @@ const OFFER_MS = Number(process.env.OFFER_MS || 15000);
 const TICK_MS = 40;
 const FORFEIT_MS = Number(process.env.FORFEIT_MS || 30000);
 const HOST_YIELD_MS = 900;
+const REMATCH_MS = Number(process.env.REMATCH_MS || 15 * 60 * 1000);
+const REPEAT_WINDOW_MS = Number(process.env.REPEAT_WINDOW_MS || 60 * 60 * 1000);
+const REPEAT_MAX = Math.max(1, Number(process.env.REPEAT_MAX || 3));
+const RECENT_N = Math.max(1, Number(process.env.RECENT_FOES || 3));
+const STUCK_MS = Number(process.env.REMATCH_STUCK_MS || 90 * 1000);
+const IP_STUCK_MS = Number(process.env.IP_STUCK_MS || 120 * 1000);
 const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || "";
 const ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://evolley.dev,https://www.evolley.dev")
@@ -38,6 +44,9 @@ const offers = new Map();
 const rooms = new Map();
 const cooldownUntil = new Map();
 const pendingEnd = new Map();
+const lastOpp = new Map();
+const recentOpp = new Map();
+const pairHits = new Map();
 
 function send(ws, msg) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
@@ -120,22 +129,105 @@ function applyCooldown(p) {
   send(p.ws, { t: "cooldown", ms: COOLDOWN_MS });
 }
 
+function pairKey(aId, bId) {
+  return aId < bId ? aId + ":" + bId : bId + ":" + aId;
+}
+
+function pushRecent(id, foeId, at) {
+  const list = (recentOpp.get(id) || []).filter((row) => at - row.at < REPEAT_WINDOW_MS);
+  list.unshift({ id: foeId, at });
+  recentOpp.set(id, list.slice(0, RECENT_N));
+}
+
+function noteRankedPair(aId, bId) {
+  if (!aId || !bId || aId === bId) return;
+  const at = Date.now();
+  lastOpp.set(aId, { foeId: bId, at });
+  lastOpp.set(bId, { foeId: aId, at });
+  pushRecent(aId, bId, at);
+  pushRecent(bId, aId, at);
+  const k = pairKey(aId, bId);
+  const row = pairHits.get(k) || { at: [] };
+  row.at = (row.at || []).filter((t) => at - t < REPEAT_WINDOW_MS);
+  row.at.push(at);
+  pairHits.set(k, row);
+}
+
+function pairHitCount(aId, bId, now) {
+  const row = pairHits.get(pairKey(aId, bId));
+  if (!row || !row.at) return 0;
+  row.at = row.at.filter((t) => now - t < REPEAT_WINDOW_MS);
+  return row.at.length;
+}
+
+function isLastFoe(aId, bId) {
+  const a = lastOpp.get(aId);
+  const b = lastOpp.get(bId);
+  return Boolean((a && a.foeId === bId) || (b && b.foeId === aId));
+}
+
+function isRecentFoe(aId, bId, now) {
+  const list = recentOpp.get(aId) || [];
+  return list.some((row) => row.id === bId && now - row.at < REMATCH_MS);
+}
+
+function sameIp(a, b) {
+  return Boolean(a.ip && b.ip && a.ip === b.ip && a.ip !== "127.0.0.1" && a.ip !== "::1");
+}
+
+function canPair(a, b, now, hasAlt) {
+  if (!a || !b || a.id === b.id) return false;
+  const waited = Math.min(now - (a.waitAt || now), now - (b.waitAt || now));
+  if (pairHitCount(a.id, b.id, now) >= REPEAT_MAX) return false;
+  if (isLastFoe(a.id, b.id)) {
+    if (hasAlt) return false;
+    if (waited < STUCK_MS) return false;
+  } else if (isRecentFoe(a.id, b.id, now) || isRecentFoe(b.id, a.id, now)) {
+    if (hasAlt) return false;
+    if (waited < STUCK_MS) return false;
+  }
+  if (sameIp(a, b)) {
+    if (hasAlt) return false;
+    if (waited < IP_STUCK_MS) return false;
+  }
+  return true;
+}
+
+function pairScore(a, b, now) {
+  const gap = Math.abs((a.mmr | 0) - (b.mmr | 0));
+  let n = gap;
+  if (isLastFoe(a.id, b.id)) n += 400;
+  else if (isRecentFoe(a.id, b.id, now) || isRecentFoe(b.id, a.id, now)) n += 180;
+  if (sameIp(a, b)) n += 250;
+  n += pairHitCount(a.id, b.id, now) * 90;
+  return n;
+}
+
 function pairTick() {
   if (!canOpenMore()) return;
   const now = Date.now();
-  for (let i = 0; i < queue.length; i += 1) {
-    const a = queue[i];
-    if (!a || a.state !== "queue") continue;
-    const win = searchWindow(now - a.waitAt);
-    for (let j = i + 1; j < queue.length; j += 1) {
-      const b = queue[j];
-      if (!b || b.state !== "queue") continue;
-      if (Math.abs((a.mmr | 0) - (b.mmr | 0)) > Math.max(win, searchWindow(now - b.waitAt))) continue;
-      if (!canOpenMore()) return;
-      startOffer(a, b);
-      return;
+  const live = queue.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1);
+  if (live.length < 2) return;
+  const hasAlt = live.length > 2;
+  let pick = null;
+  let best = Infinity;
+  for (let i = 0; i < live.length; i += 1) {
+    const a = live[i];
+    const winA = searchWindow(now - a.waitAt);
+    for (let j = i + 1; j < live.length; j += 1) {
+      const b = live[j];
+      const gap = Math.abs((a.mmr | 0) - (b.mmr | 0));
+      const win = Math.max(winA, searchWindow(now - b.waitAt));
+      if (gap > win) continue;
+      if (!canPair(a, b, now, hasAlt)) continue;
+      const score = pairScore(a, b, now);
+      if (score < best) {
+        best = score;
+        pick = [a, b];
+      }
     }
   }
+  if (pick) startOffer(pick[0], pick[1]);
 }
 
 function startOffer(a, b) {
@@ -228,6 +320,7 @@ function beginLuck(a, b, mode) {
   a.roomId = roomId;
   b.roomId = roomId;
   rooms.set(roomId, room);
+  if (room.mode === "pvp") noteRankedPair(a.id, b.id);
   send(a.ws, { t: "luck", roomId, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, host: true, rival: preview(b) });
   send(b.ws, { t: "luck", roomId, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, host: false, rival: preview(a) });
   if (!aPicks) {
@@ -493,7 +586,8 @@ function onHello(ws, user, body) {
     state: "idle",
     offerId: null,
     roomId: null,
-    waitAt: 0
+    waitAt: 0,
+    ip: ws.clientIp || (prev && prev.ip) || ""
   };
   clients.set(ws, p);
   byUser.set(user.id, p);
@@ -664,6 +758,8 @@ const server = http.createServer((_req, res) => {
 const wss = new WebSocketServer({ server });
 wss.on("connection", (ws, req) => {
   const origin = req.headers.origin || "";
+  const fwd = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  ws.clientIp = fwd || (req.socket && req.socket.remoteAddress) || "";
   if (ORIGINS.length && origin && !ORIGINS.includes(origin) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
     ws.close();
     return;
