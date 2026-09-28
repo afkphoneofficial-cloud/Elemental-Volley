@@ -1,4 +1,4 @@
-/** Court rank ladder, modeled on Dota medal + star + hidden MMR, renamed for Etheria. */
+/** Court rank ladder: medals, sparks, and hidden court score. */
 export const RANK_STAR_MMR = 154;
 export const RANK_CAL_GAMES = 10;
 export const RANK_START_MMR = 1000;

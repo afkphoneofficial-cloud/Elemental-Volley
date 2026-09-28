@@ -23,6 +23,8 @@ import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
+import { avatarKey } from "../data/avatars.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -77,6 +79,11 @@ export class PlayScene extends Phaser.Scene {
     this.streakSide = 0;
     this.hadMatchPoint = false;
     this.paused = false;
+    this.rankedMatch = Session.mode === "pvp";
+    this.playerPauses = this.rankedMatch ? 1 : 99;
+    this.systemPauses = this.rankedMatch ? 1 : 0;
+    this.pauseKind = null;
+    this.pauseLeftMs = 0;
     this.matchStats = emptyMatchStats();
     resetMatchUlt();
 
@@ -146,6 +153,7 @@ export class PlayScene extends Phaser.Scene {
       try { this.cheer.destroy(); } catch (e) {}
       try { this.ultCut.destroy(); } catch (e) {}
       try { this.pauseUi.destroy(); } catch (e) {}
+      this.unbindPauseWatch();
       TouchControls.setPlayActive(false);
       this.tweens.timeScale = 1;
       if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
@@ -159,6 +167,7 @@ export class PlayScene extends Phaser.Scene {
       onResume: () => this.setPaused(false),
       onQuit: () => this.scene.start("hub")
     });
+    this.bindPauseWatch();
     TouchControls.setPlayActive(true);
     this.layoutHudMode();
     this.syncSprites();
@@ -288,7 +297,7 @@ export class PlayScene extends Phaser.Scene {
     const palL = ELEMENT_FX[this.leftData.id] || ELEMENT_FX.ignis;
     const palR = ELEMENT_FX[this.rightData.id] || ELEMENT_FX.ignis;
     this.plateL = makeChibiPlate(this, OX + 168, 92, {
-      faceKey: this.faceKey(this.leftData.id, 1),
+      faceKey: this.hudFace(leftYou, this.leftData.id, 1),
       tag: this.sideTag(leftYou, this.leftData.id),
       you: leftYou,
       fill: 0xfff4e8,
@@ -296,7 +305,7 @@ export class PlayScene extends Phaser.Scene {
       pip: palL.tints[0]
     });
     this.plateR = makeChibiPlate(this, GAME.courtRight - 168, 92, {
-      faceKey: this.faceKey(this.rightData.id, 2),
+      faceKey: this.hudFace(!leftYou, this.rightData.id, 2),
       tag: this.sideTag(!leftYou, this.rightData.id),
       you: !leftYou,
       fill: 0xfff4e8,
@@ -353,12 +362,24 @@ export class PlayScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(12);
 
     this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.pause"), () => {
-      this.setPaused(true);
+      this.requestPlayerPause();
     }, 0xff8ab8);
   }
 
+  hudFace(isYou, fighterId, courtSide) {
+    if (isYou) {
+      const key = avatarKey(SaveSystem.data.avatarId);
+      return this.textures.exists(key) ? key : avatarKey("av01");
+    }
+    if (Session.mode === "pvp" && Session.rival) {
+      const key = avatarKey(Session.rival.avatarId);
+      if (this.textures.exists(key)) return key;
+    }
+    return this.faceKey(fighterId, courtSide);
+  }
+
   sideTag(isYou, id) {
-    if (isYou) return t("play.you") + " · " + charName(id);
+    if (isYou) return t("play.you") + " · " + (AuthSystem.displayName() || charName(id));
     if (Session.mode === "pvp" && Session.rival) {
       const n = I18n.lang === "en" ? Session.rival.nameEn : Session.rival.nameTh;
       return t("play.rival") + " · " + n;
@@ -370,6 +391,8 @@ export class PlayScene extends Phaser.Scene {
     const leftYou = this.youSide === 1;
     if (this.plateL && this.plateL.tag) this.plateL.tag.setText(this.sideTag(leftYou, this.leftData.id));
     if (this.plateR && this.plateR.tag) this.plateR.tag.setText(this.sideTag(!leftYou, this.rightData.id));
+    if (this.plateL && this.plateL.face) this.plateL.face.setTexture(this.hudFace(leftYou, this.leftData.id, 1)).setDisplaySize(78, 78);
+    if (this.plateR && this.plateR.face) this.plateR.face.setTexture(this.hudFace(!leftYou, this.rightData.id, 2)).setDisplaySize(78, 78);
     if (this.courtTitle) this.courtTitle.setText(I18n.courtName(this.season));
     if (this.courtFlavor) this.courtFlavor.setText(I18n.courtFlavor(this.season));
     if (this.hintHud) this.hintHud.setText(preferTouch() ? t("play.hudHintTouch") : t("play.hudHint"));
@@ -389,15 +412,68 @@ export class PlayScene extends Phaser.Scene {
     }
   }
 
+  requestPlayerPause() {
+    if (this.matchOver) return;
+    if (this.paused) {
+      this.setPaused(false);
+      return;
+    }
+    if (!this.rankedMatch) {
+      this.pauseKind = null;
+      this.pauseLeftMs = 0;
+      if (this.pauseUi) this.pauseUi.setTimed(null, 0);
+      this.setPaused(true);
+      return;
+    }
+    if (this.playerPauses <= 0) {
+      this.showBanner(t("pause.none"), "#c45a16");
+      return;
+    }
+    this.playerPauses -= 1;
+    this.beginTimedPause("player");
+  }
+
+  requestSystemPause() {
+    if (!this.rankedMatch || this.matchOver || this.paused || this.systemPauses <= 0) return;
+    this.systemPauses -= 1;
+    this.beginTimedPause("system");
+  }
+
+  beginTimedPause(kind) {
+    this.pauseKind = kind;
+    this.pauseLeftMs = GAME.pauseMs;
+    if (this.pauseUi) this.pauseUi.setTimed(kind, this.pauseLeftMs);
+    this.setPaused(true);
+  }
+
+  bindPauseWatch() {
+    this._onHide = () => {
+      if (document.visibilityState === "hidden") this.requestSystemPause();
+    };
+    this._onOffline = () => this.requestSystemPause();
+    document.addEventListener("visibilitychange", this._onHide);
+    window.addEventListener("offline", this._onOffline);
+  }
+
+  unbindPauseWatch() {
+    if (this._onHide) document.removeEventListener("visibilitychange", this._onHide);
+    if (this._onOffline) window.removeEventListener("offline", this._onOffline);
+  }
+
   setPaused(on) {
     this.paused = Boolean(on);
+    if (!this.paused) {
+      this.pauseKind = null;
+      this.pauseLeftMs = 0;
+      if (this.pauseUi) this.pauseUi.setTimed(null, 0);
+    }
     if (this.pauseUi) this.pauseUi.setOpen(this.paused);
   }
 
   bindKeys() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    this.input.keyboard.on("keydown-ESC", () => this.setPaused(!this.paused));
+    this.input.keyboard.on("keydown-ESC", () => this.requestPlayerPause());
   }
 
   readHuman() {
@@ -464,7 +540,14 @@ export class PlayScene extends Phaser.Scene {
   update(_t, delta) {
     this.tickWeather();
     this.pulseMatchPoint();
-    if (this.paused) return;
+    if (this.paused) {
+      if (this.rankedMatch && this.pauseLeftMs > 0) {
+        this.pauseLeftMs -= delta;
+        if (this.pauseUi) this.pauseUi.setRemain(this.pauseLeftMs);
+        if (this.pauseLeftMs <= 0) this.setPaused(false);
+      }
+      return;
+    }
     if (!this.matchOver) this.matchStats.ms += delta;
     this.tickPointSlow(delta);
     if (this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) return;

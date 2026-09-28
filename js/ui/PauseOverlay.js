@@ -10,6 +10,9 @@ export class PauseOverlay {
     this.onResume = onResume;
     this.onQuit = onQuit;
     this.bits = [];
+    this.timed = false;
+    this.kind = "player";
+    this.remainMs = 0;
     this.build();
     this.setOpen(false);
   }
@@ -32,17 +35,23 @@ export class PauseOverlay {
     this.title = this.add(this.scene.add.text(cx, cy - 188, "", {
       fontFamily: UI_FONT, fontSize: "32px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(50));
-    this.musicLab = this.add(this.scene.add.text(cx - 230, cy - 128, "", {
+    this.remain = this.add(this.scene.add.text(cx, cy - 148, "", {
+      fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(50));
+    this.note = this.add(this.scene.add.text(cx, cy + 168, "", {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30", align: "center", wordWrap: { width: 480 }
+    }).setOrigin(0.5).setDepth(50));
+    this.musicLab = this.add(this.scene.add.text(cx - 230, cy - 96, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(50));
-    this.sfxLab = this.add(this.scene.add.text(cx - 230, cy - 62, "", {
+    this.sfxLab = this.add(this.scene.add.text(cx - 230, cy - 30, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(50));
-    this.musicSlide = makeSlider(this.scene, cx + 40, cy - 128, 260, AudioSystem.getMusicVol(), (v) => {
+    this.musicSlide = makeSlider(this.scene, cx + 40, cy - 96, 260, AudioSystem.getMusicVol(), (v) => {
       AudioSystem.unlock();
       AudioSystem.setMusicVol(v);
     });
-    this.sfxSlide = makeSlider(this.scene, cx + 40, cy - 62, 260, AudioSystem.getSfxVol(), (v) => {
+    this.sfxSlide = makeSlider(this.scene, cx + 40, cy - 30, 260, AudioSystem.getSfxVol(), (v) => {
       AudioSystem.setSfxVol(v);
     });
     [this.musicSlide.g, this.musicSlide.knob, this.musicSlide.zone, this.sfxSlide.g, this.sfxSlide.knob, this.sfxSlide.zone].forEach((o) => {
@@ -59,19 +68,47 @@ export class PauseOverlay {
   }
 
   applyLang() {
-    if (this.title) this.title.setText(t("pause.title"));
+    if (this.title) {
+      this.title.setText(this.timed
+        ? t(this.kind === "system" ? "pause.system" : "pause.player")
+        : t("pause.title"));
+    }
+    if (this.remain) {
+      this.remain.setVisible(this.timed);
+      if (this.timed) this.remain.setText(t("pause.left", { n: Math.max(0, Math.ceil((this.remainMs || 0) / 1000)) }));
+    }
+    if (this.note) {
+      this.note.setVisible(this.timed);
+      if (this.timed) this.note.setText(t("pause.note"));
+    }
     if (this.musicLab) this.musicLab.setText(t("settings.music"));
     if (this.sfxLab) this.sfxLab.setText(t("settings.sfx"));
     if (this.resumeBtn && this.resumeBtn.text) this.resumeBtn.text.setText(t("pause.resume"));
     if (this.quitBtn && this.quitBtn.text) this.quitBtn.text.setText(t("pause.quit"));
   }
 
+  setTimed(kind, remainMs) {
+    this.timed = Boolean(kind);
+    this.kind = kind || "player";
+    this.remainMs = remainMs || 0;
+    this.applyLang();
+  }
+
+  setRemain(remainMs) {
+    this.remainMs = remainMs || 0;
+    if (this.remain && this.timed) {
+      this.remain.setText(t("pause.left", { n: Math.max(0, Math.ceil(this.remainMs / 1000)) }));
+    }
+  }
+
   setOpen(on) {
     this.bits.forEach((o) => {
       if (o && o.setVisible) o.setVisible(on);
     });
-    if (on) TouchControls.setPlayActive(false);
-    else TouchControls.setPlayActive(true);
+    if (on) {
+      TouchControls.setPlayActive(false);
+      this.applyLang();
+    } else TouchControls.setPlayActive(true);
   }
 
   destroy() {

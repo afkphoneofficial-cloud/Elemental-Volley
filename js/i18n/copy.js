@@ -58,8 +58,8 @@ export const COPY = {
       }
     },
     rank: {
-      title: "อันดับสนาม",
-      sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย  ·  ต้นแบบการคิดแต้มแบบ Dota 2",
+      title: "กฎอันดับ",
+      sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
       calShort: "กำลังวัดระดับ {n}/{max}",
       calNow: "กำลังวัดระดับ  {n} / {max}  แมตช์",
       youAre: "คุณคือ  {name}  {star}",
@@ -68,9 +68,9 @@ export const COPY = {
       chip: "{name} {star}",
       body1: "สิบแมตช์แรกเป็นการวัดระดับ แต้มสนามขยับแรงกว่าปกติ ยังไม่โชว์เหรียญจนกว่าจะครบ {n} เกม",
       body2: "แต่ละเหรียญมีประกาย 1–5 ขยับประมาณ {star} แต้มสนามต่อประกาย จากลูกทรายไปถึงธาตุบริสุทธิ์ แล้วจึงเป็นสไปค์นิรันดร์",
-      body3: "ชนะคนที่แต้มสูงกว่าได้แต้มมาก แพ้คนที่แต้มต่ำกว่าเสียมาก คิดด้วยสูตรคาดหวังแบบเดียวกับ MMR ของ Dota",
+      body3: "ชนะคู่ที่แต้มสูงกว่าได้แต้มมาก แพ้คู่ที่แต้มต่ำกว่าเสียมาก คิดจากโอกาสชนะคาดหวังตามช่องว่างแต้มสนาม",
       body4: "คิวขยายวงแต้มทุก 1.8 วินาที หาคนในคิวที่แต้มใกล้กันก่อน ถ้าเกาะยังว่างจะจับคู่แข่งเกาะในวงเดียวกัน เพื่อวัดอันดับได้เลย",
-      body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  เน็ตโค้ดควบคุมอีกฝั่งจริงจะตามมาในรอบถัดไป",
+      body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  ตารางอันดับผู้เล่นในเซิร์ฟจะมาแยกต่างหาก",
       tier: {
         sandling: "ลูกทราย",
         netling: "เฝ้าตาข่าย",
@@ -90,7 +90,7 @@ export const COPY = {
       foundIsle: "พบคู่แข่งเกาะ  ·  แต้มสนามใกล้กัน",
       noEther: "เอเธอร์ไม่พอ กลับล็อบบี้",
       cancel: "ยกเลิก",
-      how: "ดูอันดับ"
+      how: "กฎอันดับ"
     },
     starter: {
       title: "เลือกตัวละครแรก",
@@ -119,7 +119,7 @@ export const COPY = {
       pickTitle: "เลือกอวาตาร์ฟรี",
       freeNote: "เปลี่ยนได้ตลอด  ·  ของพิเศษจะมาในร้านค้าภายหลัง",
       close: "ปิด",
-      howRank: "อันดับสนาม"
+      howRank: "กฎอันดับ"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
@@ -266,7 +266,12 @@ export const COPY = {
     pause: {
       title: "พักการแข่ง",
       resume: "เล่นต่อ",
-      quit: "ออกจากแมตช์"
+      quit: "ออกจากแมตช์",
+      player: "พักของผู้เล่น",
+      system: "พักจากระบบ · การเชื่อมต่อไม่ปกติ",
+      left: "เหลือ {n} วินาที",
+      note: "แข่งจริงพักได้ 1 ครั้งต่อแมตช์ ครั้งละ 20 วินาที และระบบพักได้อีก 1 ครั้งเวลาเท่ากัน",
+      none: "ใช้โควตาพักแล้ว"
     },
     cheer: {
       classic: "คลาสสิก",
@@ -348,8 +353,8 @@ export const COPY = {
       }
     },
     rank: {
-      title: "Court rank",
-      sub: "Etheria’s 1v1 ladder  ·  scoring modeled on Dota 2 medals",
+      title: "Rank rules",
+      sub: "Etheria’s 1v1 court ranking",
       calShort: "Calibrating {n}/{max}",
       calNow: "Calibrating  {n} / {max}  matches",
       youAre: "You are  {name}  {star}",
@@ -358,9 +363,9 @@ export const COPY = {
       chip: "{name} {star}",
       body1: "Your first {n} ranked matches calibrate. Court score moves harder, and no medal shows until those games are done.",
       body2: "Each medal has sparks 1–5, about {star} court score per spark, from Sandling up to Primal Tide, then Eternal Spike.",
-      body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. Same expected-score idea as Dota MMR.",
+      body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. The swing follows expected win chance from the court-score gap.",
       body4: "The queue widens every 1.8s. It prefers a live player in range. If the island is quiet, you get a court-matched island rival so rank still moves.",
-      body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. Live remote control of the other side comes with netcode later.",
+      body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. The live player leaderboard comes separately.",
       tier: {
         sandling: "Sandling",
         netling: "Netling",
@@ -380,7 +385,7 @@ export const COPY = {
       foundIsle: "Found an island rival  ·  nearby court score",
       noEther: "Not enough Ether. Back to lobby.",
       cancel: "Cancel",
-      how: "Ranks"
+      how: "Rank rules"
     },
     starter: {
       title: "Pick your first fighter",
@@ -409,7 +414,7 @@ export const COPY = {
       pickTitle: "Free avatars",
       freeNote: "Swap anytime  ·  Shop extras come later",
       close: "Close",
-      howRank: "Court rank"
+      howRank: "Rank rules"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",
@@ -556,7 +561,12 @@ export const COPY = {
     pause: {
       title: "Paused",
       resume: "Resume",
-      quit: "Leave match"
+      quit: "Leave match",
+      player: "Player timeout",
+      system: "System timeout · connection issue",
+      left: "{n} seconds left",
+      note: "Ranked matches get 1 player pause of 20 seconds, plus 1 system pause of the same length.",
+      none: "No pauses left"
     },
     cheer: {
       classic: "Classic",

@@ -11,7 +11,8 @@ export const GAME = {
   netTop: 176 * SCALE,
   courtLeft: (1280 - WORLD.width * SCALE) / 2,
   courtRight: (1280 - WORLD.width * SCALE) / 2 + WORLD.width * SCALE,
-  winScore: 15
+  winScore: 15,
+  pauseMs: 20000
 };
 
 export const PHYSICS = {
