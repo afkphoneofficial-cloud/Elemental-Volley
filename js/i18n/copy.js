@@ -377,6 +377,14 @@ export const COPY = {
       starlight: "แสงดาว",
       starlightBlurb: "โทนม่วงดาว กึ่งลับ รอแพทช์ต่อ"
     },
+    cosmetics: {
+      slotAvatar: "อวาตาร์",
+      slotCheer: "ฉลองแต้ม",
+      slotHit: "เอฟเฟกต์ตบ",
+      slotUlt: "เอฟเฟกต์อัลติ",
+      slotPlate: "ป้ายชื่อ",
+      fxOnly: "ของสวมใส่เป็นแค่ภาพและเอฟเฟกต์ ไม่เปลี่ยนพลังในสนาม"
+    },
     court: {
       summer: "ฤดูร้อน",
       summerFlavor: "ชายหาดแดดจัด",
@@ -767,6 +775,14 @@ export const COPY = {
       festivalBlurb: "Bright colors and confetti",
       starlight: "Starlight",
       starlightBlurb: "Purple star glow. Semi-secret, later patch."
+    },
+    cosmetics: {
+      slotAvatar: "Avatar",
+      slotCheer: "Point cheer",
+      slotHit: "Hit FX",
+      slotUlt: "Ult FX",
+      slotPlate: "Name plate",
+      fxOnly: "Wearables are visuals and effects only. They never change court stats."
     },
     court: {
       summer: "Summer",

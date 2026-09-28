@@ -2,6 +2,13 @@ import { ECONOMY } from "../data/economy.js";
 import { emptyCareer, tickEther } from "./Ether.js";
 import { emptyRank } from "../data/ranks.js";
 import { DEFAULT_AVATAR, ownedAvatar } from "../data/avatars.js";
+import {
+  buyCosmetic as purchaseCosmetic,
+  equipCosmetic as wearCosmetic,
+  equippedCosmetic as wornCosmetic,
+  migrateCosmetics,
+  ownsCosmetic as hasCosmetic
+} from "../data/cosmetics.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -19,6 +26,7 @@ const empty = () => ({
   etherAt: 0,
   avatarId: "av01",
   unlockedAvatars: [],
+  cosmetics: { owned: [], equipped: {} },
   rank: emptyRank(),
   showcaseId: null,
   friends: []
@@ -38,6 +46,7 @@ function finish(data) {
   if (!data.etherAt) data.etherAt = Date.now();
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
+  migrateCosmetics(data);
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
   if (!Array.isArray(data.friends)) data.friends = [];
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
@@ -161,28 +170,47 @@ export const SaveSystem = {
   },
 
   equippedCheer() {
-    return this.data.equippedCheer || "classic";
+    return wornCosmetic(this.data, "cheer");
   },
 
   isCheerUnlocked(id) {
-    return (this.data.unlockedCheers || []).includes(id);
+    return hasCosmetic(this.data, id);
   },
 
-  unlockCheer(id, premiumCost) {
-    if (this.isCheerUnlocked(id)) return { ok: false, reason: "owned" };
-    if (this.data.currencies.premium < premiumCost) return { ok: false, reason: "premium" };
-    this.data.currencies.premium -= premiumCost;
-    this.data.unlockedCheers.push(id);
-    this.data.equippedCheer = id;
-    this.persist();
-    return { ok: true };
+  unlockCheer(id) {
+    const res = purchaseCosmetic(this.data, id);
+    if (res.ok) this.persist();
+    return res;
   },
 
   equipCheer(id) {
-    if (!this.isCheerUnlocked(id)) return false;
-    this.data.equippedCheer = id;
-    this.persist();
-    return true;
+    const res = wearCosmetic(this.data, id);
+    if (res.ok) this.persist();
+    return res.ok;
+  },
+
+  loadout() {
+    return { ...(this.data.cosmetics && this.data.cosmetics.equipped) };
+  },
+
+  ownsCosmetic(id) {
+    return hasCosmetic(this.data, id);
+  },
+
+  equippedCosmetic(slot) {
+    return wornCosmetic(this.data, slot);
+  },
+
+  buyCosmetic(id) {
+    const res = purchaseCosmetic(this.data, id);
+    if (res.ok) this.persist();
+    return res;
+  },
+
+  equipCosmetic(id) {
+    const res = wearCosmetic(this.data, id);
+    if (res.ok) this.persist();
+    return res;
   },
 
   etherNow() {
@@ -251,9 +279,8 @@ export const SaveSystem = {
   },
 
   equipAvatar(id) {
-    if (!ownedAvatar(this.data, id)) return false;
-    this.data.avatarId = id;
-    this.persist();
-    return true;
+    const res = wearCosmetic(this.data, id);
+    if (res.ok) this.persist();
+    return res.ok;
   }
 };
