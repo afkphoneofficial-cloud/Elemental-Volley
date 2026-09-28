@@ -1,5 +1,6 @@
 import { ECONOMY } from "../data/economy.js";
 import { emptyCareer, tickEther } from "./Ether.js";
+import { emptyRank } from "../data/ranks.js";
 import { DEFAULT_AVATAR, ownedAvatar } from "../data/avatars.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -17,7 +18,8 @@ const empty = () => ({
   ether: ECONOMY.etherMax,
   etherAt: 0,
   avatarId: "av01",
-  unlockedAvatars: []
+  unlockedAvatars: [],
+  rank: emptyRank()
 });
 
 function finish(data) {
@@ -34,6 +36,7 @@ function finish(data) {
   if (!data.etherAt) data.etherAt = Date.now();
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
+  data.rank = { ...emptyRank(), ...(data.rank || {}) };
   return data;
 }
 
@@ -208,14 +211,21 @@ export const SaveSystem = {
       win: Boolean(entry.win),
       you: entry.youId,
       foe: entry.foeId,
+      foeName: entry.foeName || "",
       youScore: entry.youScore | 0,
       foeScore: entry.foeScore | 0,
       diff: entry.diff || "normal",
+      mmr: entry.mmrDelta || 0,
       stats
     });
     if (this.data.matchLog.length > ECONOMY.matchLogMax) {
       this.data.matchLog.length = ECONOMY.matchLogMax;
     }
+    this.persist();
+  },
+
+  setRank(rank) {
+    this.data.rank = { ...emptyRank(), ...(rank || {}) };
     this.persist();
   },
 

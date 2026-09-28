@@ -14,6 +14,7 @@ export class SelectScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    this.pvpMode = Session.mode === "pvp";
     this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;
@@ -23,7 +24,7 @@ export class SelectScene extends Phaser.Scene {
     this.diff = "normal";
     this.cards = [];
 
-    this.add.text(W / 2, 48, t("select.title"), {
+    this.add.text(W / 2, 48, t(this.pvpMode ? "select.titlePvp" : "select.title"), {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
@@ -95,26 +96,40 @@ export class SelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 
-    [
-      ["easy", "select.botEasy"],
-      ["normal", "select.botNormal"],
-      ["hard", "select.botHard"]
-    ].forEach(([d, key], i) => {
-      makeButton(this, 420 + i * 220, 530, 180, 46, t(key), () => {
-        this.diff = d;
-        this.refreshPick();
+    if (!this.pvpMode) {
+      [
+        ["easy", "select.botEasy"],
+        ["normal", "select.botNormal"],
+        ["hard", "select.botHard"]
+      ].forEach(([d, key], i) => {
+        makeButton(this, 420 + i * 220, 530, 180, 46, t(key), () => {
+          this.diff = d;
+          this.refreshPick();
+          AudioSystem.ui();
+        }, d === "hard" ? 0xff5a1f : 0x7d5cff);
+      });
+    } else {
+      makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
         AudioSystem.ui();
-      }, d === "hard" ? 0xff5a1f : 0x7d5cff);
-    });
+        this.scene.start("rankinfo", { from: "select" });
+      }, 0x3ad6ff);
+    }
 
-    makeButton(this, W / 2, 620, 280, 52, t("select.start"), () => {
+    makeButton(this, W / 2, 620, 280, 52, t(this.pvpMode ? "select.startPvp" : "select.start"), () => {
       if (!SaveSystem.isUnlocked(this.pick)) return;
       Session.playerId = this.pick;
+      Session.youSide = Math.random() < 0.5 ? 1 : 2;
+      AudioSystem.ui();
+      if (this.pvpMode) {
+        Session.mode = "pvp";
+        this.scene.start("queue");
+        return;
+      }
+      Session.mode = "bot";
+      Session.rival = null;
       const lockedPool = ROSTER_IDS.filter((id) => id !== this.pick);
       Session.botId = Phaser.Utils.Array.GetRandom(lockedPool);
       Session.difficulty = this.diff;
-      Session.youSide = Math.random() < 0.5 ? 1 : 2;
-      AudioSystem.ui();
       this.scene.start("luck");
     });
 
@@ -152,10 +167,14 @@ export class SelectScene extends Phaser.Scene {
   }
 
   refreshPick() {
-    this.pickText.setText(t("select.pick", {
-      name: I18n.charName(this.pick),
-      diff: t("select.diff" + this.diff[0].toUpperCase() + this.diff.slice(1))
-    }));
+    if (this.pvpMode) {
+      this.pickText.setText(t("select.pickPvp", { name: I18n.charName(this.pick) }));
+    } else {
+      this.pickText.setText(t("select.pick", {
+        name: I18n.charName(this.pick),
+        diff: t("select.diff" + this.diff[0].toUpperCase() + this.diff.slice(1))
+      }));
+    }
     this.cards.forEach((card) => {
       const selected = this.isActiveCard(card);
       card.plate.setStrokeStyle(selected ? 6 : 3, selected ? card.main : 0xfff6ea, selected ? 1 : 0.95);

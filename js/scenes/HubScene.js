@@ -6,6 +6,8 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
+import { Session } from "../systems/Session.js";
+import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -46,6 +48,11 @@ export class HubScene extends Phaser.Scene {
     pg.lineStyle(2, 0xff6a22, 0.75);
     pg.strokeRoundedRect(28, 24, 268, 56, 28);
     this.add.image(60, 52, avKey).setDisplaySize(44, 44).setDepth(21);
+    const rk = SaveSystem.data.rank;
+    const medal = medalFromMmr(rk.mmr);
+    if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
+      this.add.image(88, 70, badgeKey(medal.id)).setDisplaySize(22, 22).setDepth(22);
+    }
     this.add.text(92, 52, AuthSystem.displayName() || "—", {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(21);
@@ -90,7 +97,7 @@ export class HubScene extends Phaser.Scene {
 
     makeButton(this, W / 2, 548, 380, 64, t("hub.play"), () => {
       AudioSystem.ui();
-      this.scene.start("select");
+      this.openPlay();
     });
 
     const nav = [
@@ -113,6 +120,47 @@ export class HubScene extends Phaser.Scene {
     if (!this.etherText) return;
     const st = SaveSystem.etherNow();
     this.etherText.setText(st.n + "/" + ECONOMY.etherMax);
+  }
+
+  openPlay() {
+    this.closeInfo();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.5).setDepth(70).setInteractive();
+    const card = this.add.graphics().setDepth(71);
+    card.fillStyle(0xfff6ea, 0.98);
+    card.fillRoundedRect(W / 2 - 300, H / 2 - 170, 600, 340, 22);
+    card.lineStyle(3, 0xff6a22, 0.8);
+    card.strokeRoundedRect(W / 2 - 300, H / 2 - 170, 600, 340, 22);
+    const t1 = this.add.text(W / 2, H / 2 - 130, t("hub.play"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(72);
+    const t2 = this.add.text(W / 2, H / 2 - 88, t("hub.playHint"), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
+    }).setOrigin(0.5).setDepth(72);
+    const bot = makeButton(this, W / 2, H / 2 - 18, 320, 52, t("hub.playBot"), () => {
+      Session.mode = "bot";
+      Session.rival = null;
+      AudioSystem.ui();
+      this.scene.start("select");
+    }, 0xffb14a);
+    const pvp = makeButton(this, W / 2, H / 2 + 48, 320, 52, t("hub.playPvp"), () => {
+      Session.mode = "pvp";
+      AudioSystem.ui();
+      const st = SaveSystem.etherNow();
+      if (st.n < ECONOMY.etherCostPvp) {
+        this.closeInfo();
+        this.openInfo("ether");
+        return;
+      }
+      this.scene.start("select");
+    }, 0x7d5cff);
+    const how = makeButton(this, W / 2, H / 2 + 112, 220, 42, t("queue.how"), () => {
+      AudioSystem.ui();
+      this.scene.start("rankinfo", { from: "hub" });
+    }, 0x3ad6ff);
+    dim.on("pointerdown", () => this.closeInfo());
+    this.infoBits = [dim, card, t1, t2, bot.bg, bot.text, bot.gfx, pvp.bg, pvp.text, pvp.gfx, how.bg, how.text, how.gfx];
   }
 
   openInfo(kind) {

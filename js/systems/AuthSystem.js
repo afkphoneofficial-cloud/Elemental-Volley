@@ -53,6 +53,7 @@ export const AuthSystem = {
   session: () => session,
   profile: () => profile,
   displayName: () => (profile && profile.display_name) || "",
+  db: () => getSb(),
 
   isLoggedIn() {
     return Boolean(session && session.id && session.email);

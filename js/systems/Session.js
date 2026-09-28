@@ -5,5 +5,7 @@ export const Session = {
   difficulty: "normal",
   youSide: 1,
   courtId: "summer",
-  youServe: false
+  youServe: false,
+  mode: "bot",
+  rival: null
 };

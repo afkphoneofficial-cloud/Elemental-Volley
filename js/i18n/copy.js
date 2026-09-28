@@ -34,6 +34,9 @@ export const COPY = {
     hub: {
       title: "ล็อบบี้",
       play: "เล่น",
+      playBot: "ฝึกกับบอท",
+      playPvp: "สนามจัดอันดับ",
+      playHint: "บอทไม่กินเอเธอร์  ·  จัดอันดับกิน 1 เอเธอร์เมื่อเจอคู่",
       navShop: "ร้าน",
       navMap: "แผนที่",
       navSet: "ตั้งค่า",
@@ -48,8 +51,43 @@ export const COPY = {
         tokensTitle: "ตราตัวละคร",
         tokensBody: "ใช้ปลดล็อกนักแข่งในร้านค้า แลกได้จากแต้ม PVP",
         pvpTitle: "แต้ม PVP",
-        pvpBody: "ได้จากแข่ง แลกเป็นตราตัวละครได้ที่ร้าน"
+        pvpBody: "ได้จากแข่ง แลกเป็นตราตัวละครได้ที่ร้าน แต้มสนามคนละอย่างกับแต้ม PVP"
       }
+    },
+    rank: {
+      title: "อันดับสนาม",
+      sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย  ·  ต้นแบบการคิดแต้มแบบ Dota 2",
+      calShort: "กำลังวัดระดับ {n}/{max}",
+      calNow: "กำลังวัดระดับ  {n} / {max}  แมตช์",
+      youAre: "คุณคือ  {name}  {star}",
+      noStar: "",
+      mmrLine: "แต้มสนาม {n}   ·   ชนะ {w}   ·   แพ้ {l}",
+      chip: "{name} {star}",
+      body1: "สิบแมตช์แรกเป็นการวัดระดับ แต้มสนามขยับแรงกว่าปกติ ยังไม่โชว์เหรียญจนกว่าจะครบ {n} เกม",
+      body2: "แต่ละเหรียญมีประกาย 1–5 ขยับประมาณ {star} แต้มสนามต่อประกาย จากลูกทรายไปถึงธาตุบริสุทธิ์ แล้วจึงเป็นสไปค์นิรันดร์",
+      body3: "ชนะคนที่แต้มสูงกว่าได้แต้มมาก แพ้คนที่แต้มต่ำกว่าเสียมาก คิดด้วยสูตรคาดหวังแบบเดียวกับ MMR ของ Dota",
+      body4: "คิวขยายวงแต้มทุก 1.8 วินาที หาคนในคิวที่แต้มใกล้กันก่อน ถ้าเกาะยังว่างจะจับคู่แข่งเกาะในวงเดียวกัน เพื่อวัดอันดับได้เลย",
+      body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  เน็ตโค้ดควบคุมอีกฝั่งจริงจะตามมาในรอบถัดไป",
+      tier: {
+        sandling: "ลูกทราย",
+        netling: "เฝ้าตาข่าย",
+        server: "นักเสิร์ฟ",
+        setter: "มือเซ็ต",
+        ace: "เอซ",
+        island: "เจ้าเกาะ",
+        primal: "ธาตุบริสุทธิ์",
+        eternal: "สไปค์นิรันดร์"
+      }
+    },
+    queue: {
+      title: "กำลังหาคู่แข่ง",
+      searching: "ค้นในวงแต้มสนามใกล้เคียง…",
+      window: "วงค้น ±{n} แต้ม",
+      foundLive: "พบผู้เล่นในคิว  ·  อันดับใกล้กัน",
+      foundIsle: "พบคู่แข่งเกาะ  ·  แต้มสนามใกล้กัน",
+      noEther: "เอเธอร์ไม่พอ กลับล็อบบี้",
+      cancel: "ยกเลิก",
+      how: "ดูอันดับ"
     },
     starter: {
       title: "เลือกตัวละครแรก",
@@ -72,19 +110,23 @@ export const COPY = {
       win: "ชนะ",
       lose: "แพ้",
       bot: "บอท",
-      pvp: "PVP",
+      pvp: "จัดอันดับ",
       more: "อีก {n} เกมในคลัง (เก็บสูงสุด 30)",
       change: "เปลี่ยนอวาตาร์",
       pickTitle: "เลือกอวาตาร์ฟรี",
       freeNote: "เปลี่ยนได้ตลอด  ·  ของพิเศษจะมาในร้านค้าภายหลัง",
-      close: "ปิด"
+      close: "ปิด",
+      howRank: "อันดับสนาม"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
+      titlePvp: "เลือกตัว แล้วเข้าคิวสนามจัดอันดับ",
       ready: "พร้อมลงสนาม",
       locked: "ล็อก  ·  100 ตรา",
       pick: "คุณ: {name}   ·   ความยากบอท: {diff}",
+      pickPvp: "คุณ: {name}   ·   คิวจะจับคู่ตามแต้มสนาม",
       start: "เริ่มแมตช์",
+      startPvp: "เข้าคิว",
       botEasy: "บอท ง่าย",
       botNormal: "บอท ปกติ",
       botHard: "บอท ยาก",
@@ -96,8 +138,8 @@ export const COPY = {
       title: "เสี่ยงดวงก่อนแข่ง",
       sub: "ผู้ชนะเลือกสนาม  ·  ผู้แพ้เสิร์ฟก่อน",
       rolling: "กำลังทอย...",
-      youWin: "คุณชนะ! เลือกสนามได้  ·  บอทเสิร์ฟก่อน",
-      botWin: "บอทชนะ · เลือก {court}  ·  คุณเสิร์ฟก่อน"
+      youWin: "คุณชนะ! เลือกสนามได้  ·  ฝั่งนั้นเสิร์ฟก่อน",
+      botWin: "ฝั่งนั้นชนะ · เลือก {court}  ·  คุณเสิร์ฟก่อน"
     },
     shop: {
       title: "ร้านค้า",
@@ -116,6 +158,8 @@ export const COPY = {
     },
     result: {
       pvp: "แต้ม PVP +{pvp}{bonus}",
+      rank: "แต้มสนาม {delta}   ·   {name} {star}",
+      calLeft: "วัดระดับเหลืออีก {n} เกม",
       firstWin: "   ·   โบนัสชนะแรก +{n}",
       total: "รวมตอนนี้  PVP {pvp}   ·   ตรา {tokens}",
       again: "เล่นอีกครั้ง",
@@ -171,6 +215,7 @@ export const COPY = {
     play: {
       you: "คุณ",
       bot: "บอท",
+      rival: "คู่แข่ง",
       ready: "พร้อม",
       quit: "ออก",
       hudHint: "← → ↑ ↓   ENTER ตี   ค้าง ENTER ปล่อยอัลติ",
@@ -276,6 +321,9 @@ export const COPY = {
     hub: {
       title: "Lobby",
       play: "Play",
+      playBot: "Train vs bot",
+      playPvp: "Ranked court",
+      playHint: "Bots skip Ether  ·  Ranked spends 1 Ether when a rival is found",
       navShop: "Shop",
       navMap: "Map",
       navSet: "Settings",
@@ -290,8 +338,43 @@ export const COPY = {
         tokensTitle: "Character tokens",
         tokensBody: "Spend these in the shop to unlock fighters. Exchange them from PVP points.",
         pvpTitle: "PVP points",
-        pvpBody: "Earned from matches. Trade them for character tokens in the shop."
+        pvpBody: "Earned from matches. Trade them for character tokens. Court rating is a separate ranked score."
       }
+    },
+    rank: {
+      title: "Court rank",
+      sub: "Etheria’s 1v1 ladder  ·  scoring modeled on Dota 2 medals",
+      calShort: "Calibrating {n}/{max}",
+      calNow: "Calibrating  {n} / {max}  matches",
+      youAre: "You are  {name}  {star}",
+      noStar: "",
+      mmrLine: "Court score {n}   ·   Wins {w}   ·   Losses {l}",
+      chip: "{name} {star}",
+      body1: "Your first {n} ranked matches calibrate. Court score moves harder, and no medal shows until those games are done.",
+      body2: "Each medal has sparks 1–5, about {star} court score per spark, from Sandling up to Primal Tide, then Eternal Spike.",
+      body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. Same expected-score idea as Dota MMR.",
+      body4: "The queue widens every 1.8s. It prefers a live player in range. If the island is quiet, you get a court-matched island rival so rank still moves.",
+      body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. Live remote control of the other side comes with netcode later.",
+      tier: {
+        sandling: "Sandling",
+        netling: "Netling",
+        server: "Rally Server",
+        setter: "Court Setter",
+        ace: "Ace",
+        island: "Island Lord",
+        primal: "Primal Tide",
+        eternal: "Eternal Spike"
+      }
+    },
+    queue: {
+      title: "Finding a rival",
+      searching: "Searching nearby court scores…",
+      window: "Search window ±{n}",
+      foundLive: "Found a queued player  ·  nearby rank",
+      foundIsle: "Found an island rival  ·  nearby court score",
+      noEther: "Not enough Ether. Back to lobby.",
+      cancel: "Cancel",
+      how: "Ranks"
     },
     starter: {
       title: "Pick your first fighter",
@@ -314,19 +397,23 @@ export const COPY = {
       win: "Win",
       lose: "Loss",
       bot: "Bot",
-      pvp: "PVP",
+      pvp: "Ranked",
       more: "{n} more in the vault (keeps 30)",
       change: "Change avatar",
       pickTitle: "Free avatars",
       freeNote: "Swap anytime  ·  Shop extras come later",
-      close: "Close"
+      close: "Close",
+      howRank: "Court rank"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",
+      titlePvp: "Pick a fighter, then queue for ranked",
       ready: "Ready to play",
       locked: "Locked  ·  100 tokens",
       pick: "You: {name}   ·   Bot difficulty: {diff}",
+      pickPvp: "You: {name}   ·   Queue matches nearby court score",
       start: "Start match",
+      startPvp: "Find rival",
       botEasy: "Bot Easy",
       botNormal: "Bot Normal",
       botHard: "Bot Hard",
@@ -338,8 +425,8 @@ export const COPY = {
       title: "Coin flip before the match",
       sub: "Winner picks the court  ·  Loser serves first",
       rolling: "Rolling...",
-      youWin: "You win! Pick a court  ·  The bot serves first",
-      botWin: "Bot wins · picked {court}  ·  You serve first"
+      youWin: "You win! Pick a court  ·  They serve first",
+      botWin: "They win · picked {court}  ·  You serve first"
     },
     shop: {
       title: "Shop",
@@ -358,6 +445,8 @@ export const COPY = {
     },
     result: {
       pvp: "PVP +{pvp}{bonus}",
+      rank: "Court score {delta}   ·   {name} {star}",
+      calLeft: "Calibration {n} matches left",
       firstWin: "   ·   First win bonus +{n}",
       total: "Now  PVP {pvp}   ·   Tokens {tokens}",
       again: "Play again",
@@ -413,6 +502,7 @@ export const COPY = {
     play: {
       you: "YOU",
       bot: "BOT",
+      rival: "RIVAL",
       ready: "READY",
       quit: "Quit",
       hudHint: "← → ↑ ↓   ENTER hit   Hold ENTER to fire ult",

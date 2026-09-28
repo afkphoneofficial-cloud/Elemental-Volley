@@ -7,6 +7,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
+import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 
 const SEASON_FX = {
   summer: { burst: [0xffe08a, 0xff6a22, 0xffffff], glow: 0xff8a3a },
@@ -43,14 +44,31 @@ export class ResultScene extends Phaser.Scene {
     if (this.win) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
     this.pvpGain = pvp;
     const sc = this.payload.score || {};
+    this.pvpMode = Session.mode === "pvp";
+    this.rankDelta = 0;
+    this.rankAfter = null;
+    this.rankCal = false;
+    if (this.pvpMode) {
+      const opp = (Session.rival && Session.rival.mmr) || 1000;
+      const gap = Math.abs((sc.p1 | 0) - (sc.p2 | 0));
+      const applied = applyRankedMatch(SaveSystem.data.rank, opp, this.win, gap);
+      SaveSystem.setRank(applied.rank);
+      this.rankDelta = applied.delta;
+      this.rankAfter = applied.after;
+      this.rankCal = isCalibrating(applied.rank);
+    }
+    const rival = Session.rival;
+    const foeName = rival ? (I18n.lang === "en" ? rival.nameEn : rival.nameTh) : "";
     SaveSystem.recordMatch({
       win: this.win,
-      mode: "bot",
+      mode: this.pvpMode ? "pvp" : "bot",
       youId: this.payload.youId,
       foeId: this.payload.botId,
+      foeName,
       youScore: sc.p1,
       foeScore: sc.p2,
       diff: Session.difficulty,
+      mmrDelta: this.rankDelta,
       stats: this.payload.stats || {}
     });
 
@@ -108,7 +126,7 @@ export class ResultScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#c8bdd8"
     }).setOrigin(0.5).setDepth(8));
     this.pvpText = this.keep(v, this.add.text(W / 2, 500, "", {
-      fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30"
+      fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 880 }
     }).setOrigin(0.5).setDepth(8));
 
     this.statsBtn = makeButton(this, W / 2, 548, 340, 50, t("result.statsBtn"), () => this.showPage("stats"), 0xff6a22);
@@ -203,13 +221,26 @@ export class ResultScene extends Phaser.Scene {
       );
     }
     if (this.pvpText) {
-      this.pvpText.setText(t("result.pvp", {
+      let line = t("result.pvp", {
         pvp: this.pvpGain,
         bonus: this.bonus ? t("result.firstWin", { n: this.bonus }) : ""
       }) + "   ·   " + t("result.total", {
         pvp: SaveSystem.data.currencies.pvp,
         tokens: SaveSystem.data.currencies.tokens
-      }));
+      });
+      if (this.pvpMode && this.rankAfter) {
+        const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
+        if (this.rankCal) {
+          line += "\n" + t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - SaveSystem.data.rank.games) });
+        } else {
+          line += "\n" + t("result.rank", {
+            delta,
+            name: t("rank.tier." + this.rankAfter.id),
+            star: this.rankAfter.star || ""
+          });
+        }
+      }
+      this.pvpText.setText(line);
     }
     if (this.statsBtn && this.statsBtn.text) this.statsBtn.text.setText(t("result.statsBtn"));
     if (this.statsBackBtn && this.statsBackBtn.text) this.statsBackBtn.text.setText(t("result.statsBack"));

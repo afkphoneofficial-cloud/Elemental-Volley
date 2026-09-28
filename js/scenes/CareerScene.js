@@ -6,6 +6,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
+import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES } from "../data/ranks.js";
 
 export class CareerScene extends Phaser.Scene {
   constructor() { super("career"); }
@@ -33,7 +34,18 @@ export class CareerScene extends Phaser.Scene {
     this.avName = this.add.text(W / 2 - 120, 152, avatarLabel(avId, I18n.lang), {
       fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(8);
-    makeButton(this, W / 2 + 170, 178, 220, 40, t("career.change"), () => {
+    const rk = SaveSystem.data.rank;
+    const medal = medalFromMmr(rk.mmr);
+    const rankLab = isCalibrating(rk)
+      ? t("rank.calShort", { n: rk.games, max: RANK_CAL_GAMES })
+      : t("rank.chip", { name: t("rank.tier." + medal.id), star: medal.star || "" });
+    this.add.text(W / 2 - 120, 178, rankLab, {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0, 0.5).setDepth(8);
+    if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
+      this.add.image(W / 2 - 148, 178, badgeKey(medal.id)).setDisplaySize(22, 22).setDepth(8);
+    }
+    makeButton(this, W / 2 + 170, 168, 220, 40, t("career.change"), () => {
       AudioSystem.ui();
       this.openPicker();
     }, 0x7d5cff);
@@ -67,7 +79,7 @@ export class CareerScene extends Phaser.Scene {
         const line = t("career.row", {
           result: row.win ? t("career.win") : t("career.lose"),
           you: charName(row.you),
-          foe: charName(row.foe),
+          foe: row.foeName || charName(row.foe),
           a: row.youScore,
           b: row.foeScore,
           mode: row.mode === "pvp" ? t("career.pvp") : t("career.bot")
@@ -84,6 +96,7 @@ export class CareerScene extends Phaser.Scene {
     }
 
     makeButton(this, 120, 36, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, W - 150, 36, 200, 40, t("career.howRank"), () => this.scene.start("rankinfo", { from: "career" }), 0x3ad6ff);
     AudioSystem.playMenu();
   }
 

@@ -8,6 +8,27 @@ export const TextureFactory = {
     ["summer", "rain", "spring", "winter"].forEach((s) => this.refFallback(scene, s));
   },
 
+  rankBadge(scene, key, color, stars) {
+    const g = scene.make.graphics({ add: false });
+    g.fillStyle(0xfff6ea, 1);
+    g.fillCircle(32, 28, 28);
+    g.fillStyle(color, 1);
+    g.fillCircle(32, 28, 22);
+    g.lineStyle(3, 0xfff6ea, 0.95);
+    g.strokeCircle(32, 28, 22);
+    g.fillStyle(0xffe08a, 1);
+    const n = stars | 0;
+    for (let i = 0; i < n; i += 1) {
+      g.fillCircle(12 + i * 10, 56, 3.2);
+    }
+    if (!n) {
+      g.fillStyle(0xfff6ea, 1);
+      g.fillCircle(32, 28, 6);
+    }
+    g.generateTexture(key, 64, 64);
+    g.destroy();
+  },
+
   dot(scene) {
     const g = scene.make.graphics({ add: false });
     g.fillStyle(0xffffff, 1);
@@ -128,6 +149,7 @@ export const TextureFactory = {
         const y = (p / w) | 0;
         enq(x + 1, y); enq(x - 1, y); enq(x, y + 1); enq(x, y - 1);
       }
+      TextureFactory.punchBakedChecker(px, w, h);
       let minX = w, minY = h, maxX = 0, maxY = 0, count = 0;
       for (let y = 0; y < h; y += 1) {
         for (let x = 0; x < w; x += 1) {
@@ -158,6 +180,43 @@ export const TextureFactory = {
       scene.textures.addCanvas(destKey, out);
     } catch (e) {
       /* keep vis_ fallback */
+    }
+  },
+
+  punchBakedChecker(px, w, h) {
+    const satAt = (i) => {
+      const r = px[i], g = px[i + 1], b = px[i + 2];
+      return Math.max(r, g, b) - Math.min(r, g, b);
+    };
+    const grayTile = (i) => {
+      if (px[i + 3] < 12 || satAt(i) > 8) return false;
+      const mx = Math.max(px[i], px[i + 1], px[i + 2]);
+      return mx >= 196 && mx <= 226;
+    };
+    const whiteTile = (i) => {
+      if (px[i + 3] < 12 || satAt(i) > 8) return false;
+      return Math.min(px[i], px[i + 1], px[i + 2]) >= 248;
+    };
+    const creamRing = (i) => {
+      const r = px[i], g = px[i + 1], b = px[i + 2];
+      if (px[i + 3] < 12) return false;
+      return r >= 236 && g >= 218 && b >= 188 && b <= 232 && (r - b) >= 16 && satAt(i) <= 50;
+    };
+    const nearGray = (x, y) => {
+      for (let dy = -2; dy <= 2; dy += 1) {
+        for (let dx = -2; dx <= 2; dx += 1) {
+          const xx = x + dx, yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          if (grayTile((yy * w + xx) * 4)) return true;
+        }
+      }
+      return false;
+    };
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        const i = (y * w + x) * 4;
+        if (creamRing(i) || grayTile(i) || (whiteTile(i) && nearGray(x, y))) px[i + 3] = 0;
+      }
     }
   },
 

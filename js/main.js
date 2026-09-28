@@ -16,6 +16,8 @@ import { WikiScene } from "./scenes/WikiScene.js";
 import { ResultScene } from "./scenes/ResultScene.js";
 import { SettingsScene } from "./scenes/SettingsScene.js";
 import { CareerScene } from "./scenes/CareerScene.js";
+import { QueueScene } from "./scenes/QueueScene.js";
+import { RankScene } from "./scenes/RankScene.js";
 import { TouchControls } from "./ui/TouchControls.js";
 
 AudioSystem.mountDock();
@@ -39,7 +41,7 @@ window.game = new Phaser.Game({
     width: GAME.width,
     height: GAME.height
   },
-  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene, CareerScene]
+  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene, CareerScene, QueueScene, RankScene]
 });
 
 SaveSystem.load();

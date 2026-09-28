@@ -358,7 +358,12 @@ export class PlayScene extends Phaser.Scene {
   }
 
   sideTag(isYou, id) {
-    return (isYou ? t("play.you") : t("play.bot")) + " · " + charName(id);
+    if (isYou) return t("play.you") + " · " + charName(id);
+    if (Session.mode === "pvp" && Session.rival) {
+      const n = I18n.lang === "en" ? Session.rival.nameEn : Session.rival.nameTh;
+      return t("play.rival") + " · " + n;
+    }
+    return t("play.bot") + " · " + charName(id);
   }
 
   applyLang() {

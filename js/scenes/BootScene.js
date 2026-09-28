@@ -3,6 +3,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
 import { FREE_AVATARS } from "../data/avatars.js";
+import { RANK_TIERS, badgeKey } from "../data/ranks.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -35,6 +36,7 @@ export class BootScene extends Phaser.Scene {
     I18n.load();
     try {
       TextureFactory.build(this);
+      RANK_TIERS.forEach((row) => TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars));
       TextureFactory.applyBall(this, "ball-art", "ball");
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
@@ -53,6 +55,7 @@ export class BootScene extends Phaser.Scene {
       });
     } catch (e) {
       TextureFactory.build(this);
+      RANK_TIERS.forEach((row) => TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars));
     }
     AuthSystem.init().then(() => {
       I18n.load();
