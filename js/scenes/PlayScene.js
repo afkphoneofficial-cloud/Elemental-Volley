@@ -393,18 +393,20 @@ export class PlayScene extends Phaser.Scene {
   buildLinkBadge() {
     const x = GAME.width - 92;
     const y = 44;
+    const w = 156;
+    const h = 56;
     const g = this.add.graphics().setDepth(19);
     g.fillStyle(0xfff4e8, 0.96);
-    g.fillRoundedRect(x - 78, y - 28, 156, 56, 22);
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
     g.lineStyle(3, 0xffb14a, 0.85);
-    g.strokeRoundedRect(x - 78, y - 28, 156, 56, 22);
-    g.fillStyle(0xffe08a, 0.45);
-    g.fillCircle(x - 58, y - 10, 7);
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
     this.linkOrbs = [];
     const cols = [0xff8ab8, 0xffb14a, 0xffe08a, 0x7af3c2];
-    for (let i = 0; i < 4; i += 1) {
-      const ox = x - 48 + i * 22;
-      const oy = y - 8;
+    const gap = 22;
+    const start = x - ((cols.length - 1) * gap) / 2;
+    for (let i = 0; i < cols.length; i += 1) {
+      const ox = start + i * gap;
+      const oy = y - 7;
       const shell = this.add.circle(ox, oy, 9, 0xfff6ea, 1).setStrokeStyle(2, 0xffb14a, 0.55).setDepth(20);
       const core = this.add.circle(ox, oy, 6, cols[i], 1).setDepth(21).setAlpha(0.18);
       const shine = this.add.circle(ox - 2, oy - 2, 2, 0xffffff, 0.9).setDepth(22).setAlpha(0.2);
