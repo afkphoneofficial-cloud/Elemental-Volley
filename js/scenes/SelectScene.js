@@ -133,7 +133,7 @@ export class SelectScene extends Phaser.Scene {
       this.scene.start("luck");
     });
 
-    makeButton(this, 120, 48, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, 120, 48, 140, 40, t("nav.back"), () => this.scene.start("mode"), 0x7d5cff);
   }
 
   isActiveCard(card) {

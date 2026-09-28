@@ -2,8 +2,8 @@ import { t } from "../i18n/I18n.js";
 
 export const UI_FONT = "Kanit, Segoe UI, sans-serif";
 
-export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22) {
-  const gfx = scene.add.graphics().setDepth(40);
+export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22, depth = 40) {
+  const gfx = scene.add.graphics().setDepth(depth);
   const draw = (hover) => {
     gfx.clear();
     gfx.fillStyle(hover ? 0xffe0b0 : 0xfff6ea, 0.96);
@@ -21,8 +21,8 @@ export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22) 
     fontSize: h >= 58 ? "22px" : h >= 52 ? "20px" : "16px",
     fontStyle: "800",
     color: "#3a2418"
-  }).setOrigin(0.5).setDepth(41);
-  const zone = scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(42);
+  }).setOrigin(0.5).setDepth(depth + 1);
+  const zone = scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(depth + 2);
   zone.on("pointerover", () => draw(true));
   zone.on("pointerout", () => draw(false));
   zone.on("pointerdown", onClick);
