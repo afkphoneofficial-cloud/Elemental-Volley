@@ -68,7 +68,11 @@ export const COPY = {
       lose: "แพ้",
       bot: "บอท",
       pvp: "PVP",
-      more: "อีก {n} เกมในคลัง (เก็บสูงสุด 30)"
+      more: "อีก {n} เกมในคลัง (เก็บสูงสุด 30)",
+      change: "เปลี่ยนอวาตาร์",
+      pickTitle: "เลือกอวาตาร์ฟรี",
+      freeNote: "เปลี่ยนได้ตลอด  ·  ของพิเศษจะมาในร้านค้าภายหลัง",
+      close: "ปิด"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
@@ -301,7 +305,11 @@ export const COPY = {
       lose: "Loss",
       bot: "Bot",
       pvp: "PVP",
-      more: "{n} more in the vault (keeps 30)"
+      more: "{n} more in the vault (keeps 30)",
+      change: "Change avatar",
+      pickTitle: "Free avatars",
+      freeNote: "Swap anytime  ·  Shop extras come later",
+      close: "Close"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",

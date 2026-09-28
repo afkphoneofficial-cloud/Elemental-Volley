@@ -2,6 +2,7 @@ import { TextureFactory } from "../systems/TextureFactory.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
+import { FREE_AVATARS } from "../data/avatars.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -18,10 +19,14 @@ export class BootScene extends Phaser.Scene {
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
     });
     this.load.image("ether-art", "assets/sprites/ether.png");
+    this.load.image("ball-art", "assets/sprites/ball.png");
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
       this.load.image("court-" + s, "assets/sprites/court-" + s + ".png");
       this.load.image("ref-" + s, "assets/sprites/ref-" + s + ".png");
+    });
+    FREE_AVATARS.forEach((a) => {
+      this.load.image("av-art-" + a.id, "assets/sprites/avatars/" + a.id + ".png");
     });
   }
 
@@ -32,6 +37,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.build(this);
       TextureFactory.applyBall(this, "ball-art", "ball");
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
+      FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
       COURTS.forEach((s) => TextureFactory.applyChibi(this, "ref-" + s, "vis_ref_" + s));
       IDS.forEach((id) => {
         TextureFactory.applyChibi(this, "chibi-" + id, "vis_" + id);

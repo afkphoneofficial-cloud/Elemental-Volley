@@ -1,5 +1,6 @@
 import { ECONOMY } from "../data/economy.js";
 import { emptyCareer, tickEther } from "./Ether.js";
+import { DEFAULT_AVATAR, ownedAvatar } from "../data/avatars.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -14,7 +15,9 @@ const empty = () => ({
   career: emptyCareer(),
   matchLog: [],
   ether: ECONOMY.etherMax,
-  etherAt: 0
+  etherAt: 0,
+  avatarId: "av01",
+  unlockedAvatars: []
 });
 
 function finish(data) {
@@ -29,6 +32,8 @@ function finish(data) {
   if (!Array.isArray(data.matchLog)) data.matchLog = [];
   if (data.ether == null) data.ether = ECONOMY.etherMax;
   if (!data.etherAt) data.etherAt = Date.now();
+  if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
+  if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
   return data;
 }
 
@@ -212,5 +217,12 @@ export const SaveSystem = {
       this.data.matchLog.length = ECONOMY.matchLogMax;
     }
     this.persist();
+  },
+
+  equipAvatar(id) {
+    if (!ownedAvatar(this.data, id)) return false;
+    this.data.avatarId = id;
+    this.persist();
+    return true;
   }
 };

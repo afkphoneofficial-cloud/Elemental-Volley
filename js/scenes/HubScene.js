@@ -5,6 +5,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
+import { avatarKey } from "../data/avatars.js";
 
 export class HubScene extends Phaser.Scene {
   constructor() { super("hub"); }
@@ -21,8 +22,12 @@ export class HubScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "36px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
-    roundPanel(this, W / 2, 108, 720, 44, 0xff8a3a, 0xfff6ea);
-    this.add.text(W / 2, 108,
+    roundPanel(this, W / 2, 108, 860, 52, 0xff8a3a, 0xfff6ea);
+    const avId = save.avatarId;
+    const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
+    const av = this.add.image(W / 2 - 380, 108, avKey).setDisplaySize(46, 46).setDepth(8).setInteractive({ useHandCursor: true });
+    av.on("pointerdown", () => this.scene.start("career"));
+    this.add.text(W / 2 + 18, 108,
       t("hub.stats", {
         account: AuthSystem.displayName(),
         name: charName(save.starterId),
