@@ -376,11 +376,32 @@ export class PlayScene extends Phaser.Scene {
     this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.pause"), () => {
       this.requestPlayerPause();
     }, 0xff8ab8);
-    if (this.net) {
-      this.pingText = this.add.text(GAME.width - 22, 36, t("play.pingWait"), {
-        fontFamily: f, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
-      }).setOrigin(1, 0.5).setDepth(20);
+    if (this.net) this.buildLinkBadge();
+  }
+
+  buildLinkBadge() {
+    const x = GAME.width - 92;
+    const y = 44;
+    const g = this.add.graphics().setDepth(19);
+    g.fillStyle(0xfff4e8, 0.96);
+    g.fillRoundedRect(x - 78, y - 28, 156, 56, 22);
+    g.lineStyle(3, 0xffb14a, 0.85);
+    g.strokeRoundedRect(x - 78, y - 28, 156, 56, 22);
+    g.fillStyle(0xffe08a, 0.45);
+    g.fillCircle(x - 58, y - 10, 7);
+    this.linkOrbs = [];
+    const cols = [0xff8ab8, 0xffb14a, 0xffe08a, 0x7af3c2];
+    for (let i = 0; i < 4; i += 1) {
+      const ox = x - 48 + i * 22;
+      const oy = y - 8;
+      const shell = this.add.circle(ox, oy, 9, 0xfff6ea, 1).setStrokeStyle(2, 0xffb14a, 0.55).setDepth(20);
+      const core = this.add.circle(ox, oy, 6, cols[i], 1).setDepth(21).setAlpha(0.18);
+      const shine = this.add.circle(ox - 2, oy - 2, 2, 0xffffff, 0.9).setDepth(22).setAlpha(0.2);
+      this.linkOrbs.push({ shell, core, shine, color: cols[i] });
     }
+    this.linkText = this.add.text(x, y + 14, t("play.linkWait"), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "900", color: "#7a4a30"
+    }).setOrigin(0.5).setDepth(21);
   }
 
   hudFace(isYou, fighterId, courtSide) {
@@ -423,6 +444,7 @@ export class PlayScene extends Phaser.Scene {
     this.layoutHudMode();
     if (this.exitBtn && this.exitBtn.text) this.exitBtn.text.setText(t("play.pause"));
     if (this.pauseUi) this.pauseUi.applyLang();
+    if (this.linkText) this.paintPing();
     if (this.mpL && this.mpL.text) this.mpL.setText(t("play.matchPoint"));
     if (this.mpR && this.mpR.text) this.mpR.setText(t("play.matchPoint"));
   }
@@ -704,15 +726,24 @@ export class PlayScene extends Phaser.Scene {
   }
 
   paintPing() {
-    if (!this.pingText) return;
+    if (!this.linkText || !this.linkOrbs) return;
     const n = NetPlay.pingMs | 0;
-    if (!n) {
-      this.pingText.setText(t("play.pingWait")).setColor("#7a4a30");
-      return;
+    let grade = 0;
+    let key = "linkWait";
+    let col = "#7a4a30";
+    if (n > 0) {
+      if (n < 45) { grade = 4; key = "linkBest"; col = "#1a7a48"; }
+      else if (n < 90) { grade = 3; key = "linkGood"; col = "#2a7a38"; }
+      else if (n < 160) { grade = 2; key = "linkMeh"; col = "#c45a16"; }
+      else { grade = 1; key = "linkBad"; col = "#c42a4a"; }
     }
-    const q = n < 55 ? "pingGood" : n < 110 ? "pingOk" : "pingBad";
-    const col = n < 55 ? "#2a7a38" : n < 110 ? "#c45a16" : "#c42a2a";
-    this.pingText.setText(t("play.ping", { n, q: t("play." + q) })).setColor(col);
+    this.linkText.setText(t("play." + key)).setColor(col);
+    this.linkOrbs.forEach((orb, i) => {
+      const on = i < grade;
+      orb.core.setAlpha(on ? 1 : 0.16);
+      orb.shine.setAlpha(on ? 0.95 : 0.15);
+      orb.shell.setStrokeStyle(2, on ? orb.color : 0xffb14a, on ? 0.95 : 0.4);
+    });
   }
 
   goResult() {

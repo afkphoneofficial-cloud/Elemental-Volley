@@ -29,6 +29,37 @@ export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22, 
   return { bg: zone, text, gfx };
 }
 
+export function makeChoiceButton(scene, x, y, w, h, label, kind, onClick, depth = 40) {
+  const yes = kind === "yes";
+  const fill = yes ? 0x7af3c2 : 0xffb0c8;
+  const fillHot = yes ? 0x9affd8 : 0xffc8d8;
+  const line = yes ? 0x2aa87a : 0xe06a8a;
+  const gfx = scene.add.graphics().setDepth(depth);
+  const draw = (hover) => {
+    gfx.clear();
+    gfx.fillStyle(0x3a2418, 0.16);
+    gfx.fillRoundedRect(x - w / 2 + 3, y - h / 2 + 5, w, h, 22);
+    gfx.fillStyle(hover ? fillHot : fill, 1);
+    gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    gfx.lineStyle(4, line, hover ? 1 : 0.88);
+    gfx.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    gfx.fillStyle(0xffffff, hover ? 0.38 : 0.28);
+    gfx.fillRoundedRect(x - w / 2 + 10, y - h / 2 + 6, w - 20, 12, 8);
+  };
+  draw(false);
+  const mark = scene.add.text(x - w / 2 + 28, y - 1, yes ? "✦" : "✕", {
+    fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: yes ? "#146048" : "#7a2040"
+  }).setOrigin(0.5).setDepth(depth + 1);
+  const text = scene.add.text(x + 10, y, label, {
+    fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: yes ? "#146048" : "#7a2040"
+  }).setOrigin(0.5).setDepth(depth + 1);
+  const zone = scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(depth + 2);
+  zone.on("pointerover", () => draw(true));
+  zone.on("pointerout", () => draw(false));
+  zone.on("pointerdown", onClick);
+  return { bg: zone, text, gfx, mark };
+}
+
 export function makeSlider(scene, x, y, w, value01, onChange) {
   const g = scene.add.graphics().setDepth(40);
   const knob = scene.add.circle(0, y, 13, 0xff6a22).setDepth(41);

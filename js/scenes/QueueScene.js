@@ -1,4 +1,4 @@
-import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, makeChoiceButton, UI_FONT } from "../ui/Ui.js";
 import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
@@ -167,12 +167,19 @@ export class QueueScene extends Phaser.Scene {
     if (this.cancelBtn && this.cancelBtn.text) this.cancelBtn.text.setVisible(false);
     if (this.cancelBtn && this.cancelBtn.gfx) this.cancelBtn.gfx.setVisible(false);
 
+    const head = this.add.text(W / 2, H / 2 - 196, t("queue.fightAsk"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(32);
     const veil = this.add.rectangle(W / 2, H / 2, W, H, 0x3a2418, 0.38).setDepth(30).setInteractive();
     const panel = this.add.graphics().setDepth(31);
-    panel.fillStyle(0xfff6ea, 0.97);
-    panel.fillRoundedRect(W / 2 - 280, H / 2 - 220, 560, 440, 28);
-    panel.lineStyle(4, 0x7d5cff, 0.9);
-    panel.strokeRoundedRect(W / 2 - 280, H / 2 - 220, 560, 440, 28);
+    panel.fillStyle(0xfff6ea, 0.98);
+    panel.fillRoundedRect(W / 2 - 300, H / 2 - 230, 600, 470, 32);
+    panel.lineStyle(5, 0xffb14a, 0.95);
+    panel.strokeRoundedRect(W / 2 - 300, H / 2 - 230, 600, 470, 32);
+    panel.fillStyle(0xffe08a, 0.35);
+    panel.fillCircle(W / 2 - 220, H / 2 - 160, 28);
+    panel.fillStyle(0x7ad4ff, 0.28);
+    panel.fillCircle(W / 2 + 230, H / 2 + 40, 36);
     const medal = medalFromMmr(rival.mmr | 0);
     const av = this.textures.exists(avatarKey(rival.avatarId)) ? avatarKey(rival.avatarId) : avatarKey("av01");
     const img = this.add.image(W / 2, H / 2 - 128, av).setDisplaySize(96, 96).setDepth(32);
@@ -192,21 +199,21 @@ export class QueueScene extends Phaser.Scene {
     const used = this.add.text(W / 2, H / 2 + 44, t("queue.mostUsed", { name: charName(rival.mostUsed || rival.fighter || "ignis") }), {
       fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30"
     }).setOrigin(0.5).setDepth(32);
-    const yes = makeButton(this, W / 2 - 110, H / 2 + 130, 180, 52, t("queue.accept"), () => {
+    const yes = makeChoiceButton(this, W / 2 - 118, H / 2 + 148, 210, 58, t("queue.accept"), "yes", () => {
       AudioSystem.ui();
       NetPlay.vote(msg.offerId, true);
       this.status.setText(t("queue.waitAccept"));
       yes.bg.disableInteractive();
       no.bg.disableInteractive();
-    }, 0x3ad6ff);
-    const no = makeButton(this, W / 2 + 110, H / 2 + 130, 180, 52, t("queue.decline"), () => {
+    });
+    const no = makeChoiceButton(this, W / 2 + 118, H / 2 + 148, 210, 58, t("queue.decline"), "no", () => {
       AudioSystem.ui();
       NetPlay.vote(msg.offerId, false);
       this.clearOffer();
       this.status.setText(t("queue.cooldown", { n: 5 }));
-    }, 0xff8ab8);
-    [yes.gfx, yes.text, yes.bg, no.gfx, no.text, no.bg].forEach((o) => o.setDepth(34));
-    this.bits = [veil, panel, img, name, rankLine, wins, used, yes.gfx, yes.text, yes.bg, no.gfx, no.text, no.bg];
+    });
+    [yes.gfx, yes.text, yes.bg, yes.mark, no.gfx, no.text, no.bg, no.mark].forEach((o) => o.setDepth(34));
+    this.bits = [veil, panel, head, img, name, rankLine, wins, used, yes.gfx, yes.text, yes.bg, yes.mark, no.gfx, no.text, no.bg, no.mark];
     if (badge) this.bits.push(badge);
   }
 
