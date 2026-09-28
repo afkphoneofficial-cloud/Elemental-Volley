@@ -5,6 +5,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { Session } from "../systems/Session.js";
 import { Friends } from "../systems/Friends.js";
+import { ChatSystem } from "../systems/ChatSystem.js";
 import { t } from "../i18n/I18n.js";
 import { avatarKey } from "../data/avatars.js";
 
@@ -18,6 +19,8 @@ export class FriendsScene extends Phaser.Scene {
     this.suggests = [];
     this.busy = false;
     this.rolling = false;
+    this.listScroll = 0;
+    this.listMax = 0;
   }
 
   create() {
@@ -25,10 +28,34 @@ export class FriendsScene extends Phaser.Scene {
     drawGrid(this);
     this.draw();
     AudioSystem.playMenu();
+    if (!this.inputBound) {
+      this.inputBound = true;
+      this.input.on("wheel", (_p, _g, _dx, dy) => this.nudgeList(dy * 0.45));
+      this.input.on("pointerdown", (p) => {
+        if (p.y < 260 || p.y > 675) return;
+        this._drag = { y: p.y, s: this.listScroll };
+      });
+      this.input.on("pointerup", () => { this._drag = null; });
+      this.input.on("pointermove", (p) => {
+        if (!this._drag || !p.isDown) return;
+        this.listScroll = Phaser.Math.Clamp(this._drag.s + (this._drag.y - p.y), 0, this.listMax || 0);
+        if (this.listBox) this.listBox.y = -this.listScroll;
+      });
+    }
     Friends.sync().then(() => {
       if (this.sys && this.sys.isActive()) this.draw();
       this.rollSuggest();
     });
+  }
+
+  nudgeList(dy) {
+    this.listScroll = Phaser.Math.Clamp((this.listScroll || 0) + dy, 0, this.listMax || 0);
+    if (this.listBox) this.listBox.y = -this.listScroll;
+  }
+
+  rowVisible(y, listTop, viewH) {
+    const sy = y + (this.listBox ? this.listBox.y : 0);
+    return sy > listTop - 24 && sy < listTop + viewH - 24;
   }
 
   draw() {
@@ -36,10 +63,7 @@ export class FriendsScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     const list = Friends.list();
-    const per = 4;
-    const pages = Math.max(1, Math.ceil(list.length / per));
-    if (this.page >= pages) this.page = pages - 1;
-    const slice = list.slice(this.page * per, this.page * per + per);
+    const slice = list;
 
     this.add.text(W / 2, 40, t("friends.title"), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
@@ -68,7 +92,6 @@ export class FriendsScene extends Phaser.Scene {
     }, 0xff8ab8);
 
     const suggests = this.suggests || [];
-    const listY = 300;
     this.add.text(W / 2, 118, t("friends.suggestHead"), {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
@@ -121,43 +144,49 @@ export class FriendsScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
       }).setOrigin(0.5).setDepth(6);
     } else {
+      const rowH = 100;
+      const listTop = 300;
+      const viewH = 392;
+      this.listMax = Math.max(0, list.length * rowH - viewH);
+      this.listScroll = Phaser.Math.Clamp(this.listScroll || 0, 0, this.listMax);
+      this.listBox = this.add.container(0, -this.listScroll);
+      const maskG = this.make.graphics();
+      maskG.fillStyle(0xffffff, 1);
+      maskG.fillRect(W / 2 - 510, listTop - 50, 1020, viewH);
+      this.listBox.setMask(maskG.createGeometryMask());
+      maskG.setVisible(false);
       slice.forEach((pal, i) => {
-        const y = listY + i * 112;
-        roundPanel(this, W / 2, y, 980, 96, 0xffb14a, 0xfff6ea);
+        const y = listTop + i * rowH;
+        const panel = roundPanel(this, W / 2, y, 980, 88, 0xffb14a, 0xfff6ea);
         const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
-        this.add.image(W / 2 - 420, y, av).setDisplaySize(72, 72).setDepth(8);
-        this.add.circle(W / 2 - 420, y, 40, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
-        this.add.text(W / 2 - 360, y - 16, pal.name || "—", {
+        const img = this.add.image(W / 2 - 420, y, av).setDisplaySize(64, 64).setDepth(8);
+        const ring = this.add.circle(W / 2 - 420, y, 36, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
+        const nm = this.add.text(W / 2 - 360, y - 14, pal.name || "—", {
           fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
         }).setOrigin(0, 0.5).setDepth(8);
-        this.add.text(W / 2 - 360, y + 16, t("friends.rowSub"), {
+        const sub = this.add.text(W / 2 - 360, y + 14, t("friends.rowSub"), {
           fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
         }).setOrigin(0, 0.5).setDepth(8);
-        makeButton(this, W / 2 + 250, y, 200, 44, t("friends.exhibit"), () => {
+        const ex = makeButton(this, W / 2 + 140, y, 150, 40, t("friends.exhibit"), () => {
+          if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           Session.mode = "exhibit";
           Session.rival = Friends.toRival(pal);
           this.hideForm();
           this.scene.start("select");
         }, 0x7d5cff);
-        makeButton(this, W / 2 + 420, y, 120, 44, t("friends.remove"), () => {
+        const ch = makeButton(this, W / 2 + 290, y, 110, 40, t("friends.chat"), () => {
+          if (!this.rowVisible(y, listTop, viewH)) return;
+          AudioSystem.ui();
+          ChatSystem.openDm(pal);
+        }, 0x3ad6ff);
+        const rm = makeButton(this, W / 2 + 420, y, 100, 40, t("friends.remove"), () => {
+          if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           Friends.remove(pal.id).then(() => this.draw());
         }, 0xff8ab8);
+        this.listBox.add([panel, img, ring, nm, sub, ex.gfx, ex.text, ex.bg, ch.gfx, ch.text, ch.bg, rm.gfx, rm.text, rm.bg]);
       });
-      if (pages > 1) {
-        makeButton(this, W / 2 - 80, 650, 100, 40, "‹", () => {
-          this.page = Math.max(0, this.page - 1);
-          this.draw();
-        }, 0xffe08a);
-        this.add.text(W / 2, 650, (this.page + 1) + " / " + pages, {
-          fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-        }).setOrigin(0.5);
-        makeButton(this, W / 2 + 80, 650, 100, 40, "›", () => {
-          this.page = Math.min(pages - 1, this.page + 1);
-          this.draw();
-        }, 0xffe08a);
-      }
     }
     if (this.note && (this.busy || suggests.length)) {
       this.add.text(W / 2, 268, this.note, {

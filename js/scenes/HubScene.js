@@ -10,6 +10,7 @@ import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
+import { Friends } from "../systems/Friends.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -130,6 +131,7 @@ export class HubScene extends Phaser.Scene {
 
     this.paintEther();
     mountMailboxHud(this);
+    Friends.sync();
     AudioSystem.playMenu();
   }
 
@@ -190,6 +192,10 @@ export class HubScene extends Phaser.Scene {
 
   update() {
     this.paintEther();
+    if (this.time.now - (this.syncAt || 0) > 12000) {
+      this.syncAt = this.time.now;
+      Friends.sync();
+    }
     if (this.mailOpen) return;
     if (!this.mailAt) this.mailAt = 0;
     if (this.time.now - this.mailAt < 10000) return;

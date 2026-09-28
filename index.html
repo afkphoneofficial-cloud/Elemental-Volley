@@ -51,6 +51,22 @@
       </div>
     </div>
   </div>
+  <div id="chat-dock" hidden>
+    <button type="button" id="chat-toggle">แชท</button>
+    <div id="chat-panel">
+      <div class="chat-tabs">
+        <button type="button" id="chat-tab-world">เซิร์ฟ</button>
+        <button type="button" id="chat-tab-friends">เพื่อน</button>
+      </div>
+      <div id="chat-friends" hidden></div>
+      <div id="chat-log"></div>
+      <p id="chat-note"></p>
+      <form id="chat-form">
+        <input id="chat-input" maxlength="180" autocomplete="off" />
+        <button type="submit">ส่ง</button>
+      </form>
+    </div>
+  </div>
   <div id="wrap">
     <div id="game"></div>
   </div>
@@ -74,6 +90,6 @@
     <a class="foot-brand" href="https://afkphone.com" target="_blank" rel="noopener noreferrer">afkphone</a>
   </footer>
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
-  <script type="module" src="js/main.js?v=local49"></script>
+  <script type="module" src="js/main.js?v=local50"></script>
 </body>
 </html>

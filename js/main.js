@@ -20,6 +20,7 @@ import { QueueScene } from "./scenes/QueueScene.js";
 import { RankScene } from "./scenes/RankScene.js";
 import { ModeScene } from "./scenes/ModeScene.js";
 import { FriendsScene } from "./scenes/FriendsScene.js";
+import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
 
 AudioSystem.mountDock();
@@ -51,6 +52,7 @@ I18n.load();
 I18n.mountToggle();
 mountLobbyStage();
 TouchControls.mount();
+ChatSystem.mount();
 const layoutShell = () => {
   const wrap = document.getElementById("wrap");
   const box = document.getElementById("game");
@@ -64,6 +66,7 @@ const layoutShell = () => {
     wrap.style.height = vh + "px";
   }
   TouchControls.sync();
+  ChatSystem.layout();
   if (box) {
     const cap = document.documentElement.dataset.control === "pc" ? 1280 : Number.POSITIVE_INFINITY;
     const width = Math.min(vw, vh * (16 / 9), cap);

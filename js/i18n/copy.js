@@ -68,6 +68,19 @@ export const COPY = {
       decline: "ปฏิเสธ",
       ok: "อ่านแล้ว"
     },
+    chat: {
+      title: "แชท",
+      world: "เซิร์ฟ",
+      friends: "เพื่อน",
+      send: "ส่ง",
+      placeholder: "พิมพ์ข้อความ",
+      emptyWorld: "ทักทายทั้งเซิร์ฟได้เลย",
+      emptyDm: "เลือกเพื่อนเพื่อคุยส่วนตัว",
+      pickFriend: "ยังไม่มีเพื่อนให้แชท",
+      blocked: "ข้อความนี้ไม่เหมาะสม",
+      needFriend: "แชทส่วนตัวได้เฉพาะเพื่อน",
+      empty: "พิมพ์ข้อความก่อนส่ง"
+    },
     rank: {
       title: "กฎอันดับ",
       sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
@@ -118,6 +131,7 @@ export const COPY = {
       emptySub: "สุ่มจากเซิร์ฟหรือพิมพ์ชื่อ แล้วส่งคำเชิญ อีกฝ่ายต้องยอมรับจากจดหมายก่อน",
       pickHint: "เลือกเพื่อนเพื่อเข้า Exhibition",
       exhibit: "Exhibition",
+      chat: "แชท",
       remove: "ลบ",
       rowSub: "กระชับมิตรได้ทุกเมื่อ",
       formHint: "พิมพ์ชื่อบัญชีในเกมให้ตรงทุกตัว",
@@ -410,6 +424,19 @@ export const COPY = {
       decline: "Decline",
       ok: "Got it"
     },
+    chat: {
+      title: "Chat",
+      world: "Server",
+      friends: "Friends",
+      send: "Send",
+      placeholder: "Type a message",
+      emptyWorld: "Say hi to the whole server",
+      emptyDm: "Pick a friend for a private chat",
+      pickFriend: "No friends to chat with yet",
+      blocked: "That message is not allowed",
+      needFriend: "Private chat is for friends only",
+      empty: "Type a message first"
+    },
     rank: {
       title: "Rank rules",
       sub: "Etheria’s 1v1 court ranking",
@@ -460,6 +487,7 @@ export const COPY = {
       emptySub: "Roll from the server or type a name, then send an invite. They accept from mail.",
       pickHint: "Pick a friend for Exhibition",
       exhibit: "Exhibition",
+      chat: "Chat",
       remove: "Remove",
       rowSub: "Friendly matches anytime",
       formHint: "Enter their exact in-game name",
