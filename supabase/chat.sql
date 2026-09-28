@@ -114,6 +114,30 @@ begin
   values (ch, me, nm, raw)
   returning id, channel, sender_id, sender_name, body, created_at
   into rid, rch, rsid, rname, rbody, rat;
+
+  if ch = 'world' then
+    delete from public.chat_messages
+      where channel = 'world'
+        and created_at < now() - interval '10 minutes';
+    delete from public.chat_messages
+      where channel = 'world'
+        and id in (
+          select id from public.chat_messages
+          where channel = 'world'
+          order by created_at desc
+          offset 30
+        );
+  else
+    delete from public.chat_messages
+      where channel = ch
+        and id in (
+          select id from public.chat_messages
+          where channel = ch
+          order by created_at desc
+          offset 30
+        );
+  end if;
+
   return jsonb_build_object(
     'ok', true,
     'id', rid,
@@ -129,3 +153,27 @@ $$;
 revoke all on function public.send_chat(uuid, text) from public;
 grant execute on function public.send_chat(uuid, text) to authenticated;
 grant execute on function public.unfriend(uuid) to authenticated;
+
+create or replace function public.prune_chat()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.chat_messages
+    where channel = 'world'
+      and created_at < now() - interval '10 minutes';
+  delete from public.chat_messages
+    where channel = 'world'
+      and id in (
+        select id from public.chat_messages
+        where channel = 'world'
+        order by created_at desc
+        offset 30
+      );
+end;
+$$;
+
+revoke all on function public.prune_chat() from public;
+grant execute on function public.prune_chat() to authenticated;

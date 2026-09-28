@@ -43,87 +43,100 @@ export class HubScene extends Phaser.Scene {
     SaveSystem.etherNow();
     this.infoBits = [];
 
+    const PAD = 28;
+    const TOP = 48;
+    const CH = 48;
+    const GAP = 14;
+    const pw = 228;
+    const fx = PAD + pw + GAP + 59;
+    const mx = W - PAD - 54;
+    const pvx = mx - 54 - GAP - 59;
+    const tx = pvx - 59 - GAP - 62;
+    const ex = tx - 62 - GAP - 82;
+    this.hubMail = { x: mx, y: TOP, w: 108, h: CH };
+
     const avId = save.avatarId;
     const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
     const pg = this.add.graphics().setDepth(19);
     pg.fillStyle(0xfff6ea, 0.96);
-    pg.fillRoundedRect(28, 24, 268, 56, 28);
+    pg.fillRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
     pg.lineStyle(2, 0xff6a22, 0.75);
-    pg.strokeRoundedRect(28, 24, 268, 56, 28);
-    this.add.image(60, 52, avKey).setDisplaySize(44, 44).setDepth(21);
+    pg.strokeRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
+    this.add.image(PAD + 26, TOP, avKey).setDisplaySize(40, 40).setDepth(21);
     const rk = SaveSystem.data.rank;
     const medal = medalFromMmr(rk.mmr);
     if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(88, 70, badgeKey(medal.id)).setDisplaySize(28, 28).setDepth(22);
+      this.add.image(PAD + 48, TOP + 16, badgeKey(medal.id)).setDisplaySize(24, 24).setDepth(22);
     }
-    this.add.text(92, 52, AuthSystem.displayName() || "—", {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
+    this.add.text(PAD + 54, TOP, AuthSystem.displayName() || "—", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(21);
-    this.add.zone(162, 52, 268, 56).setInteractive({ useHandCursor: true }).setDepth(23)
+    this.add.zone(PAD + pw / 2, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
       .on("pointerdown", () => {
         AudioSystem.ui();
         this.scene.start("career");
       });
-    chip(this, 388, 52, 132, 0xff8ab8, () => {
+    chip(this, fx, TOP, 118, 0xff8ab8, () => {
       AudioSystem.ui();
       this.scene.start("friends");
     });
-    this.add.text(388, 52, t("hub.navFriends"), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    this.add.text(fx, TOP, t("hub.navFriends"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21);
 
     const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
-    chip(this, W - 430, 52, 188, 0x3ad6ff, () => this.openInfo("ether"));
+    chip(this, ex, TOP, 164, 0x3ad6ff, () => this.openInfo("ether"));
     if (this.textures.exists(etherKey)) {
-      this.add.image(W - 500, 52, etherKey).setDisplaySize(34, 34).setDepth(21);
+      this.add.image(ex - 62, TOP, etherKey).setDisplaySize(30, 30).setDepth(21);
     }
-    this.etherText = this.add.text(W - 476, 52, "", {
-      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "800", color: "#3a2418"
+    this.etherText = this.add.text(ex - 42, TOP, "", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(21);
-    this.add.text(W - 352, 52, "?", {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a7a98"
+    this.add.text(ex + 66, TOP, "?", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#1a7a98"
     }).setOrigin(0.5).setDepth(21);
 
-    chip(this, W - 250, 52, 140, 0xffb14a, () => this.openInfo("tokens"));
-    this.add.text(W - 250, 52, "", {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    chip(this, tx, TOP, 124, 0xffb14a, () => this.openInfo("tokens"));
+    this.add.text(tx, TOP, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21).setText(t("hub.chipToken", { n: cur.tokens }));
 
-    chip(this, W - 92, 52, 132, 0x7d5cff, () => this.openInfo("pvp"));
-    this.add.text(W - 92, 52, t("hub.chipPvp", { n: cur.pvp }), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    chip(this, pvx, TOP, 118, 0x7d5cff, () => this.openInfo("pvp"));
+    this.add.text(pvx, TOP, t("hub.chipPvp", { n: cur.pvp }), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21);
 
     const heroId = save.showcaseId || save.starterId || "ignis";
     const heroKey = this.textures.exists("vis_select_" + heroId)
       ? "vis_select_" + heroId
       : "vis_" + heroId;
-    this.add.circle(W / 2, 318, 168, 0xffffff, 0.35).setDepth(5);
-    this.add.circle(W / 2, 318, 168, 0x000000, 0).setStrokeStyle(5, 0xff6a22, 0.35).setDepth(5);
-    this.heroImg = this.add.image(W / 2, 312, heroKey).setDisplaySize(300, 300).setDepth(6);
-    this.heroName = this.add.text(W / 2, 478, charName(heroId), {
+    const heroY = 292;
+    this.add.circle(W / 2, heroY, 136, 0xffffff, 0.32).setDepth(5);
+    this.add.circle(W / 2, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
+    this.heroImg = this.add.image(W / 2, heroY - 6, heroKey).setDisplaySize(252, 252).setDepth(6);
+    this.heroName = this.add.text(W / 2, 424, charName(heroId), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 506, t("hub.showcaseHint"), {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+    this.add.text(W / 2, 448, t("hub.showcaseHint"), {
+      fontFamily: UI_FONT, fontSize: "12px", color: "#8a5a38"
     }).setOrigin(0.5);
-    this.add.zone(W / 2, 318, 320, 320).setInteractive({ useHandCursor: true }).setDepth(7)
+    this.add.zone(W / 2, heroY, 268, 268).setInteractive({ useHandCursor: true }).setDepth(7)
       .on("pointerdown", () => this.cycleShowcase(1));
-    makeButton(this, W / 2 - 250, 318, 56, 56, "‹", () => this.cycleShowcase(-1), 0xffe08a);
-    makeButton(this, W / 2 + 250, 318, 56, 56, "›", () => this.cycleShowcase(1), 0xffe08a);
+    makeButton(this, W / 2 - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
+    makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
-    makeButton(this, W / 2, 558, 380, 64, t("hub.play"), () => {
+    makeButton(this, W / 2, 508, 348, 56, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("mode");
     });
 
     const nav = [
-      [W / 2 - 220, t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
+      [W / 2 - 186, t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
       [W / 2, t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
-      [W / 2 + 220, t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
+      [W / 2 + 186, t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
     ];
     nav.forEach(([x, label, col, fn]) => {
-      makeButton(this, x, H - 52, 180, 44, label, () => {
+      makeButton(this, x, H - 48, 164, 42, label, () => {
         AudioSystem.ui();
         fn();
       }, col);
@@ -145,7 +158,7 @@ export class HubScene extends Phaser.Scene {
     SaveSystem.setShowcase(next);
     AudioSystem.ui();
     const key = this.textures.exists("vis_select_" + next) ? "vis_select_" + next : "vis_" + next;
-    if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(300, 300);
+    if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(252, 252);
     if (this.heroName) this.heroName.setText(charName(next));
   }
 

@@ -20,6 +20,13 @@ function els() {
   };
 }
 
+const CHAT_CAP = 30;
+const WORLD_MS = 10 * 60 * 1000;
+
+function worldSince() {
+  return new Date(Date.now() - WORLD_MS).toISOString();
+}
+
 function dmChannel(a, b) {
   return a < b ? "dm:" + a + ":" + b : "dm:" + b + ":" + a;
 }
@@ -209,7 +216,7 @@ export const ChatSystem = {
         const row = payload.new;
         if (!row || this.rows.some((r) => r.id === row.id)) return;
         this.rows.push(row);
-        if (this.rows.length > 80) this.rows = this.rows.slice(-80);
+        this.trimRows();
         if (!this.open || !this.visible) this.unread += 1;
         this.paintChrome();
         this.paintLog();
@@ -227,15 +234,19 @@ export const ChatSystem = {
     }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) return;
+    if (this.tab === "world") await sb.rpc("prune_chat");
     const me = AuthSystem.session && AuthSystem.session();
     const ch = this.tab === "world" ? "world" : (me && this.toId ? dmChannel(me.id, this.toId) : "");
     if (!ch) return;
-    const { data } = await sb.from("chat_messages")
+    let q = sb.from("chat_messages")
       .select("id, channel, sender_id, sender_name, body, created_at")
       .eq("channel", ch)
       .order("created_at", { ascending: false })
-      .limit(80);
+      .limit(CHAT_CAP);
+    if (this.tab === "world") q = q.gte("created_at", worldSince());
+    const { data } = await q;
     this.rows = (data || []).slice().reverse();
+    this.trimRows();
     this.paintLog();
     if (ui.note && !ui.note.dataset.hold) ui.note.textContent = "";
   },
@@ -270,8 +281,20 @@ export const ChatSystem = {
     this.note("");
     if (data && data.id && !this.rows.some((r) => r.id === data.id)) {
       this.rows.push(data);
+      this.trimRows();
       this.paintLog();
     }
+  },
+
+  trimRows() {
+    const cut = Date.now() - WORLD_MS;
+    if (this.tab === "world") {
+      this.rows = this.rows.filter((row) => {
+        const at = row.created_at ? Date.parse(row.created_at) : Date.now();
+        return at >= cut;
+      });
+    }
+    if (this.rows.length > CHAT_CAP) this.rows = this.rows.slice(-CHAT_CAP);
   },
 
   layout() {
@@ -280,9 +303,9 @@ export const ChatSystem = {
     if (!ui.dock || !box) return;
     const r = box.getBoundingClientRect();
     const scale = r.height / 720;
-    ui.dock.style.left = (r.left + 12 * scale) + "px";
-    ui.dock.style.bottom = (window.innerHeight - r.bottom + 64 * scale) + "px";
-    ui.dock.style.width = Math.round(300 * scale) + "px";
+    ui.dock.style.left = (r.left + 16 * scale) + "px";
+    ui.dock.style.bottom = (window.innerHeight - r.bottom + 72 * scale) + "px";
+    ui.dock.style.width = Math.round(256 * scale) + "px";
     ui.dock.style.setProperty("--chat-scale", String(scale));
   }
 };

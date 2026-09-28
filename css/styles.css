@@ -430,9 +430,9 @@ html[data-control="pc"] #game {
 #chat-dock {
   position: fixed;
   z-index: 18;
-  left: 12px;
-  bottom: 72px;
-  width: 300px;
+  left: 16px;
+  bottom: 80px;
+  width: 256px;
   pointer-events: auto;
   font-family: "Kanit", "Segoe UI", sans-serif;
 }
