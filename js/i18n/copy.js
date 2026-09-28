@@ -350,8 +350,11 @@ export const COPY = {
       player: "พักของผู้เล่น",
       system: "พักจากระบบ · การเชื่อมต่อไม่ปกติ",
       left: "เหลือ {n} วินาที",
-      note: "แข่งจริงพักได้ 1 ครั้งต่อแมตช์ ครั้งละ 20 วินาที และระบบพักได้อีก 1 ครั้งเวลาเท่ากัน",
-      none: "ใช้โควตาพักแล้ว"
+      note: "แข่งจริงพักได้ 1 ครั้ง ครั้งละ 20 วินาที  และพักได้หลังทำแต้มแล้วเท่านั้น",
+      none: "ใช้โควตาพักแล้ว",
+      waitPoint: "พักเมื่อจบ rally",
+      dropWait: "คู่แข่งหลุด · รอ {n} วินาที",
+      rivalBack: "คู่แข่งกลับมาแล้ว"
     },
     cheer: {
       classic: "คลาสสิก",
@@ -725,8 +728,11 @@ export const COPY = {
       player: "Player timeout",
       system: "System timeout · connection issue",
       left: "{n} seconds left",
-      note: "Ranked matches get 1 player pause of 20 seconds, plus 1 system pause of the same length.",
-      none: "No pauses left"
+      note: "Live matches get 1 pause of 20 seconds, only after a point is scored.",
+      none: "No pauses left",
+      waitPoint: "Pauses after this rally",
+      dropWait: "Rival dropped · {n}s",
+      rivalBack: "Rival is back"
     },
     cheer: {
       classic: "Classic",

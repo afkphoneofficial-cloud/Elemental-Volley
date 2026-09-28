@@ -83,6 +83,8 @@ export class PlayScene extends Phaser.Scene {
     this.streakSide = 0;
     this.hadMatchPoint = false;
     this.paused = false;
+    this.pauseWanted = false;
+    this.holdForPause = false;
     this.rankedMatch = Session.mode === "pvp" || Session.mode === "exhibit";
     this.playerPauses = this.rankedMatch ? 1 : 99;
     this.systemPauses = this.rankedMatch ? 1 : 0;
@@ -169,7 +171,10 @@ export class PlayScene extends Phaser.Scene {
     window.addEventListener("ev-lang", this._onLang);
     this.bindKeys();
     this.pauseUi = new PauseOverlay(this, {
-      onResume: () => this.setPaused(false),
+      onResume: () => {
+        if (this.net) NetPlay.resume();
+        else this.setPaused(false);
+      },
       onQuit: () => {
         if (this.net) NetPlay.quit();
         this.scene.start("hub");
@@ -177,6 +182,7 @@ export class PlayScene extends Phaser.Scene {
     });
     this.bindPauseWatch();
     this.offNet = this.net ? NetPlay.on((msg) => this.onNet(msg)) : null;
+    if (this.net) NetPlay.startPing();
     TouchControls.setPlayActive(true);
     this.layoutHudMode();
     this.syncSprites();
@@ -461,11 +467,16 @@ export class PlayScene extends Phaser.Scene {
   requestPlayerPause() {
     if (this.matchOver) return;
     if (this.paused) {
-      if (!this.net) this.setPaused(false);
+      if (this.net) NetPlay.resume();
+      else this.setPaused(false);
       return;
     }
     if (this.net) {
-      NetPlay.pause("player");
+      if (this.roundEnded) NetPlay.pause("player");
+      else {
+        this.pauseWanted = true;
+        this.showBanner(t("pause.waitPoint"), "#c45a16");
+      }
       return;
     }
     if (!this.rankedMatch) {
@@ -484,10 +495,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   requestSystemPause() {
-    if (this.net) {
-      NetPlay.pause("system");
-      return;
-    }
+    if (this.net) return;
     if (!this.rankedMatch || this.matchOver || this.paused || this.systemPauses <= 0) return;
     this.systemPauses -= 1;
     this.beginTimedPause("system");
@@ -502,9 +510,17 @@ export class PlayScene extends Phaser.Scene {
 
   bindPauseWatch() {
     this._onHide = () => {
-      if (document.visibilityState === "hidden") this.requestSystemPause();
+      if (document.visibilityState !== "hidden") return;
+      if (this.net) {
+        if (this.netHost) NetPlay.yieldHost();
+        return;
+      }
+      this.requestSystemPause();
     };
-    this._onOffline = () => this.requestSystemPause();
+    this._onOffline = () => {
+      if (this.net) return;
+      this.requestSystemPause();
+    };
     document.addEventListener("visibilitychange", this._onHide);
     window.addEventListener("offline", this._onOffline);
   }
@@ -515,11 +531,14 @@ export class PlayScene extends Phaser.Scene {
   }
 
   setPaused(on) {
+    const was = this.paused;
     this.paused = Boolean(on);
     if (!this.paused) {
       this.pauseKind = null;
       this.pauseLeftMs = 0;
+      this.holdForPause = false;
       if (this.pauseUi) this.pauseUi.setTimed(null, 0);
+      if (was && this.net && this.roundEnded && !this.matchOver) this.resetRound();
     }
     if (this.pauseUi) this.pauseUi.setOpen(this.paused);
   }
@@ -598,16 +617,37 @@ export class PlayScene extends Phaser.Scene {
       if (this.pauseUi) this.pauseUi.setTimed(this.pauseKind, this.pauseLeftMs);
       this.setPaused(true);
     }
-    if (msg.t === "resume") this.setPaused(false);
-    if (msg.t === "pauseDenied") this.showBanner(t("pause.none"), "#c45a16");
+    if (msg.t === "resume") {
+      this.holdForPause = false;
+      this.setPaused(false);
+    }
+    if (msg.t === "pong") this.paintPing();
+    if (msg.t === "closed") {
+      this.showBanner(t("pause.dropWait", { n: Math.max(1, Math.ceil(GAME.forfeitMs / 1000)) }), "#c45a16");
+      NetPlay.ensure();
+    }
+    if (msg.t === "pauseDenied") {
+      this.holdForPause = false;
+      this.pauseWanted = false;
+      this.showBanner(t("pause.none"), "#c45a16");
+    }
+    if (msg.t === "youHost") {
+      this.netHost = msg.on === true;
+      Session.netHost = this.netHost;
+    }
+    if (msg.t === "waitRival") this.showBanner(t("pause.dropWait", { n: Math.max(1, Math.ceil((msg.ms || 0) / 1000)) }), "#c45a16");
+    if (msg.t === "rivalBack") this.showBanner(t("pause.rivalBack"), "#2a7a38");
     if (msg.t === "end" && !this.matchOver) {
       const me = AuthSystem.session && AuthSystem.session();
       const youLost = me && msg.loserId && msg.loserId === me.id;
+      const sc = msg.score && typeof msg.score.p1 === "number"
+        ? msg.score
+        : { p1: this.youSide === 1 ? this.score[0] : this.score[1], p2: this.youSide === 1 ? this.score[1] : this.score[0] };
       this.matchOver = true;
       this.time.delayedCall(400, () => {
         this.scene.start("result", {
           winner: youLost ? 2 : 1,
-          score: { p1: this.youSide === 1 ? this.score[0] : this.score[1], p2: this.youSide === 1 ? this.score[1] : this.score[0] },
+          score: sc,
           courtId: this.season,
           youId: this.youData.id,
           botId: this.botData.id,
@@ -639,6 +679,13 @@ export class PlayScene extends Phaser.Scene {
       const mine = this.youSide === 1 ? this.p1In : this.p2In;
       NetPlay.sendInput(mine);
       this.paintPing();
+      if (document.hidden && this.netHost) {
+        const now = this.time.now;
+        if (!this.lastYieldAt || now - this.lastYieldAt > 700) {
+          this.lastYieldAt = now;
+          NetPlay.yieldHost();
+        }
+      }
       if (this.netHost) {
         let tick = NetPlay.takeTick();
         let stepped = false;
@@ -695,7 +742,7 @@ export class PlayScene extends Phaser.Scene {
     this.detectHits();
     this.handleSounds();
     if (hitGround && !this.roundEnded) this.onPoint();
-    if (this.roundEnded && !this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
+    if (this.roundEnded && !this.matchOver && !this.holdForPause && !this.paused && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
       this.resetRound();
     }
     this.syncSprites();
@@ -717,6 +764,11 @@ export class PlayScene extends Phaser.Scene {
       this.showBanner(winData.name, leftWon ? "#c8ff3a" : "#ff8a3a");
       this.pointSlowMs = 500;
       this.roundHoldMs = 1400;
+      if (this.pauseWanted) {
+        this.pauseWanted = false;
+        this.holdForPause = true;
+        NetPlay.pause("player");
+      }
     }
     const need = GAME.winScore - 1;
     this.mpL.setText(this.score[0] >= need && this.score[0] < GAME.winScore ? t("play.matchPoint") : "");
@@ -731,7 +783,7 @@ export class PlayScene extends Phaser.Scene {
     let grade = 0;
     let key = "linkWait";
     let col = "#7a4a30";
-    if (n > 0) {
+    if (NetPlay.pingLive) {
       if (n < 45) { grade = 4; key = "linkBest"; col = "#1a7a48"; }
       else if (n < 90) { grade = 3; key = "linkGood"; col = "#2a7a38"; }
       else if (n < 160) { grade = 2; key = "linkMeh"; col = "#c45a16"; }
@@ -785,7 +837,7 @@ export class PlayScene extends Phaser.Scene {
     this.handleSounds();
 
     if (hitGround && !this.roundEnded) this.onPoint();
-    if (this.roundEnded && !this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
+    if (this.roundEnded && !this.matchOver && !this.holdForPause && !this.paused && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
       this.resetRound();
     }
 
@@ -945,6 +997,11 @@ export class PlayScene extends Phaser.Scene {
     const mpR = this.score[1] >= need && this.score[1] < GAME.winScore;
     this.mpL.setText(mpL ? t("play.matchPoint") : "");
     this.mpR.setText(mpR ? t("play.matchPoint") : "");
+    if (this.net && this.pauseWanted) {
+      this.pauseWanted = false;
+      this.holdForPause = true;
+      NetPlay.pause("player");
+    }
     if (youScore >= GAME.winScore || botScore >= GAME.winScore) {
       this.goResult();
     } else if ((mpL || mpR) && !this.hadMatchPoint) {

@@ -21,6 +21,8 @@ const MAX_LIVE = Math.max(1, Number(process.env.MAX_LIVE_MATCHES || 12));
 const COOLDOWN_MS = Number(process.env.DECLINE_COOLDOWN_MS || 5 * 60 * 1000);
 const OFFER_MS = Number(process.env.OFFER_MS || 15000);
 const TICK_MS = 40;
+const FORFEIT_MS = Number(process.env.FORFEIT_MS || 30000);
+const HOST_YIELD_MS = 900;
 const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || "";
 const ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://evolley.dev,https://www.evolley.dev")
@@ -35,6 +37,7 @@ const queue = [];
 const offers = new Map();
 const rooms = new Map();
 const cooldownUntil = new Map();
+const pendingEnd = new Map();
 
 function send(ws, msg) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
@@ -183,11 +186,11 @@ function voteOffer(p, offerId, accept) {
   }
   if (of.votes[of.a.id] === true && of.votes[of.b.id] === true) {
     clearOffer(offerId);
-    beginLuck(of.a, of.b);
+    beginLuck(of.a, of.b, "pvp");
   }
 }
 
-function beginLuck(a, b) {
+function beginLuck(a, b, mode) {
   const roomId = randomUUID();
   const youSideA = Math.random() < 0.5 ? 1 : 2;
   let rollA = 1 + Math.floor(Math.random() * 99);
@@ -197,6 +200,7 @@ function beginLuck(a, b) {
   const room = {
     id: roomId,
     phase: "luck",
+    mode: mode === "exhibit" ? "exhibit" : "pvp",
     a,
     b,
     sideA: youSideA,
@@ -210,7 +214,14 @@ function beginLuck(a, b) {
     inputs: { [a.id]: { x: 0, y: 0, p: 0 }, [b.id]: { x: 0, y: 0, p: 0 } },
     n: 0,
     ready: 25,
-    timer: null
+    timer: null,
+    hostId: a.id,
+    lastSnapAt: Date.now(),
+    lastSnap: null,
+    roundEnded: false,
+    pauseQueued: null,
+    droppedId: null,
+    dropAt: 0
   };
   a.state = "luck";
   b.state = "luck";
@@ -248,7 +259,8 @@ function startPlay(room) {
     fighter: room.a.fighter,
     foeFighter: room.b.fighter,
     rival: preview(room.b),
-    host: true
+    host: true,
+    mode: room.mode || "pvp"
   });
   send(room.b.ws, {
     t: "go",
@@ -259,13 +271,80 @@ function startPlay(room) {
     fighter: room.b.fighter,
     foeFighter: room.a.fighter,
     rival: preview(room.a),
-    host: false
+    host: false,
+    mode: room.mode || "pvp"
   });
+  room.hostId = room.a.id;
+  room.lastSnapAt = Date.now();
   room.timer = setInterval(() => tickRoom(room), TICK_MS);
 }
 
+function mate(room, p) {
+  if (!room || !p) return null;
+  return room.a && room.a.id === p.id ? room.b : room.a;
+}
+
+function scoreFor(room, you) {
+  const snap = room.lastSnap;
+  const left = (snap && snap.score && snap.score[0]) | 0;
+  const right = (snap && snap.score && snap.score[1]) | 0;
+  const youLeft = you.id === room.a.id ? room.sideA === 1 : room.sideA === 2;
+  return youLeft ? { p1: left, p2: right } : { p1: right, p2: left };
+}
+
+function endPayload(room, you, foe, reason, loserId) {
+  return {
+    t: "end",
+    reason,
+    loserId: loserId || null,
+    mode: room.mode || "pvp",
+    courtId: room.courtId || "summer",
+    youSide: you.id === room.a.id ? room.sideA : (room.sideA === 1 ? 2 : 1),
+    fighter: you.fighter,
+    foeFighter: foe && foe.fighter,
+    rival: foe ? preview(foe) : null,
+    score: scoreFor(room, you)
+  };
+}
+
+function rememberEnd(room, reason, loserId) {
+  const until = Date.now() + 120000;
+  pendingEnd.set(room.a.id, { until, msg: endPayload(room, room.a, room.b, reason, loserId) });
+  pendingEnd.set(room.b.id, { until, msg: endPayload(room, room.b, room.a, reason, loserId) });
+}
+
+function findRoomForUser(id) {
+  for (const r of rooms.values()) {
+    if (r.a && r.a.id === id) return r;
+    if (r.b && r.b.id === id) return r;
+  }
+  return null;
+}
+
+function yieldHost(room, fromId) {
+  if (!room || room.hostId !== fromId) return;
+  const cur = room.hostId === room.a.id ? room.a : room.b;
+  const next = mate(room, cur);
+  if (!next || next.id === room.droppedId || !next.ws || next.ws.readyState !== 1) return;
+  room.hostId = next.id;
+  room.lastSnapAt = Date.now();
+  send(next.ws, { t: "youHost", on: true });
+  send(cur.ws, { t: "youHost", on: false });
+}
 function tickRoom(room) {
-    if (room.paused) {
+  if (room.droppedId) {
+    const gone = Date.now() - (room.dropAt || 0);
+    if (gone >= FORFEIT_MS) {
+      closeRoom(room, "forfeit", room.droppedId);
+      return;
+    }
+    if (room.n % 25 === 0) {
+      const live = room.a.id === room.droppedId ? room.b : room.a;
+      send(live.ws, { t: "waitRival", ms: Math.max(0, FORFEIT_MS - gone) });
+    }
+  }
+  if (room.phase !== "play") return;
+  if (room.paused) {
     room.pauseLeft -= TICK_MS;
     if (room.pauseLeft <= 0) {
       room.paused = false;
@@ -294,35 +373,63 @@ function tickRoom(room) {
   };
   send(room.a.ws, payload);
   send(room.b.ws, payload);
+  if (room.droppedId) return;
+  if (Date.now() - (room.lastSnapAt || 0) > HOST_YIELD_MS) yieldHost(room, room.hostId);
 }
 
-function pauseRoom(p, kind) {
+function pauseRoom(p) {
   const room = rooms.get(p.roomId);
   if (!room || room.phase !== "play" || room.paused) return;
-  if (kind === "system") {
-    if (room.pauses.system <= 0) return;
-    room.pauses.system -= 1;
-  } else {
-    if ((room.pauses[p.id] | 0) <= 0) {
-      send(p.ws, { t: "pauseDenied" });
-      return;
-    }
-    room.pauses[p.id] -= 1;
+  if ((room.pauses[p.id] | 0) <= 0) {
+    send(p.ws, { t: "pauseDenied" });
+    return;
   }
+  if (!room.roundEnded) {
+    room.pauseQueued = p.id;
+    return;
+  }
+  room.pauses[p.id] -= 1;
+  room.pauseQueued = null;
   room.paused = true;
   room.pauseLeft = 20000;
-  const msg = { t: "pause", kind: kind === "system" ? "system" : "player", ms: 20000 };
+  const msg = { t: "pause", kind: "player", ms: 20000 };
   send(room.a.ws, msg);
   send(room.b.ws, msg);
+}
+
+function resumeRoom(p) {
+  const room = rooms.get(p.roomId);
+  if (!room || !room.paused) return;
+  room.paused = false;
+  room.pauseLeft = 0;
+  send(room.a.ws, { t: "resume" });
+  send(room.b.ws, { t: "resume" });
+}
+
+function goPayload(room, you, foe, host) {
+  const youIsA = you.id === room.a.id;
+  const aServe = room.rollA <= room.rollB;
+  return {
+    t: "rejoin",
+    roomId: room.id,
+    youSide: youIsA ? room.sideA : (room.sideA === 1 ? 2 : 1),
+    courtId: room.courtId,
+    youServe: youIsA ? aServe : !aServe,
+    fighter: you.fighter,
+    foeFighter: foe.fighter,
+    rival: preview(foe),
+    host: Boolean(host),
+    mode: room.mode || "pvp"
+  };
 }
 
 function closeRoom(room, reason, loserId) {
   if (!room) return;
   if (room.timer) clearInterval(room.timer);
   rooms.delete(room.id);
-  const payload = { t: "end", reason, loserId: loserId || null };
-  send(room.a.ws, payload);
-  send(room.b.ws, payload);
+  rememberEnd(room, reason, loserId);
+  send(room.a.ws, pendingEnd.get(room.a.id).msg);
+  send(room.b.ws, pendingEnd.get(room.b.id).msg);
   room.a.state = "idle";
   room.b.state = "idle";
   room.a.roomId = null;
@@ -364,25 +471,22 @@ function voteExhibit(to, fromId, accept) {
       }
       if (canOpenMore()) {
         clearInterval(wait);
-        beginLuck(from, to);
+        beginLuck(from, to, "exhibit");
       }
     }, 400);
     return;
   }
-  beginLuck(from, to);
+  beginLuck(from, to, "exhibit");
 }
 
 function onHello(ws, user, body) {
   const prev = byUser.get(user.id);
-  if (prev && prev.ws !== ws) {
-    try { prev.ws.close(); } catch (e) {}
-  }
   const p = {
     ws,
     id: user.id,
     name: String(body.name || "player").slice(0, 12),
     avatar: body.avatar || "av01",
-    fighter: body.fighter || "ignis",
+    fighter: (body.fighter || (prev && prev.fighter) || "ignis"),
     mmr: body.mmr | 0,
     wins: body.wins | 0,
     mostUsed: body.mostUsed || body.fighter || "ignis",
@@ -394,6 +498,49 @@ function onHello(ws, user, body) {
   clients.set(ws, p);
   byUser.set(user.id, p);
   send(ws, { t: "ready", maxLive: MAX_LIVE });
+  const late = pendingEnd.get(user.id);
+  if (late && late.until > Date.now()) {
+    pendingEnd.delete(user.id);
+    send(ws, late.msg);
+  } else {
+    pendingEnd.delete(user.id);
+    const liveRoom = findRoomForUser(user.id) || (prev && prev.roomId ? rooms.get(prev.roomId) : null);
+    if (liveRoom && (liveRoom.a.id === user.id || liveRoom.b.id === user.id)) {
+      const oldSeat = liveRoom.a.id === user.id ? liveRoom.a : liveRoom.b;
+      p.fighter = oldSeat.fighter || p.fighter;
+      if (liveRoom.a.id === user.id) liveRoom.a = p;
+      else liveRoom.b = p;
+      p.roomId = liveRoom.id;
+      p.state = liveRoom.phase === "luck" ? "luck" : "play";
+      liveRoom.inputs[p.id] = liveRoom.inputs[p.id] || { x: 0, y: 0, p: 0 };
+      if (liveRoom.droppedId === user.id) {
+        liveRoom.droppedId = null;
+        liveRoom.dropAt = 0;
+      }
+      const foe = mate(liveRoom, p);
+      if (liveRoom.phase === "luck") {
+        const youIsA = p.id === liveRoom.a.id;
+        send(ws, {
+          t: "luck",
+          roomId: liveRoom.id,
+          youSide: youIsA ? liveRoom.sideA : (liveRoom.sideA === 1 ? 2 : 1),
+          youRoll: youIsA ? liveRoom.rollA : liveRoom.rollB,
+          foeRoll: youIsA ? liveRoom.rollB : liveRoom.rollA,
+          youPick: youIsA ? liveRoom.aPicks : !liveRoom.aPicks,
+          host: liveRoom.hostId === p.id,
+          rival: preview(foe)
+        });
+      } else {
+        send(ws, goPayload(liveRoom, p, foe, liveRoom.hostId === p.id));
+        if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
+        if (liveRoom.paused) send(ws, { t: "pause", kind: "player", ms: liveRoom.pauseLeft || 20000 });
+      }
+      if (foe) send(foe.ws, { t: "rivalBack" });
+    }
+  }
+  if (prev && prev.ws && prev.ws !== ws) {
+    try { prev.ws.close(); } catch (e) {}
+  }
 }
 
 function onMsg(ws, raw) {
@@ -441,10 +588,23 @@ function onMsg(ws, raw) {
   }
   if (msg.t === "snap" && p.roomId) {
     const room = rooms.get(p.roomId);
-    if (room && room.a && room.a.id === p.id) send(room.b.ws, msg);
+    if (room && room.hostId === p.id) {
+      room.lastSnapAt = Date.now();
+      room.lastSnap = msg;
+      room.roundEnded = msg.re === 1;
+      const other = mate(room, p);
+      if (other) send(other.ws, msg);
+      if (room.pauseQueued && room.roundEnded && !room.paused) {
+        const who = room.a.id === room.pauseQueued ? room.a : room.b;
+        room.pauseQueued = null;
+        if (who) pauseRoom(who);
+      }
+    }
   }
-  if (msg.t === "ping") send(ws, { t: "pong", at: msg.at | 0 });
-  if (msg.t === "pause") pauseRoom(p, msg.kind === "system" ? "system" : "player");
+  if (msg.t === "ping") send(ws, { t: "pong", at: msg.at });
+  if (msg.t === "pause") pauseRoom(p);
+  if (msg.t === "resume") resumeRoom(p);
+  if (msg.t === "yield" && p.roomId) yieldHost(rooms.get(p.roomId), p.id);
   if (msg.t === "quit") {
     const room = rooms.get(p.roomId);
     if (room) closeRoom(room, "quit", p.id);
@@ -471,7 +631,7 @@ function onClose(ws) {
   const p = clients.get(ws);
   clients.delete(ws);
   if (!p) return;
-  if (byUser.get(p.id) === p) byUser.delete(p.id);
+  if (byUser.get(p.id) !== p) return;
   dropFromQueue(p.id);
   if (p.offerId) {
     const of = offers.get(p.offerId);
@@ -481,11 +641,19 @@ function onClose(ws) {
       requeue(other, false);
     }
   }
-  if (p.roomId) {
-    const room = rooms.get(p.roomId);
-    if (room && room.phase === "play") pauseRoom(p, "system");
-    else if (room) closeRoom(room, "drop", p.id);
+  const room = p.roomId ? rooms.get(p.roomId) : null;
+  if (room && (room.phase === "play" || room.phase === "luck")) {
+    room.droppedId = p.id;
+    room.dropAt = Date.now();
+    room.inputs[p.id] = { x: 0, y: 0, p: 0 };
+    const other = mate(room, p);
+    if (other) send(other.ws, { t: "waitRival", ms: FORFEIT_MS });
+    if (room.hostId === p.id && other) yieldHost(room, p.id);
+    if (!room.timer) room.timer = setInterval(() => tickRoom(room), TICK_MS);
+    return;
   }
+  byUser.delete(p.id);
+  if (room) closeRoom(room, "drop", p.id);
 }
 
 const server = http.createServer((_req, res) => {

@@ -23,6 +23,7 @@ import { ModeScene } from "./scenes/ModeScene.js";
 import { FriendsScene } from "./scenes/FriendsScene.js";
 import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
+import { AuthSystem } from "./systems/AuthSystem.js";
 import { NetPlay, mountExhibitInvite } from "./systems/NetPlay.js";
 
 AudioSystem.mountDock();
@@ -35,6 +36,7 @@ window.game = new Phaser.Game({
   parent: "game",
   backgroundColor: "#0c0814",
   fps: { target: 60 },
+  autoPause: false,
   physics: {
     default: "arcade",
     arcade: { gravity: { y: 0 }, debug: false }
@@ -68,7 +70,19 @@ NetPlay.on((msg) => {
     if (Session.mode !== "pvp") Session.mode = "exhibit";
     live.scene.start("luck");
   }
-  if (msg.t === "go" && key !== "play") live.scene.start("play");
+  if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") live.scene.start("play");
+  if (msg.t === "end" && key !== "play" && key !== "result") {
+    const me = AuthSystem.session && AuthSystem.session();
+    const youLost = me && msg.loserId && msg.loserId === me.id;
+    live.scene.start("result", {
+      winner: youLost ? 2 : 1,
+      score: msg.score || { p1: 0, p2: 0 },
+      courtId: msg.courtId || Session.courtId || "summer",
+      youId: Session.playerId,
+      botId: Session.botId,
+      stats: {}
+    });
+  }
 });
 const layoutShell = () => {
   const wrap = document.getElementById("wrap");

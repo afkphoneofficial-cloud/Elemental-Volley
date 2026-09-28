@@ -39,8 +39,11 @@ export const NetPlay = {
   lastLuck: null,
   lastInvite: null,
   pingMs: 0,
+  pingLive: false,
+  pingSent: 0,
   snap: null,
   pingTimer: null,
+  reconnectTimer: null,
 
   on(fn) {
     listeners.add(fn);
@@ -90,8 +93,14 @@ export const NetPlay = {
         this.startPing();
       }
       if (msg.t === "pong") {
-        const rtt = Date.now() - (msg.at | 0);
-        if (rtt >= 0 && rtt < 5000) this.pingMs = rtt;
+        const at = Number(msg.at);
+        const now = performance.now();
+        let rtt = now - at;
+        if (!Number.isFinite(rtt) || rtt < 0 || rtt > 8000) rtt = now - this.pingSent;
+        if (Number.isFinite(rtt) && rtt >= 0 && rtt < 8000) {
+          this.pingMs = rtt;
+          this.pingLive = true;
+        }
       }
       if (msg.t === "snap") this.snap = msg;
       if (msg.t === "tick") {
@@ -102,9 +111,10 @@ export const NetPlay = {
       if (msg.t === "luck") this.lastLuck = msg;
       if (msg.t === "invite") this.lastInvite = msg;
       if (msg.t === "cooldown") this.cooldownUntil = Date.now() + (msg.ms | 0);
-      if (msg.t === "go") {
+      if (msg.t === "go" || msg.t === "rejoin") {
         Session.net = true;
         Session.netHost = msg.host === true;
+        if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
         Session.youSide = msg.youSide === 2 ? 2 : 1;
         Session.courtId = msg.courtId || "summer";
         Session.youServe = Boolean(msg.youServe);
@@ -125,13 +135,39 @@ export const NetPlay = {
           };
         }
       }
+      if (msg.t === "end") {
+        if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
+        if (msg.fighter) Session.playerId = msg.fighter;
+        if (msg.foeFighter) Session.botId = msg.foeFighter;
+        if (msg.courtId) Session.courtId = msg.courtId;
+        if (msg.youSide === 1 || msg.youSide === 2) Session.youSide = msg.youSide;
+        if (msg.rival) {
+          Session.rival = {
+            live: true,
+            userId: msg.rival.id,
+            nameTh: msg.rival.name,
+            nameEn: msg.rival.name,
+            mmr: msg.rival.mmr | 0,
+            fighter: msg.foeFighter || msg.rival.fighter,
+            avatarId: msg.rival.avatarId || "av01",
+            wins: msg.rival.wins | 0,
+            mostUsed: msg.rival.mostUsed,
+            difficulty: "normal"
+          };
+        }
+      }
       this.emit(msg);
     };
     ws.onclose = () => {
       this.ready = false;
       this.stopPing();
+      this.pingLive = false;
       if (this.ws === ws) this.ws = null;
       this.emit({ t: "closed" });
+      if (Session.net) {
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(() => this.ensure(), 350);
+      }
     };
   },
 
@@ -217,10 +253,12 @@ export const NetPlay = {
 
   startPing() {
     this.stopPing();
-    this.pingTimer = setInterval(() => {
-      this.send({ t: "ping", at: Date.now() });
-    }, 1000);
-    this.send({ t: "ping", at: Date.now() });
+    const beat = () => {
+      this.pingSent = performance.now();
+      this.send({ t: "ping", at: this.pingSent });
+    };
+    this.pingTimer = setInterval(beat, 1000);
+    beat();
   },
 
   stopPing() {
@@ -232,13 +270,23 @@ export const NetPlay = {
     this.send({ t: "pause", kind: kind || "player" });
   },
 
+  resume() {
+    this.send({ t: "resume" });
+  },
+
   quit() {
-    this.send({ t: "quit" });
     Session.net = false;
+    this.send({ t: "quit" });
+  },
+
+  yieldHost() {
+    this.send({ t: "yield" });
   },
 
   stop() {
+    Session.net = false;
     this.cancel();
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.ws) {
       try { this.ws.close(); } catch (e) {}
     }

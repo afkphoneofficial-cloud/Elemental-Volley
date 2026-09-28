@@ -12,7 +12,8 @@ export const GAME = {
   courtLeft: (1280 - WORLD.width * SCALE) / 2,
   courtRight: (1280 - WORLD.width * SCALE) / 2 + WORLD.width * SCALE,
   winScore: 15,
-  pauseMs: 20000
+  pauseMs: 20000,
+  forfeitMs: 30000
 };
 
 export const PHYSICS = {
