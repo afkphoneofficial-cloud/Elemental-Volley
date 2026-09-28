@@ -4,6 +4,7 @@ import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
+import { NetPlay } from "../systems/NetPlay.js";
 
 export class LuckScene extends Phaser.Scene {
   constructor() { super("luck"); }
@@ -76,12 +77,59 @@ export class LuckScene extends Phaser.Scene {
       if (img) this.pickBits.push(img);
     });
 
-    this.rollUntilWinner();
-    makeButton(this, 120, 40, 140, 40, t("nav.back"), () => this.scene.start("select"), 0x7d5cff);
+    this.net = Session.net === true;
+    this.off = this.net ? NetPlay.on((msg) => {
+      if (msg.t === "luck") this.playNetLuck(msg);
+      if (msg.t === "go") this.scene.start("play");
+    }) : null;
+    this.events.once("shutdown", () => { if (this.off) this.off(); });
+    if (this.net) this.playNetLuck(NetPlay.lastLuck);
+    else this.rollUntilWinner();
+    makeButton(this, 120, 40, 140, 40, t("nav.back"), () => {
+      if (this.net) NetPlay.quit();
+      this.scene.start("select");
+    }, 0x7d5cff);
   }
 
   showPicks() {
     this.pickBits.forEach((o) => o.setVisible(true));
+  }
+
+  playNetLuck(msg) {
+    if (!msg) {
+      this.status.setText(t("luck.rolling"));
+      return;
+    }
+    if (this.shownLuck) return;
+    this.shownLuck = true;
+    if (msg.youSide) Session.youSide = msg.youSide === 2 ? 2 : 1;
+    if (msg.rival) {
+      Session.rival = {
+        live: true,
+        userId: msg.rival.id,
+        nameTh: msg.rival.name,
+        nameEn: msg.rival.name,
+        mmr: msg.rival.mmr | 0,
+        fighter: msg.rival.fighter,
+        avatarId: msg.rival.avatarId || "av01",
+        wins: msg.rival.wins | 0,
+        mostUsed: msg.rival.mostUsed,
+        difficulty: "normal"
+      };
+      Session.botId = msg.rival.fighter || Session.botId;
+    }
+    this.status.setText(t("luck.rolling"));
+    this.rollTween(0, () => {
+      this.youRoll.setText(String(msg.youRoll | 0).padStart(2, "0"));
+      this.botRoll.setText(String(msg.foeRoll | 0).padStart(2, "0"));
+      AudioSystem.ui();
+      if (msg.youPick) {
+        this.status.setText(t("luck.youWin"));
+        this.showPicks();
+      } else {
+        this.status.setText(t("luck.waitFoe"));
+      }
+    });
   }
 
   rollUntilWinner() {
@@ -119,6 +167,12 @@ export class LuckScene extends Phaser.Scene {
   chooseCourt(id) {
     Session.courtId = id;
     AudioSystem.ui();
+    if (this.net) {
+      this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
+      this.status.setText(t("luck.waitGo"));
+      NetPlay.pickCourt(id);
+      return;
+    }
     this.scene.start("play");
   }
 }

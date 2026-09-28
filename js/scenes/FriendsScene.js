@@ -171,7 +171,9 @@ export class FriendsScene extends Phaser.Scene {
           if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           Session.mode = "exhibit";
+          Session.exhibitFriendId = pal.id;
           Session.rival = Friends.toRival(pal);
+          Session.rival.live = true;
           this.hideForm();
           this.scene.start("select");
         }, 0x7d5cff);

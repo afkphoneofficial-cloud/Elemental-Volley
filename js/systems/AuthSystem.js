@@ -211,6 +211,10 @@ export const AuthSystem = {
       this.schedulePush();
     }
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
+    try {
+      const { NetPlay } = await import("./NetPlay.js");
+      NetPlay.ensure();
+    } catch (e) {}
   },
 
   async submitName(name) {
@@ -261,6 +265,10 @@ export const AuthSystem = {
   },
 
   async logout() {
+    try {
+      const { NetPlay } = await import("./NetPlay.js");
+      NetPlay.stop();
+    } catch (e) {}
     const sb = await getSb();
     if (sb) await sb.auth.signOut();
     session = null;

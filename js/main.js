@@ -1,5 +1,6 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
+import { Session } from "./systems/Session.js";
 import { I18n } from "./i18n/I18n.js";
 import { mountLobbyStage } from "./web/LobbyStage.js";
 import { GAME } from "./config/gameConfig.js";
@@ -22,6 +23,7 @@ import { ModeScene } from "./scenes/ModeScene.js";
 import { FriendsScene } from "./scenes/FriendsScene.js";
 import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
+import { NetPlay, mountExhibitInvite } from "./systems/NetPlay.js";
 
 AudioSystem.mountDock();
 AudioSystem.playMenu();
@@ -53,6 +55,20 @@ I18n.mountToggle();
 mountLobbyStage();
 TouchControls.mount();
 ChatSystem.mount();
+mountExhibitInvite();
+NetPlay.on((msg) => {
+  const g = window.game;
+  if (!g || !g.scene) return;
+  const live = g.scene.getScenes(true)[0];
+  if (!live) return;
+  const key = live.scene.key;
+  if (msg.t === "luck" && key !== "luck" && key !== "queue" && key !== "play") {
+    Session.net = true;
+    if (Session.mode !== "pvp") Session.mode = "exhibit";
+    live.scene.start("luck");
+  }
+  if (msg.t === "go" && key !== "play") live.scene.start("play");
+});
 const layoutShell = () => {
   const wrap = document.getElementById("wrap");
   const box = document.getElementById("game");

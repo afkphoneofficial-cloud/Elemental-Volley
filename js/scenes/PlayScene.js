@@ -25,6 +25,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
+import { NetPlay } from "../systems/NetPlay.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -63,10 +64,12 @@ export class PlayScene extends Phaser.Scene {
     this.worldRate = 1;
     this.ultFreezeLeft = 0;
     this.justUlted = false;
-    this.readyFrames = 25;
+    this.net = Session.net === true;
+    this.readyFrames = this.net ? 0 : 25;
     this.physAcc = 0;
     this.stepMs = 1000 / PHYSICS.fps;
-    this.physicsPack = new PikaPhysics(this.youSide !== 1, this.youSide !== 2);
+    this.net = Session.net === true;
+    this.physicsPack = new PikaPhysics(this.net ? false : this.youSide !== 1, this.net ? false : this.youSide !== 2);
     this.p1In = new PikaUserInput();
     this.p2In = new PikaUserInput();
     this.enterWasDown = false;
@@ -154,6 +157,7 @@ export class PlayScene extends Phaser.Scene {
       try { this.ultCut.destroy(); } catch (e) {}
       try { this.pauseUi.destroy(); } catch (e) {}
       this.unbindPauseWatch();
+      if (this.offNet) this.offNet();
       TouchControls.setPlayActive(false);
       this.tweens.timeScale = 1;
       if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
@@ -165,9 +169,13 @@ export class PlayScene extends Phaser.Scene {
     this.bindKeys();
     this.pauseUi = new PauseOverlay(this, {
       onResume: () => this.setPaused(false),
-      onQuit: () => this.scene.start("hub")
+      onQuit: () => {
+        if (this.net) NetPlay.quit();
+        this.scene.start("hub");
+      }
     });
     this.bindPauseWatch();
+    this.offNet = this.net ? NetPlay.on((msg) => this.onNet(msg)) : null;
     TouchControls.setPlayActive(true);
     this.layoutHudMode();
     this.syncSprites();
@@ -425,7 +433,11 @@ export class PlayScene extends Phaser.Scene {
   requestPlayerPause() {
     if (this.matchOver) return;
     if (this.paused) {
-      this.setPaused(false);
+      if (!this.net) this.setPaused(false);
+      return;
+    }
+    if (this.net) {
+      NetPlay.pause("player");
       return;
     }
     if (!this.rankedMatch) {
@@ -444,6 +456,10 @@ export class PlayScene extends Phaser.Scene {
   }
 
   requestSystemPause() {
+    if (this.net) {
+      NetPlay.pause("system");
+      return;
+    }
     if (!this.rankedMatch || this.matchOver || this.paused || this.systemPauses <= 0) return;
     this.systemPauses -= 1;
     this.beginTimedPause("system");
@@ -541,10 +557,38 @@ export class PlayScene extends Phaser.Scene {
     this.worldRate = 1;
     this.tweens.timeScale = 1;
     if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
-    this.readyFrames = 25;
+    this.readyFrames = this.net ? 0 : 25;
     this.lastHitter = 0;
     this.showBanner(t("play.ready"), "#fff4e8");
     this.syncSprites();
+  }
+
+  onNet(msg) {
+    if (msg.t === "pause") {
+      this.pauseKind = msg.kind === "system" ? "system" : "player";
+      this.pauseLeftMs = msg.ms | 0 || GAME.pauseMs;
+      if (this.pauseUi) this.pauseUi.setTimed(this.pauseKind, this.pauseLeftMs);
+      this.setPaused(true);
+    }
+    if (msg.t === "resume") this.setPaused(false);
+    if (msg.t === "pauseDenied") this.showBanner(t("pause.none"), "#c45a16");
+    if (msg.t === "end" && !this.matchOver) {
+      const me = AuthSystem.session && AuthSystem.session();
+      const youLost = me && msg.loserId && msg.loserId === me.id;
+      this.matchOver = true;
+      this.time.delayedCall(400, () => {
+        this.scene.start("result", {
+          winner: youLost ? 2 : 1,
+          score: { p1: this.youSide === 1 ? this.score[0] : this.score[1], p2: this.youSide === 1 ? this.score[1] : this.score[0] },
+          courtId: this.season,
+          youId: this.youData.id,
+          botId: this.botData.id,
+          refChar: this.refChar,
+          refSeason: this.refSeason,
+          stats: snapshotMatchStats(this.matchStats)
+        });
+      });
+    }
   }
 
   update(_t, delta) {
@@ -554,13 +598,28 @@ export class PlayScene extends Phaser.Scene {
       if (this.rankedMatch && this.pauseLeftMs > 0) {
         this.pauseLeftMs -= delta;
         if (this.pauseUi) this.pauseUi.setRemain(this.pauseLeftMs);
-        if (this.pauseLeftMs <= 0) this.setPaused(false);
+        if (this.pauseLeftMs <= 0 && !this.net) this.setPaused(false);
       }
       return;
     }
     if (!this.matchOver) this.matchStats.ms += delta;
     this.tickPointSlow(delta);
     if (this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) return;
+
+    if (this.net) {
+      this.readHuman();
+      const mine = this.youSide === 1 ? this.p1In : this.p2In;
+      NetPlay.sendInput(mine);
+      let tick = NetPlay.takeTick();
+      let stepped = false;
+      while (tick) {
+        this.applyNetTick(tick);
+        stepped = true;
+        tick = NetPlay.takeTick();
+      }
+      if (!stepped) this.syncSprites();
+      return;
+    }
 
     this.physAcc += Math.min(delta, 80) * this.worldRate;
     let stepped = false;
@@ -586,6 +645,24 @@ export class PlayScene extends Phaser.Scene {
       this.worldRate = 1;
       this.tweens.timeScale = 1;
     }
+  }
+
+  applyNetTick(tick) {
+    this.p1In.xDirection = tick.a.x | 0;
+    this.p1In.yDirection = tick.a.y | 0;
+    this.p1In.powerHit = tick.a.p | 0;
+    this.p2In.xDirection = tick.b.x | 0;
+    this.p2In.yDirection = tick.b.y | 0;
+    this.p2In.powerHit = tick.b.p | 0;
+    const pack = this.physicsPack;
+    const hitGround = pack.runEngineForNextFrame([this.p1In, this.p2In]);
+    this.detectHits();
+    this.handleSounds();
+    if (hitGround && !this.roundEnded) this.onPoint();
+    if (this.roundEnded && !this.matchOver && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
+      this.resetRound();
+    }
+    this.syncSprites();
   }
 
   stepPhysics() {

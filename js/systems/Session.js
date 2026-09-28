@@ -7,5 +7,7 @@ export const Session = {
   courtId: "summer",
   youServe: false,
   mode: "bot",
-  rival: null
+  rival: null,
+  net: false,
+  exhibitFriendId: null
 };

@@ -8,6 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
+import { NetPlay } from "../systems/NetPlay.js";
 
 const SEASON_FX = {
   summer: { burst: [0xffe08a, 0xff6a22, 0xffffff], glow: 0xff8a3a },
@@ -46,6 +47,8 @@ export class ResultScene extends Phaser.Scene {
     const sc = this.payload.score || {};
     this.pvpMode = Session.mode === "pvp";
     this.exhibitMode = Session.mode === "exhibit";
+    if (Session.net) NetPlay.send({ t: "done" });
+    Session.net = false;
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;

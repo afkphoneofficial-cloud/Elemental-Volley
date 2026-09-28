@@ -10,7 +10,8 @@
 export const BACKEND = {
   googleClientId: "441173887104-aked2gdmq0co0fou4hlq3vsj0ra4q6ms.apps.googleusercontent.com",
   supabaseUrl: "https://njuhuhfehbrbmatfpxcf.supabase.co",
-  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdWh1aGZlaGJyYm1hdGZweGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MzA0NTcsImV4cCI6MjEwNjEwNjQ1N30.RXoGu7NmMvRBCZJnj1zV5Vu4XXp4UnLf771LyJqob1U"
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdWh1aGZlaGJyYm1hdGZweGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MzA0NTcsImV4cCI6MjEwNjEwNjQ1N30.RXoGu7NmMvRBCZJnj1zV5Vu4XXp4UnLf771LyJqob1U",
+  matchWsUrl: "wss://play.evolley.dev"
 };
 
 export function backendReady() {

@@ -128,12 +128,11 @@ export class SelectScene extends Phaser.Scene {
       }
       if (this.exhibitMode) {
         Session.mode = "exhibit";
-        if (!Session.rival) {
+        if (!Session.rival || !Session.exhibitFriendId) {
           this.scene.start("friends", { pick: true });
           return;
         }
-        Session.botId = Session.rival.fighter;
-        this.scene.start("luck");
+        this.scene.start("queue");
         return;
       }
       Session.mode = "bot";

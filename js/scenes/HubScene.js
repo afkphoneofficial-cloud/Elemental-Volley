@@ -13,6 +13,7 @@ import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { ChatSystem } from "../systems/ChatSystem.js";
+import { NetPlay } from "../systems/NetPlay.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -37,6 +38,7 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    NetPlay.ensure();
     drawGrid(this);
     const W = this.scale.width;
     const H = this.scale.height;
