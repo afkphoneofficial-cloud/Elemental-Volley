@@ -8,6 +8,8 @@ import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
+import { mountMailboxHud } from "../ui/MailboxHud.js";
+import { Mailbox } from "../systems/Mailbox.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -127,6 +129,7 @@ export class HubScene extends Phaser.Scene {
     });
 
     this.paintEther();
+    mountMailboxHud(this);
     AudioSystem.playMenu();
   }
 
@@ -187,5 +190,12 @@ export class HubScene extends Phaser.Scene {
 
   update() {
     this.paintEther();
+    if (this.mailOpen) return;
+    if (!this.mailAt) this.mailAt = 0;
+    if (this.time.now - this.mailAt < 10000) return;
+    this.mailAt = this.time.now;
+    Mailbox.refresh().then(() => {
+      if (this.sys && this.sys.isActive() && this.paintMailbox) this.paintMailbox();
+    });
   }
 }

@@ -61,6 +61,13 @@ export const COPY = {
         pvpBody: "ได้จากแข่ง แลกเป็นตราตัวละครได้ที่ร้าน แต้มสนามคนละอย่างกับแต้ม PVP"
       }
     },
+    mail: {
+      title: "จดหมาย",
+      empty: "ยังไม่มีจดหมาย",
+      accept: "ยอมรับ",
+      decline: "ปฏิเสธ",
+      ok: "อ่านแล้ว"
+    },
     rank: {
       title: "กฎอันดับ",
       sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
@@ -99,28 +106,31 @@ export const COPY = {
     friends: {
       title: "เพื่อน",
       cap: "{n} / {max} คน",
-      add: "เพิ่มด้วยชื่อ",
-      addOne: "เพิ่ม",
+      add: "เชิญด้วยชื่อ",
+      addOne: "เชิญ",
+      pending: "รออยู่",
       suggest: "สุ่มจากเซิร์ฟ",
       suggestHead: "ผู้เล่นในเซิร์ฟ · กดสุ่มใหม่ได้เรื่อยๆ",
-      suggestOk: "เจอ {n} คน ลองทักเป็นเพื่อนได้เลย",
+      suggestOk: "เจอ {n} คน ลองส่งคำเชิญได้เลย",
       suggestWait: "กำลังสุ่มรายชื่อจากเซิร์ฟ…",
       suggestNone: "ยังสุ่มไม่เจอคนใหม่ ลองอีกครั้งภายหลัง",
       empty: "ยังไม่มีเพื่อนในรายชื่อ",
-      emptySub: "สุ่มรายชื่อจากเซิร์ฟ หรือพิมพ์ชื่อบัญชีตรงๆ แล้วแอดได้เลย",
+      emptySub: "สุ่มจากเซิร์ฟหรือพิมพ์ชื่อ แล้วส่งคำเชิญ อีกฝ่ายต้องยอมรับจากจดหมายก่อน",
       pickHint: "เลือกเพื่อนเพื่อเข้า Exhibition",
       exhibit: "Exhibition",
       remove: "ลบ",
       rowSub: "กระชับมิตรได้ทุกเมื่อ",
       formHint: "พิมพ์ชื่อบัญชีในเกมให้ตรงทุกตัว",
       formName: "ชื่อบัญชีเพื่อน",
-      added: "เพิ่ม {name} แล้ว",
+      added: "ส่งคำเชิญถึง {name} แล้ว",
+      acceptedNow: "เป็นเพื่อนกับ {name} แล้ว",
       errLen: "ชื่อสั้นเกินไป",
       errFull: "เพื่อนเต็ม 50 คนแล้ว",
       errCloud: "ค้นจากคลาวด์ไม่สำเร็จ",
       errMissing: "ไม่พบบัญชีนี้",
       errSelf: "เพิ่มตัวเองไม่ได้",
-      errDup: "เป็นเพื่อนกันอยู่แล้ว"
+      errDup: "เป็นเพื่อนกันอยู่แล้ว",
+      errPending: "ส่งคำเชิญไปแล้ว รออีกฝ่ายตอบ"
     },
     starter: {
       title: "เลือกตัวละครแรก",
@@ -393,6 +403,13 @@ export const COPY = {
         pvpBody: "Earned from matches. Trade them for character tokens. Court rating is a separate ranked score."
       }
     },
+    mail: {
+      title: "Mail",
+      empty: "No letters yet",
+      accept: "Accept",
+      decline: "Decline",
+      ok: "Got it"
+    },
     rank: {
       title: "Rank rules",
       sub: "Etheria’s 1v1 court ranking",
@@ -431,28 +448,31 @@ export const COPY = {
     friends: {
       title: "Friends",
       cap: "{n} / {max}",
-      add: "Add by name",
-      addOne: "Add",
+      add: "Invite by name",
+      addOne: "Invite",
+      pending: "Waiting",
       suggest: "Find on server",
       suggestHead: "Players on the server · tap again for a new batch",
-      suggestOk: "Found {n} players you can add",
+      suggestOk: "Found {n} players you can invite",
       suggestWait: "Rolling players from the server…",
       suggestNone: "No new players this roll. Try again later.",
       empty: "No friends yet",
-      emptySub: "Roll players from the server, or type an exact in-game name to add them.",
+      emptySub: "Roll from the server or type a name, then send an invite. They accept from mail.",
       pickHint: "Pick a friend for Exhibition",
       exhibit: "Exhibition",
       remove: "Remove",
       rowSub: "Friendly matches anytime",
       formHint: "Enter their exact in-game name",
       formName: "Friend's name",
-      added: "Added {name}",
+      added: "Invite sent to {name}",
+      acceptedNow: "You are now friends with {name}",
       errLen: "Name is too short",
       errFull: "Friend list is full (50)",
       errCloud: "Cloud lookup failed",
       errMissing: "No account with that name",
       errSelf: "You cannot add yourself",
-      errDup: "Already on your list"
+      errDup: "Already on your list",
+      errPending: "Invite already sent. Waiting for a reply."
     },
     starter: {
       title: "Pick your first fighter",

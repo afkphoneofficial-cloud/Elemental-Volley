@@ -25,7 +25,10 @@ export class FriendsScene extends Phaser.Scene {
     drawGrid(this);
     this.draw();
     AudioSystem.playMenu();
-    this.rollSuggest();
+    Friends.sync().then(() => {
+      if (this.sys && this.sys.isActive()) this.draw();
+      this.rollSuggest();
+    });
   }
 
   draw() {
@@ -85,17 +88,22 @@ export class FriendsScene extends Phaser.Scene {
         this.add.text(x + 18, y - 22, pal.name || "—", {
           fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418", wordWrap: { width: 110 }
         }).setOrigin(0, 0.5).setDepth(8);
-        makeButton(this, x, y + 36, 150, 36, t("friends.addOne"), () => {
+        makeButton(this, x, y + 36, 150, 36, Friends.pendingHas(pal.id) ? t("friends.pending") : t("friends.addOne"), async () => {
           AudioSystem.ui();
-          const res = Friends.addPacked(pal);
+          if (Friends.pendingHas(pal.id) || Friends.has(pal.id)) return;
+          const res = await Friends.invitePacked(pal);
           if (!res.ok) {
-            this.note = t("friends.err" + (res.reason === "dup" ? "Dup" : res.reason === "full" ? "Full" : "Cloud"));
+            const key = "friends.err" + (res.reason === "dup" ? "Dup" : res.reason === "full" ? "Full" : res.reason === "pending" ? "Pending" : res.reason === "self" ? "Self" : "Cloud");
+            this.note = t(key);
+          } else if (res.reason === "accepted") {
+            this.note = t("friends.acceptedNow", { name: pal.name });
+            this.suggests = this.suggests.filter((p) => p.id !== pal.id);
           } else {
             this.note = t("friends.added", { name: pal.name });
             this.suggests = this.suggests.filter((p) => p.id !== pal.id);
           }
           this.draw();
-        }, 0xff8ab8);
+        }, Friends.pendingHas(pal.id) ? 0xffe08a : 0xff8ab8);
       });
     } else {
       roundPanel(this, W / 2, 200, 980, 120, 0xff8ab8, 0xfff6ea);
@@ -134,8 +142,7 @@ export class FriendsScene extends Phaser.Scene {
         }, 0x7d5cff);
         makeButton(this, W / 2 + 420, y, 120, 44, t("friends.remove"), () => {
           AudioSystem.ui();
-          Friends.remove(pal.id);
-          this.draw();
+          Friends.remove(pal.id).then(() => this.draw());
         }, 0xff8ab8);
       });
       if (pages > 1) {
@@ -219,7 +226,7 @@ export class FriendsScene extends Phaser.Scene {
   async submitAdd() {
     const input = document.getElementById("friend-name");
     const msg = document.getElementById("friend-msg");
-    const res = await Friends.addByName(input && input.value);
+    const res = await Friends.inviteByName(input && input.value);
     if (!res.ok) {
       const map = {
         len: t("friends.errLen"),
@@ -227,13 +234,16 @@ export class FriendsScene extends Phaser.Scene {
         cloud: t("friends.errCloud"),
         missing: t("friends.errMissing"),
         self: t("friends.errSelf"),
-        dup: t("friends.errDup")
+        dup: t("friends.errDup"),
+        pending: t("friends.errPending")
       };
       if (msg) msg.textContent = map[res.reason] || t("friends.errCloud");
       return;
     }
     this.hideForm();
-    this.note = t("friends.added", { name: res.pal.name });
+    this.note = res.reason === "accepted"
+      ? t("friends.acceptedNow", { name: res.pal && res.pal.name })
+      : t("friends.added", { name: res.pal && res.pal.name });
     this.draw();
   }
 

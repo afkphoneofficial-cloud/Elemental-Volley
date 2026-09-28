@@ -136,3 +136,5 @@ $$;
 
 revoke all on function public.lookup_player_by_name(text) from public;
 grant execute on function public.lookup_player_by_name(text) to authenticated;
+
+-- Mailbox + friend invites: run supabase/mailbox.sql after this file on existing projects.
