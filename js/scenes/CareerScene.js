@@ -7,6 +7,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES } from "../data/ranks.js";
+import { Leaderboard } from "../systems/Leaderboard.js";
 
 export class CareerScene extends Phaser.Scene {
   constructor() { super("career"); }
@@ -96,6 +97,7 @@ export class CareerScene extends Phaser.Scene {
     }
 
     makeButton(this, 120, 36, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, W - 360, 36, 180, 40, t("career.board"), () => Leaderboard.show(), 0xffb14a);
     makeButton(this, W - 150, 36, 200, 40, t("career.howRank"), () => this.scene.start("rankinfo", { from: "career" }), 0x3ad6ff);
     AudioSystem.playMenu();
   }

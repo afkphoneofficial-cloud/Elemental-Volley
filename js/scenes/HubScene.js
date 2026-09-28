@@ -14,6 +14,7 @@ import { Friends } from "../systems/Friends.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { Leaderboard } from "../systems/Leaderboard.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -145,6 +146,10 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("mode");
     });
+    makeButton(this, W / 2, 572, 280, 44, t("hub.navBoard"), () => {
+      AudioSystem.ui();
+      Leaderboard.show();
+    }, 0xffb14a);
 
     const navY = H - HUB_NAV.y;
     const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
@@ -256,5 +261,6 @@ export class HubScene extends Phaser.Scene {
 
   shutdown() {
     ChatSystem.bindHub(null);
+    Leaderboard.hide();
   }
 }

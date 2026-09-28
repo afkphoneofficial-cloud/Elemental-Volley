@@ -240,6 +240,7 @@ export const SaveSystem = {
   setRank(rank) {
     this.data.rank = { ...emptyRank(), ...(rank || {}) };
     this.persist();
+    if (window.AuthSystem && window.AuthSystem.pushSave) window.AuthSystem.pushSave();
   },
 
   setShowcase(id) {

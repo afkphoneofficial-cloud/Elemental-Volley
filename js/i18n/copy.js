@@ -46,6 +46,7 @@ export const COPY = {
       navMap: "แผนที่",
       navSet: "ตั้งค่า",
       navFriends: "เพื่อน",
+      navBoard: "อันดับ",
       showcaseHint: "แตะหรือกดลูกศรเพื่อสลับตัวที่โชว์",
       chipToken: "ตรา {n}",
       chipPvp: "PVP {n}",
@@ -81,6 +82,17 @@ export const COPY = {
       needFriend: "แชทส่วนตัวได้เฉพาะเพื่อน",
       empty: "พิมพ์ข้อความก่อนส่ง"
     },
+    board: {
+      title: "กระดาน 100 อันดับ",
+      sub: "จัดจากแต้มสนามบนเซิร์ฟ  ·  เลื่อนดูได้",
+      loading: "กำลังดึงอันดับจากเซิร์ฟ…",
+      empty: "ยังไม่มีใครแข่ง Rank Mode บนเซิร์ฟนี้",
+      wl: "ชนะ {w}  ·  แพ้ {l}",
+      youPlace: "คุณอยู่อันดับ {n}",
+      youOut: "คุณอยู่อันดับ {n}  ·  นอก 100 แรก",
+      youOff: "แข่ง Rank Mode แล้วจะขึ้นกระดาน",
+      fail: "ดึงกระดานจากคลาวด์ไม่สำเร็จ  ไปรัน supabase/leaderboard.sql ก่อน"
+    },
     rank: {
       title: "กฎอันดับ",
       sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
@@ -94,7 +106,7 @@ export const COPY = {
       body2: "แต่ละเหรียญมีประกาย 1–5 ขยับประมาณ {star} แต้มสนามต่อประกาย จากลูกทรายไปถึงธาตุบริสุทธิ์ แล้วจึงเป็นสไปค์นิรันดร์",
       body3: "ชนะคู่ที่แต้มสูงกว่าได้แต้มมาก แพ้คู่ที่แต้มต่ำกว่าเสียมาก คิดจากโอกาสชนะคาดหวังตามช่องว่างแต้มสนาม",
       body4: "คิวขยายวงแต้มทุก 1.8 วินาที หาคนในคิวที่แต้มใกล้กันก่อน ถ้าเกาะยังว่างจะจับคู่แข่งเกาะในวงเดียวกัน เพื่อวัดอันดับได้เลย",
-      body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  ตารางอันดับผู้เล่นในเซิร์ฟจะมาแยกต่างหาก",
+      body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  กระดานเซิร์ฟโชว์ 100 อันดับแรกจากแต้มสนามที่บันทึกจริง",
       tier: {
         sandling: "ลูกทราย",
         netling: "เฝ้าตาข่าย",
@@ -186,7 +198,8 @@ export const COPY = {
       pickTitle: "เลือกอวาตาร์ฟรี",
       freeNote: "เปลี่ยนได้ตลอด  ·  ของพิเศษจะมาในร้านค้าภายหลัง",
       close: "ปิด",
-      howRank: "กฎอันดับ"
+      howRank: "กฎอันดับ",
+      board: "กระดานอันดับ"
     },
     select: {
       title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
@@ -424,6 +437,7 @@ export const COPY = {
       navMap: "Map",
       navSet: "Settings",
       navFriends: "Friends",
+      navBoard: "Ranks",
       showcaseHint: "Tap or use the arrows to swap the showcase fighter",
       chipToken: "Tokens {n}",
       chipPvp: "PVP {n}",
@@ -459,6 +473,17 @@ export const COPY = {
       needFriend: "Private chat is for friends only",
       empty: "Type a message first"
     },
+    board: {
+      title: "Top 100",
+      sub: "Live court scores on this server  ·  scroll the list",
+      loading: "Loading the server board…",
+      empty: "No Rank Mode matches on this server yet",
+      wl: "{w} wins  ·  {l} losses",
+      youPlace: "You are #{n}",
+      youOut: "You are #{n}  ·  outside the top 100",
+      youOff: "Play Rank Mode to join the board",
+      fail: "Could not load the board. Run supabase/leaderboard.sql in the SQL editor first."
+    },
     rank: {
       title: "Rank rules",
       sub: "Etheria’s 1v1 court ranking",
@@ -472,7 +497,7 @@ export const COPY = {
       body2: "Each medal has sparks 1–5, about {star} court score per spark, from Sandling up to Primal Tide, then Eternal Spike.",
       body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. The swing follows expected win chance from the court-score gap.",
       body4: "The queue widens every 1.8s. It prefers a live player in range. If the island is quiet, you get a court-matched island rival so rank still moves.",
-      body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. The live player leaderboard comes separately.",
+      body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. The server board shows the top 100 from saved court scores.",
       tier: {
         sandling: "Sandling",
         netling: "Netling",
@@ -564,7 +589,8 @@ export const COPY = {
       pickTitle: "Free avatars",
       freeNote: "Swap anytime  ·  Shop extras come later",
       close: "Close",
-      howRank: "Rank rules"
+      howRank: "Rank rules",
+      board: "Leaderboard"
     },
     select: {
       title: "Pick an unlocked fighter, then face a bot",

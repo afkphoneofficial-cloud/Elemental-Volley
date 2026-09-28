@@ -25,6 +25,7 @@ import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
 import { AuthSystem } from "./systems/AuthSystem.js";
 import { NetPlay, mountExhibitInvite } from "./systems/NetPlay.js";
+import { mountLeaderboard } from "./systems/Leaderboard.js";
 
 AudioSystem.mountDock();
 AudioSystem.playMenu();
@@ -58,6 +59,7 @@ mountLobbyStage();
 TouchControls.mount();
 ChatSystem.mount();
 mountExhibitInvite();
+mountLeaderboard();
 NetPlay.on((msg) => {
   const g = window.game;
   if (!g || !g.scene) return;
