@@ -114,6 +114,7 @@ export class QueueScene extends Phaser.Scene {
     }
     this.found = true;
     Session.net = true;
+    Session.netHost = msg.host === true;
     Session.mode = Session.mode === "exhibit" ? "exhibit" : "pvp";
     if (msg.rival) {
       Session.rival = {

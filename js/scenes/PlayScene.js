@@ -26,6 +26,7 @@ import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -65,10 +66,10 @@ export class PlayScene extends Phaser.Scene {
     this.ultFreezeLeft = 0;
     this.justUlted = false;
     this.net = Session.net === true;
+    this.netHost = this.net && Session.netHost === true;
     this.readyFrames = this.net ? 0 : 25;
     this.physAcc = 0;
     this.stepMs = 1000 / PHYSICS.fps;
-    this.net = Session.net === true;
     this.physicsPack = new PikaPhysics(this.net ? false : this.youSide !== 1, this.net ? false : this.youSide !== 2);
     this.p1In = new PikaUserInput();
     this.p2In = new PikaUserInput();
@@ -375,6 +376,11 @@ export class PlayScene extends Phaser.Scene {
     this.exitBtn = makeButton(this, 86, 36, 108, 36, t("play.pause"), () => {
       this.requestPlayerPause();
     }, 0xff8ab8);
+    if (this.net) {
+      this.pingText = this.add.text(GAME.width - 22, 36, t("play.pingWait"), {
+        fontFamily: f, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+      }).setOrigin(1, 0.5).setDepth(20);
+    }
   }
 
   hudFace(isYou, fighterId, courtSide) {
@@ -610,14 +616,22 @@ export class PlayScene extends Phaser.Scene {
       this.readHuman();
       const mine = this.youSide === 1 ? this.p1In : this.p2In;
       NetPlay.sendInput(mine);
-      let tick = NetPlay.takeTick();
-      let stepped = false;
-      while (tick) {
-        this.applyNetTick(tick);
-        stepped = true;
-        tick = NetPlay.takeTick();
+      this.paintPing();
+      if (this.netHost) {
+        let tick = NetPlay.takeTick();
+        let stepped = false;
+        while (tick) {
+          this.applyNetTick(tick);
+          stepped = true;
+          tick = NetPlay.takeTick();
+        }
+        if (!stepped) this.syncSprites();
+      } else {
+        const snap = NetPlay.takeSnap();
+        if (snap) this.applyGuestSnap(snap);
+        else this.syncSprites();
+        NetPlay.ticks.length = 0;
       }
-      if (!stepped) this.syncSprites();
       return;
     }
 
@@ -663,6 +677,62 @@ export class PlayScene extends Phaser.Scene {
       this.resetRound();
     }
     this.syncSprites();
+    if (this.netHost) NetPlay.send(packMatchSnap(this));
+  }
+
+  applyGuestSnap(snap) {
+    const was0 = this.score[0];
+    const was1 = this.score[1];
+    const info = applyMatchSnap(this, snap);
+    if (this.s1) this.s1.setText(String(this.score[0]));
+    if (this.s2) this.s2.setText(String(this.score[1]));
+    if (info.scoreChanged) {
+      AudioSystem.score();
+      const leftWon = this.score[1] > was1;
+      const winSide = leftWon ? 2 : 1;
+      const winData = winSide === 1 ? this.leftData : this.rightData;
+      this.cheer.show(winSide, winData.id);
+      this.showBanner(winData.name, leftWon ? "#c8ff3a" : "#ff8a3a");
+      this.pointSlowMs = 500;
+      this.roundHoldMs = 1400;
+    }
+    const need = GAME.winScore - 1;
+    this.mpL.setText(this.score[0] >= need && this.score[0] < GAME.winScore ? t("play.matchPoint") : "");
+    this.mpR.setText(this.score[1] >= need && this.score[1] < GAME.winScore ? t("play.matchPoint") : "");
+    if (info.justOver) this.goResult();
+    this.syncSprites();
+  }
+
+  paintPing() {
+    if (!this.pingText) return;
+    const n = NetPlay.pingMs | 0;
+    if (!n) {
+      this.pingText.setText(t("play.pingWait")).setColor("#7a4a30");
+      return;
+    }
+    const q = n < 55 ? "pingGood" : n < 110 ? "pingOk" : "pingBad";
+    const col = n < 55 ? "#2a7a38" : n < 110 ? "#c45a16" : "#c42a2a";
+    this.pingText.setText(t("play.ping", { n, q: t("play." + q) })).setColor(col);
+  }
+
+  goResult() {
+    const youScore = this.youSide === 1 ? this.score[0] : this.score[1];
+    const botScore = this.youSide === 1 ? this.score[1] : this.score[0];
+    this.matchOver = true;
+    if (this.mpL) this.mpL.setText("");
+    if (this.mpR) this.mpR.setText("");
+    this.time.delayedCall(2200, () => {
+      this.scene.start("result", {
+        winner: youScore >= GAME.winScore ? 1 : 2,
+        score: { p1: youScore, p2: botScore },
+        courtId: this.season,
+        youId: this.youData.id,
+        botId: this.botData.id,
+        refChar: this.refChar,
+        refSeason: this.refSeason,
+        stats: snapshotMatchStats(this.matchStats)
+      });
+    });
   }
 
   stepPhysics() {
@@ -845,21 +915,7 @@ export class PlayScene extends Phaser.Scene {
     this.mpL.setText(mpL ? t("play.matchPoint") : "");
     this.mpR.setText(mpR ? t("play.matchPoint") : "");
     if (youScore >= GAME.winScore || botScore >= GAME.winScore) {
-      this.matchOver = true;
-      this.mpL.setText("");
-      this.mpR.setText("");
-      this.time.delayedCall(2200, () => {
-        this.scene.start("result", {
-          winner: youScore >= GAME.winScore ? 1 : 2,
-          score: { p1: youScore, p2: botScore },
-          courtId: this.season,
-          youId: this.youData.id,
-          botId: this.botData.id,
-          refChar: this.refChar,
-          refSeason: this.refSeason,
-          stats: snapshotMatchStats(this.matchStats)
-        });
-      });
+      this.goResult();
     } else if ((mpL || mpR) && !this.hadMatchPoint) {
       this.hadMatchPoint = true;
       const who = mpL && mpR

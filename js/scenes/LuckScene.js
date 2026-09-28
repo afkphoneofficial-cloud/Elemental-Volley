@@ -102,6 +102,7 @@ export class LuckScene extends Phaser.Scene {
     }
     if (this.shownLuck) return;
     this.shownLuck = true;
+    Session.netHost = msg.host === true;
     if (msg.youSide) Session.youSide = msg.youSide === 2 ? 2 : 1;
     if (msg.rival) {
       Session.rival = {

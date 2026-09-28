@@ -38,6 +38,9 @@ export const NetPlay = {
   lastOffer: null,
   lastLuck: null,
   lastInvite: null,
+  pingMs: 0,
+  snap: null,
+  pingTimer: null,
 
   on(fn) {
     listeners.add(fn);
@@ -84,10 +87,16 @@ export const NetPlay = {
       if (msg.t === "ready") {
         this.ready = true;
         this.flushWant();
+        this.startPing();
       }
+      if (msg.t === "pong") {
+        const rtt = Date.now() - (msg.at | 0);
+        if (rtt >= 0 && rtt < 5000) this.pingMs = rtt;
+      }
+      if (msg.t === "snap") this.snap = msg;
       if (msg.t === "tick") {
         this.ticks.push(msg);
-        if (this.ticks.length > 10) this.ticks.splice(0, this.ticks.length - 10);
+        if (this.ticks.length > 24) this.ticks.splice(0, this.ticks.length - 24);
       }
       if (msg.t === "offer") this.lastOffer = msg;
       if (msg.t === "luck") this.lastLuck = msg;
@@ -95,6 +104,7 @@ export const NetPlay = {
       if (msg.t === "cooldown") this.cooldownUntil = Date.now() + (msg.ms | 0);
       if (msg.t === "go") {
         Session.net = true;
+        Session.netHost = msg.host === true;
         Session.youSide = msg.youSide === 2 ? 2 : 1;
         Session.courtId = msg.courtId || "summer";
         Session.youServe = Boolean(msg.youServe);
@@ -119,6 +129,7 @@ export const NetPlay = {
     };
     ws.onclose = () => {
       this.ready = false;
+      this.stopPing();
       if (this.ws === ws) this.ws = null;
       this.emit({ t: "closed" });
     };
@@ -198,6 +209,25 @@ export const NetPlay = {
     return this.ticks.shift() || null;
   },
 
+  takeSnap() {
+    const s = this.snap;
+    this.snap = null;
+    return s;
+  },
+
+  startPing() {
+    this.stopPing();
+    this.pingTimer = setInterval(() => {
+      this.send({ t: "ping", at: Date.now() });
+    }, 1000);
+    this.send({ t: "ping", at: Date.now() });
+  },
+
+  stopPing() {
+    if (this.pingTimer) clearInterval(this.pingTimer);
+    this.pingTimer = null;
+  },
+
   pause(kind) {
     this.send({ t: "pause", kind: kind || "player" });
   },
@@ -214,6 +244,7 @@ export const NetPlay = {
     }
     this.ws = null;
     this.ready = false;
+    this.stopPing();
   }
 };
 

@@ -9,5 +9,6 @@ export const Session = {
   mode: "bot",
   rival: null,
   net: false,
+  netHost: false,
   exhibitFriendId: null
 };

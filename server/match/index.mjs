@@ -217,8 +217,8 @@ function beginLuck(a, b) {
   a.roomId = roomId;
   b.roomId = roomId;
   rooms.set(roomId, room);
-  send(a.ws, { t: "luck", roomId, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, rival: preview(b) });
-  send(b.ws, { t: "luck", roomId, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, rival: preview(a) });
+  send(a.ws, { t: "luck", roomId, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, host: true, rival: preview(b) });
+  send(b.ws, { t: "luck", roomId, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, host: false, rival: preview(a) });
   if (!aPicks) {
     room.courtId = COURTS[Math.floor(Math.random() * COURTS.length)];
     setTimeout(() => startPlay(room), 1100);
@@ -247,7 +247,8 @@ function startPlay(room) {
     youServe: aServe,
     fighter: room.a.fighter,
     foeFighter: room.b.fighter,
-    rival: preview(room.b)
+    rival: preview(room.b),
+    host: true
   });
   send(room.b.ws, {
     t: "go",
@@ -257,7 +258,8 @@ function startPlay(room) {
     youServe: !aServe,
     fighter: room.b.fighter,
     foeFighter: room.a.fighter,
-    rival: preview(room.a)
+    rival: preview(room.a),
+    host: false
   });
   room.timer = setInterval(() => tickRoom(room), TICK_MS);
 }
@@ -437,6 +439,11 @@ function onMsg(ws, raw) {
       p: msg.p ? 1 : 0
     };
   }
+  if (msg.t === "snap" && p.roomId) {
+    const room = rooms.get(p.roomId);
+    if (room && room.a && room.a.id === p.id) send(room.b.ws, msg);
+  }
+  if (msg.t === "ping") send(ws, { t: "pong", at: msg.at | 0 });
   if (msg.t === "pause") pauseRoom(p, msg.kind === "system" ? "system" : "player");
   if (msg.t === "quit") {
     const room = rooms.get(p.roomId);

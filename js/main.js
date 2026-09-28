@@ -64,6 +64,7 @@ NetPlay.on((msg) => {
   const key = live.scene.key;
   if (msg.t === "luck" && key !== "luck" && key !== "queue" && key !== "play") {
     Session.net = true;
+    Session.netHost = msg.host === true;
     if (Session.mode !== "pvp") Session.mode = "exhibit";
     live.scene.start("luck");
   }

@@ -49,6 +49,7 @@ export class ResultScene extends Phaser.Scene {
     this.exhibitMode = Session.mode === "exhibit";
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
+    Session.netHost = false;
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
