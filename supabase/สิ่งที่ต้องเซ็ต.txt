@@ -105,6 +105,12 @@ SQL Editor → วางทั้งไฟล์ supabase/chat.sql → Run
 ค่าที่เกมชี้ไปแล้ว
   js/config/backend.js → matchWsUrl: "wss://play.evolley.dev"
 
+เข้าเครื่องจากวินโดว์ของคุณด้วย SSH (รีโมตข้อความ ไม่ใช่ Remote Desktop)
+  PowerShell:
+    ssh root@ไอพีของVPS
+  ครั้งแรกจะถาม yes/no แล้วใส่รหัสที่ร้านให้ตอนเช่า
+  ถ้าผู้ให้บริการมีปุ่ม Console / VNC บนเว็บ ใช้เปิดเครื่องตอน SSH ใช้ไม่ได้
+
 ขั้นตอนบนเครื่อง (SSH เข้า VPS เป็น Linux ไม่ใช้ Windows)
 
 1. ชี้โดเมน

@@ -61,21 +61,30 @@ export class HubScene extends Phaser.Scene {
 
     const avId = save.avatarId;
     const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
+    const profileX = PAD + pw / 2;
     const pg = this.add.graphics().setDepth(19);
     pg.fillStyle(0xfff6ea, 0.96);
     pg.fillRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
     pg.lineStyle(2, 0xff6a22, 0.75);
     pg.strokeRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
-    this.add.image(PAD + 26, TOP, avKey).setDisplaySize(40, 40).setDepth(21);
+    const profileBox = this.add.container(profileX, TOP).setDepth(21);
+    const name = (AuthSystem.displayName() || "—").slice(0, 12);
+    const nm = this.add.text(0, 0, name, {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0, 0.5);
+    const av = 40;
+    const gap = 8;
+    const inner = av + gap + nm.width;
+    const avX = -inner / 2 + av / 2;
+    const face = this.add.image(avX, 0, avKey).setDisplaySize(av, av);
+    nm.setPosition(avX + av / 2 + gap, 0);
+    profileBox.add([face, nm]);
     const rk = SaveSystem.data.rank;
     const medal = medalFromMmr(rk.mmr);
     if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(PAD + 48, TOP + 16, badgeKey(medal.id)).setDisplaySize(24, 24).setDepth(22);
+      profileBox.add(this.add.image(avX + 14, 14, badgeKey(medal.id)).setDisplaySize(22, 22));
     }
-    this.add.text(PAD + 54, TOP, (AuthSystem.displayName() || "—").slice(0, 12), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5).setDepth(21);
-    this.add.zone(PAD + pw / 2, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
+    this.add.zone(profileX, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
       .on("pointerdown", () => {
         AudioSystem.ui();
         this.scene.start("career");
@@ -90,15 +99,18 @@ export class HubScene extends Phaser.Scene {
 
     const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
     chip(this, ex, TOP, 164, 0x3ad6ff, () => this.openInfo("ether"));
-    if (this.textures.exists(etherKey)) {
-      this.add.image(ex - 62, TOP, etherKey).setDisplaySize(30, 30).setDepth(21);
-    }
-    this.etherText = this.add.text(ex - 42, TOP, "", {
+    this.etherBox = this.add.container(ex, TOP).setDepth(21);
+    this.etherIcon = this.textures.exists(etherKey)
+      ? this.add.image(0, 0, etherKey).setDisplaySize(30, 30)
+      : null;
+    this.etherText = this.add.text(0, 0, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5).setDepth(21);
-    this.add.text(ex + 66, TOP, "?", {
+    }).setOrigin(0, 0.5);
+    this.etherHint = this.add.text(0, 0, "?", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#1a7a98"
-    }).setOrigin(0.5).setDepth(21);
+    }).setOrigin(0.5);
+    if (this.etherIcon) this.etherBox.add(this.etherIcon);
+    this.etherBox.add([this.etherText, this.etherHint]);
 
     chip(this, tx, TOP, 124, 0xffb14a, () => this.openInfo("tokens"));
     this.add.text(tx, TOP, "", {
@@ -177,6 +189,19 @@ export class HubScene extends Phaser.Scene {
     if (!this.etherText) return;
     const st = SaveSystem.etherNow();
     this.etherText.setText(st.n + "/" + ECONOMY.etherMax);
+    const gap = 6;
+    const iconW = this.etherIcon ? 30 : 0;
+    const qW = 14;
+    const tw = this.etherText.width;
+    const total = iconW + (iconW ? gap : 0) + tw + gap + qW;
+    let x = -total / 2;
+    if (this.etherIcon) {
+      this.etherIcon.setPosition(x + iconW / 2, 0);
+      x += iconW + gap;
+    }
+    this.etherText.setPosition(x, 0);
+    x += tw + gap;
+    if (this.etherHint) this.etherHint.setPosition(x + qW / 2, 0);
   }
 
   openInfo(kind) {
