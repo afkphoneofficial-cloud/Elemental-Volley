@@ -15,6 +15,7 @@ export class SelectScene extends Phaser.Scene {
   create() {
     if (!AuthSystem.guard(this)) return;
     this.pvpMode = Session.mode === "pvp";
+    this.exhibitMode = Session.mode === "exhibit";
     this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;
@@ -24,7 +25,7 @@ export class SelectScene extends Phaser.Scene {
     this.diff = "normal";
     this.cards = [];
 
-    this.add.text(W / 2, 48, t(this.pvpMode ? "select.titlePvp" : "select.title"), {
+    this.add.text(W / 2, 48, t(this.pvpMode ? "select.titlePvp" : this.exhibitMode ? "select.titleExhibit" : "select.title"), {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
@@ -96,7 +97,7 @@ export class SelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 
-    if (!this.pvpMode) {
+    if (!this.pvpMode && !this.exhibitMode) {
       [
         ["easy", "select.botEasy"],
         ["normal", "select.botNormal"],
@@ -115,7 +116,7 @@ export class SelectScene extends Phaser.Scene {
       }, 0x3ad6ff);
     }
 
-    makeButton(this, W / 2, 620, 280, 52, t(this.pvpMode ? "select.startPvp" : "select.start"), () => {
+    makeButton(this, W / 2, 620, 280, 52, t(this.pvpMode ? "select.startPvp" : this.exhibitMode ? "select.startExhibit" : "select.start"), () => {
       if (!SaveSystem.isUnlocked(this.pick)) return;
       Session.playerId = this.pick;
       Session.youSide = Math.random() < 0.5 ? 1 : 2;
@@ -123,6 +124,16 @@ export class SelectScene extends Phaser.Scene {
       if (this.pvpMode) {
         Session.mode = "pvp";
         this.scene.start("queue");
+        return;
+      }
+      if (this.exhibitMode) {
+        Session.mode = "exhibit";
+        if (!Session.rival) {
+          this.scene.start("friends", { pick: true });
+          return;
+        }
+        Session.botId = Session.rival.fighter;
+        this.scene.start("luck");
         return;
       }
       Session.mode = "bot";
@@ -169,6 +180,8 @@ export class SelectScene extends Phaser.Scene {
   refreshPick() {
     if (this.pvpMode) {
       this.pickText.setText(t("select.pickPvp", { name: I18n.charName(this.pick) }));
+    } else if (this.exhibitMode) {
+      this.pickText.setText(t("select.pickExhibit", { name: I18n.charName(this.pick) }));
     } else {
       this.pickText.setText(t("select.pick", {
         name: I18n.charName(this.pick),

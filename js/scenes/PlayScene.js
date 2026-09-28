@@ -79,7 +79,7 @@ export class PlayScene extends Phaser.Scene {
     this.streakSide = 0;
     this.hadMatchPoint = false;
     this.paused = false;
-    this.rankedMatch = Session.mode === "pvp";
+    this.rankedMatch = Session.mode === "pvp" || Session.mode === "exhibit";
     this.playerPauses = this.rankedMatch ? 1 : 99;
     this.systemPauses = this.rankedMatch ? 1 : 0;
     this.pauseKind = null;
@@ -318,13 +318,16 @@ export class PlayScene extends Phaser.Scene {
     if (court) {
       const ribbon = this.add.graphics().setDepth(11);
       ribbon.fillStyle(0xfff4e8, 0.94);
-      ribbon.fillRoundedRect(GAME.width / 2 - 150, 16, 300, 48, 24);
+      ribbon.fillRoundedRect(GAME.width / 2 - 170, 10, 340, 62, 24);
       ribbon.lineStyle(4, 0xffb14a, 0.8);
-      ribbon.strokeRoundedRect(GAME.width / 2 - 150, 16, 300, 48, 24);
-      this.courtTitle = this.add.text(GAME.width / 2, 30, I18n.courtName(court.id), {
+      ribbon.strokeRoundedRect(GAME.width / 2 - 170, 10, 340, 62, 24);
+      this.modeTag = this.add.text(GAME.width / 2, 24, this.modeLabel(), {
+        fontFamily: f, fontSize: "13px", fontStyle: "900", color: "#c45a16"
+      }).setOrigin(0.5).setDepth(12);
+      this.courtTitle = this.add.text(GAME.width / 2, 42, I18n.courtName(court.id), {
         fontFamily: f, fontSize: "16px", fontStyle: "800", color: court.color
       }).setOrigin(0.5).setDepth(12);
-      this.courtFlavor = this.add.text(GAME.width / 2, 50, I18n.courtFlavor(court.id), {
+      this.courtFlavor = this.add.text(GAME.width / 2, 58, I18n.courtFlavor(court.id), {
         fontFamily: f, fontSize: "12px", color: "#7a5a40"
       }).setOrigin(0.5).setDepth(12);
     }
@@ -371,7 +374,7 @@ export class PlayScene extends Phaser.Scene {
       const key = avatarKey(SaveSystem.data.avatarId);
       return this.textures.exists(key) ? key : avatarKey("av01");
     }
-    if (Session.mode === "pvp" && Session.rival) {
+    if ((Session.mode === "pvp" || Session.mode === "exhibit") && Session.rival) {
       const key = avatarKey(Session.rival.avatarId);
       if (this.textures.exists(key)) return key;
     }
@@ -380,11 +383,17 @@ export class PlayScene extends Phaser.Scene {
 
   sideTag(isYou, id) {
     if (isYou) return t("play.you") + " · " + (AuthSystem.displayName() || charName(id));
-    if (Session.mode === "pvp" && Session.rival) {
+    if ((Session.mode === "pvp" || Session.mode === "exhibit") && Session.rival) {
       const n = I18n.lang === "en" ? Session.rival.nameEn : Session.rival.nameTh;
       return t("play.rival") + " · " + n;
     }
     return t("play.bot") + " · " + charName(id);
+  }
+
+  modeLabel() {
+    if (Session.mode === "pvp") return t("play.modeRank");
+    if (Session.mode === "exhibit") return t("play.modeExhibit");
+    return t("play.modeTrain");
   }
 
   applyLang() {
@@ -393,6 +402,7 @@ export class PlayScene extends Phaser.Scene {
     if (this.plateR && this.plateR.tag) this.plateR.tag.setText(this.sideTag(!leftYou, this.rightData.id));
     if (this.plateL && this.plateL.face) this.plateL.face.setTexture(this.hudFace(leftYou, this.leftData.id, 1)).setDisplaySize(78, 78);
     if (this.plateR && this.plateR.face) this.plateR.face.setTexture(this.hudFace(!leftYou, this.rightData.id, 2)).setDisplaySize(78, 78);
+    if (this.modeTag) this.modeTag.setText(this.modeLabel());
     if (this.courtTitle) this.courtTitle.setText(I18n.courtName(this.season));
     if (this.courtFlavor) this.courtFlavor.setText(I18n.courtFlavor(this.season));
     if (this.hintHud) this.hintHud.setText(preferTouch() ? t("play.hudHintTouch") : t("play.hudHint"));

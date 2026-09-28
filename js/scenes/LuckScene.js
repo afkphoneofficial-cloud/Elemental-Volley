@@ -36,7 +36,7 @@ export class LuckScene extends Phaser.Scene {
       fontFamily: f, fontSize: "20px", fontStyle: "800", color: "#2a7a18",
       stroke: "#fff6ea", strokeThickness: 5
     }).setOrigin(0.5);
-    const foeLab = Session.mode === "pvp" ? t("play.rival") : t("play.bot");
+    const foeLab = (Session.mode === "pvp" || Session.mode === "exhibit") ? t("play.rival") : t("play.bot");
     this.add.text(W / 2 + 220, 258, foeLab, {
       fontFamily: f, fontSize: "20px", fontStyle: "800", color: "#c45a16",
       stroke: "#fff6ea", strokeThickness: 5

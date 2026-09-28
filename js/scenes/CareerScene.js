@@ -82,7 +82,7 @@ export class CareerScene extends Phaser.Scene {
           foe: row.foeName || charName(row.foe),
           a: row.youScore,
           b: row.foeScore,
-          mode: row.mode === "pvp" ? t("career.pvp") : t("career.bot")
+          mode: row.mode === "pvp" ? t("career.pvp") : row.mode === "exhibit" ? t("career.exhibit") : t("career.bot")
         });
         this.add.text(W / 2, y, line, {
           fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: row.win ? "#2a7a38" : "#7a4a30"

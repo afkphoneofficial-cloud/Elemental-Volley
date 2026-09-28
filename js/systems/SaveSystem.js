@@ -19,7 +19,9 @@ const empty = () => ({
   etherAt: 0,
   avatarId: "av01",
   unlockedAvatars: [],
-  rank: emptyRank()
+  rank: emptyRank(),
+  showcaseId: null,
+  friends: []
 });
 
 function finish(data) {
@@ -37,7 +39,17 @@ function finish(data) {
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
+  if (!Array.isArray(data.friends)) data.friends = [];
+  if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
+    data.showcaseId = data.starterId || data.showcaseId;
+  }
   return data;
+}
+
+function thisUnlock(data, id) {
+  if (!id) return false;
+  if (data.starterId === id) return true;
+  return (data.unlocked || []).includes(id);
 }
 
 export const SaveSystem = {
@@ -94,6 +106,7 @@ export const SaveSystem = {
   chooseStarter(id) {
     this.data.starterId = id;
     this.data.unlocked = [id];
+    this.data.showcaseId = id;
     this.persist();
   },
 
@@ -227,6 +240,13 @@ export const SaveSystem = {
   setRank(rank) {
     this.data.rank = { ...emptyRank(), ...(rank || {}) };
     this.persist();
+  },
+
+  setShowcase(id) {
+    if (!this.isUnlocked(id)) return false;
+    this.data.showcaseId = id;
+    this.persist();
+    return true;
   },
 
   equipAvatar(id) {

@@ -12,5 +12,6 @@ export const ECONOMY = {
   etherMax: 20,
   etherRegenMs: 12 * 60 * 1000,
   etherCostPvp: 1,
-  matchLogMax: 30
+  matchLogMax: 30,
+  friendMax: 50
 };

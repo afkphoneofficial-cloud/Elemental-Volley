@@ -7,6 +7,7 @@ import { t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
+import { ROSTER_IDS } from "../data/roster.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -60,6 +61,10 @@ export class HubScene extends Phaser.Scene {
         AudioSystem.ui();
         this.scene.start("career");
       });
+    makeButton(this, 360, 52, 120, 44, t("hub.navFriends"), () => {
+      AudioSystem.ui();
+      this.scene.start("friends");
+    }, 0xff8ab8);
 
     const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
     chip(this, W - 430, 52, 188, 0x3ad6ff, () => this.openInfo("ether"));
@@ -83,18 +88,25 @@ export class HubScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21);
 
-    const heroId = save.starterId || "ignis";
+    const heroId = save.showcaseId || save.starterId || "ignis";
     const heroKey = this.textures.exists("vis_select_" + heroId)
       ? "vis_select_" + heroId
       : "vis_" + heroId;
     this.add.circle(W / 2, 318, 168, 0xffffff, 0.35).setDepth(5);
     this.add.circle(W / 2, 318, 168, 0x000000, 0).setStrokeStyle(5, 0xff6a22, 0.35).setDepth(5);
-    this.add.image(W / 2, 312, heroKey).setDisplaySize(300, 300).setDepth(6);
-    this.add.text(W / 2, 478, charName(heroId), {
+    this.heroImg = this.add.image(W / 2, 312, heroKey).setDisplaySize(300, 300).setDepth(6);
+    this.heroName = this.add.text(W / 2, 478, charName(heroId), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
+    this.add.text(W / 2, 506, t("hub.showcaseHint"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+    }).setOrigin(0.5);
+    this.add.zone(W / 2, 318, 320, 320).setInteractive({ useHandCursor: true }).setDepth(7)
+      .on("pointerdown", () => this.cycleShowcase(1));
+    makeButton(this, W / 2 - 250, 318, 56, 56, "‹", () => this.cycleShowcase(-1), 0xffe08a);
+    makeButton(this, W / 2 + 250, 318, 56, 56, "›", () => this.cycleShowcase(1), 0xffe08a);
 
-    makeButton(this, W / 2, 548, 380, 64, t("hub.play"), () => {
+    makeButton(this, W / 2, 558, 380, 64, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("mode");
     });
@@ -113,6 +125,20 @@ export class HubScene extends Phaser.Scene {
 
     this.paintEther();
     AudioSystem.playMenu();
+  }
+
+  cycleShowcase(dir) {
+    const owned = ROSTER_IDS.filter((id) => SaveSystem.isUnlocked(id));
+    if (!owned.length) return;
+    const cur = SaveSystem.data.showcaseId || SaveSystem.data.starterId || owned[0];
+    let i = owned.indexOf(cur);
+    if (i < 0) i = 0;
+    const next = owned[(i + dir + owned.length) % owned.length];
+    SaveSystem.setShowcase(next);
+    AudioSystem.ui();
+    const key = this.textures.exists("vis_select_" + next) ? "vis_select_" + next : "vis_" + next;
+    if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(300, 300);
+    if (this.heroName) this.heroName.setText(charName(next));
   }
 
   paintEther() {

@@ -50,6 +50,49 @@ body {
     radial-gradient(ellipse 58% 52% at 50% 48%, rgba(255, 246, 234, 0.12) 0%, rgba(255, 232, 200, 0.18) 100%);
 }
 
+#friend-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(8, 6, 14, 0.45);
+}
+
+#friend-overlay[hidden] {
+  display: none;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+#friend-name {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 196, 120, 0.45);
+  background: #fff8ee;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+#friend-add, #friend-cancel {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 0;
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#friend-add { background: #ff8ab8; color: #3a2418; }
+#friend-cancel { background: #ffe08a; color: #3a2418; }
+
 #wrap {
   position: fixed;
   inset: 0;

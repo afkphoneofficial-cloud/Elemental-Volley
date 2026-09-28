@@ -1,0 +1,169 @@
+import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
+import { ECONOMY } from "../data/economy.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
+import { AudioSystem } from "../systems/AudioSystem.js";
+import { Session } from "../systems/Session.js";
+import { Friends } from "../systems/Friends.js";
+import { t } from "../i18n/I18n.js";
+import { avatarKey } from "../data/avatars.js";
+
+export class FriendsScene extends Phaser.Scene {
+  constructor() { super("friends"); }
+
+  init(data) {
+    this.pickMode = Boolean(data && data.pick);
+    this.page = 0;
+    this.note = "";
+  }
+
+  create() {
+    if (!AuthSystem.guard(this)) return;
+    drawGrid(this);
+    this.draw();
+    AudioSystem.playMenu();
+  }
+
+  draw() {
+    this.children.removeAll(true);
+    drawGrid(this);
+    const W = this.scale.width;
+    const list = Friends.list();
+    const per = 4;
+    const pages = Math.max(1, Math.ceil(list.length / per));
+    if (this.page >= pages) this.page = pages - 1;
+    const slice = list.slice(this.page * per, this.page * per + per);
+
+    this.add.text(W / 2, 40, t("friends.title"), {
+      fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5);
+    this.add.text(W / 2, 74, t("friends.cap", { n: list.length, max: ECONOMY.friendMax }), {
+      fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30"
+    }).setOrigin(0.5);
+    if (this.pickMode) {
+      this.add.text(W / 2, 100, t("friends.pickHint"), {
+        fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
+      }).setOrigin(0.5);
+    }
+
+    makeButton(this, 120, 42, 140, 40, t("nav.back"), () => {
+      AudioSystem.ui();
+      this.hideForm();
+      this.scene.start(this.pickMode ? "mode" : "hub");
+    }, 0x7d5cff);
+    makeButton(this, W - 140, 42, 180, 40, t("friends.add"), () => {
+      AudioSystem.ui();
+      this.showForm();
+    }, 0xff8ab8);
+
+    if (!list.length) {
+      roundPanel(this, W / 2, 360, 640, 220, 0xff8ab8, 0xfff6ea);
+      this.add.text(W / 2, 330, t("friends.empty"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 560 }
+      }).setOrigin(0.5).setDepth(6);
+      this.add.text(W / 2, 390, t("friends.emptySub"), {
+        fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
+      }).setOrigin(0.5).setDepth(6);
+    } else {
+      slice.forEach((pal, i) => {
+        const y = 168 + i * 112;
+        roundPanel(this, W / 2, y, 980, 96, 0xffb14a, 0xfff6ea);
+        const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
+        this.add.image(W / 2 - 420, y, av).setDisplaySize(72, 72).setDepth(8);
+        this.add.circle(W / 2 - 420, y, 40, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
+        this.add.text(W / 2 - 360, y - 16, pal.name || "—", {
+          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0, 0.5).setDepth(8);
+        this.add.text(W / 2 - 360, y + 16, t("friends.rowSub"), {
+          fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+        }).setOrigin(0, 0.5).setDepth(8);
+        makeButton(this, W / 2 + 250, y, 200, 44, t("friends.exhibit"), () => {
+          AudioSystem.ui();
+          Session.mode = "exhibit";
+          Session.rival = Friends.toRival(pal);
+          this.hideForm();
+          this.scene.start("select");
+        }, 0x7d5cff);
+        makeButton(this, W / 2 + 420, y, 120, 44, t("friends.remove"), () => {
+          AudioSystem.ui();
+          Friends.remove(pal.id);
+          this.draw();
+        }, 0xff8ab8);
+      });
+      if (pages > 1) {
+        makeButton(this, W / 2 - 80, 650, 100, 40, "‹", () => {
+          this.page = Math.max(0, this.page - 1);
+          this.draw();
+        }, 0xffe08a);
+        this.add.text(W / 2, 650, (this.page + 1) + " / " + pages, {
+          fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+        }).setOrigin(0.5);
+        makeButton(this, W / 2 + 80, 650, 100, 40, "›", () => {
+          this.page = Math.min(pages - 1, this.page + 1);
+          this.draw();
+        }, 0xffe08a);
+      }
+    }
+    if (this.note) {
+      this.add.text(W / 2, 118, this.note, {
+        fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
+      }).setOrigin(0.5);
+    }
+  }
+
+  showForm() {
+    const el = document.getElementById("friend-overlay");
+    const msg = document.getElementById("friend-msg");
+    const input = document.getElementById("friend-name");
+    if (!el) return;
+    el.hidden = false;
+    if (msg) msg.textContent = t("friends.formHint");
+    if (input) {
+      input.value = "";
+      input.placeholder = t("friends.formName");
+      input.focus();
+    }
+    const add = document.getElementById("friend-add");
+    const cancel = document.getElementById("friend-cancel");
+    if (add) add.textContent = t("friends.add");
+    if (cancel) cancel.textContent = t("nav.back");
+    if (add && !add.dataset.bound) {
+      add.dataset.bound = "1";
+      add.addEventListener("click", () => this.submitAdd());
+    }
+    if (cancel && !cancel.dataset.bound) {
+      cancel.dataset.bound = "1";
+      cancel.addEventListener("click", () => this.hideForm());
+    }
+  }
+
+  hideForm() {
+    const el = document.getElementById("friend-overlay");
+    if (el) el.hidden = true;
+  }
+
+  async submitAdd() {
+    const input = document.getElementById("friend-name");
+    const msg = document.getElementById("friend-msg");
+    const res = await Friends.addByName(input && input.value);
+    if (!res.ok) {
+      const map = {
+        len: t("friends.errLen"),
+        full: t("friends.errFull"),
+        cloud: t("friends.errCloud"),
+        missing: t("friends.errMissing"),
+        self: t("friends.errSelf"),
+        dup: t("friends.errDup")
+      };
+      if (msg) msg.textContent = map[res.reason] || t("friends.errCloud");
+      return;
+    }
+    this.hideForm();
+    this.note = t("friends.added", { name: res.pal.name });
+    this.draw();
+  }
+
+  shutdown() {
+    this.hideForm();
+  }
+}

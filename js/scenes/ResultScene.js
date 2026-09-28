@@ -45,6 +45,7 @@ export class ResultScene extends Phaser.Scene {
     this.pvpGain = pvp;
     const sc = this.payload.score || {};
     this.pvpMode = Session.mode === "pvp";
+    this.exhibitMode = Session.mode === "exhibit";
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
@@ -61,7 +62,7 @@ export class ResultScene extends Phaser.Scene {
     const foeName = rival ? (I18n.lang === "en" ? rival.nameEn : rival.nameTh) : "";
     SaveSystem.recordMatch({
       win: this.win,
-      mode: this.pvpMode ? "pvp" : "bot",
+      mode: this.pvpMode ? "pvp" : this.exhibitMode ? "exhibit" : "bot",
       youId: this.payload.youId,
       foeId: this.payload.botId,
       foeName,
