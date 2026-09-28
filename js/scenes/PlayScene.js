@@ -350,6 +350,11 @@ export class PlayScene extends Phaser.Scene {
       fontFamily: f, fontSize: "34px", fontStyle: "900", color: "#fff6ea",
       stroke: "#c45a16", strokeThickness: 6
     }).setOrigin(0.5).setAlpha(0).setDepth(15);
+    this.noticeBg = this.add.graphics().setDepth(18).setAlpha(0);
+    this.notice = this.add.text(GAME.width / 2, 168, "", {
+      fontFamily: f, fontSize: "17px", fontStyle: "700", color: "#4a2c18",
+      align: "center", wordWrap: { width: 560 }
+    }).setOrigin(0.5).setAlpha(0).setDepth(19);
     this.ultPop = this.add.text(GAME.width / 2, 186, "", {
       fontFamily: f, fontSize: "18px", fontStyle: "800", color: "#c45a16",
       stroke: "#fff6ea", strokeThickness: 5, align: "center"
@@ -475,7 +480,7 @@ export class PlayScene extends Phaser.Scene {
       if (this.roundEnded) NetPlay.pause("player");
       else {
         this.pauseWanted = true;
-        this.showBanner(t("pause.waitPoint"), "#c45a16");
+        this.showNotice(t("pause.waitPoint"));
       }
       return;
     }
@@ -487,7 +492,7 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
     if (this.playerPauses <= 0) {
-      this.showBanner(t("pause.none"), "#c45a16");
+      this.showNotice(t("pause.none"));
       return;
     }
     this.playerPauses -= 1;
@@ -623,20 +628,20 @@ export class PlayScene extends Phaser.Scene {
     }
     if (msg.t === "pong") this.paintPing();
     if (msg.t === "closed") {
-      this.showBanner(t("pause.dropWait", { n: Math.max(1, Math.ceil(GAME.forfeitMs / 1000)) }), "#c45a16");
+      this.showNotice(t("pause.dropWait", { n: Math.max(1, Math.ceil(GAME.forfeitMs / 1000)) }));
       NetPlay.ensure();
     }
     if (msg.t === "pauseDenied") {
       this.holdForPause = false;
       this.pauseWanted = false;
-      this.showBanner(t("pause.none"), "#c45a16");
+      this.showNotice(t("pause.none"));
     }
     if (msg.t === "youHost") {
       this.netHost = msg.on === true;
       Session.netHost = this.netHost;
     }
-    if (msg.t === "waitRival") this.showBanner(t("pause.dropWait", { n: Math.max(1, Math.ceil((msg.ms || 0) / 1000)) }), "#c45a16");
-    if (msg.t === "rivalBack") this.showBanner(t("pause.rivalBack"), "#2a7a38");
+    if (msg.t === "waitRival") this.showNotice(t("pause.dropWait", { n: Math.max(1, Math.ceil((msg.ms || 0) / 1000)) }));
+    if (msg.t === "rivalBack") this.showNotice(t("pause.rivalBack"));
     if (msg.t === "end" && !this.matchOver) {
       const me = AuthSystem.session && AuthSystem.session();
       const youLost = me && msg.loserId && msg.loserId === me.id;
@@ -1014,9 +1019,31 @@ export class PlayScene extends Phaser.Scene {
   }
 
   showBanner(text, color) {
-    this.banner.setText(text).setColor(color).setAlpha(1).setScale(0.86);
+    this.banner.setText(text).setColor(color || "#fff6ea").setAlpha(1).setScale(0.86);
     this.tweens.add({ targets: this.banner, scale: 1, duration: 120 });
     this.tweens.add({ targets: this.banner, alpha: 0, delay: 500, duration: 180 });
+  }
+
+  showNotice(text) {
+    if (!this.notice) return;
+    this.tweens.killTweensOf([this.notice, this.noticeBg]);
+    this.notice.setText(text).setAlpha(1);
+    const w = Math.min(620, Math.max(220, this.notice.width + 36));
+    const h = Math.max(36, this.notice.height + 16);
+    if (this.noticeBg) {
+      this.noticeBg.clear();
+      this.noticeBg.fillStyle(0xfff6ea, 0.96);
+      this.noticeBg.fillRoundedRect(GAME.width / 2 - w / 2, 168 - h / 2, w, h, 18);
+      this.noticeBg.lineStyle(3, 0xffb14a, 0.9);
+      this.noticeBg.strokeRoundedRect(GAME.width / 2 - w / 2, 168 - h / 2, w, h, 18);
+      this.noticeBg.setAlpha(1);
+    }
+    this.tweens.add({
+      targets: [this.notice, this.noticeBg],
+      alpha: 0,
+      delay: 1600,
+      duration: 240
+    });
   }
 
   showCallout(title, sub, color) {
