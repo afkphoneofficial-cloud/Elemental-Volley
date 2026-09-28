@@ -29,7 +29,7 @@ export class RankScene extends Phaser.Scene {
 
     roundPanel(this, W / 2, 148, 720, 96, 0x7d5cff, 0xfff6ea);
     if (this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(W / 2 - 280, 148, badgeKey(medal.id)).setDisplaySize(72, 72).setDepth(8);
+      this.add.image(W / 2 - 280, 148, badgeKey(medal.id)).setDisplaySize(84, 84).setDepth(8);
     }
     this.add.text(W / 2 - 230, 132, cal
       ? t("rank.calNow", { n: rank.games, max: RANK_CAL_GAMES })
@@ -41,16 +41,21 @@ export class RankScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(8);
 
     RANK_TIERS.forEach((row, i) => {
-      const x = 90 + i * 150;
-      const y = 268;
+      const x = 86 + i * 148;
+      const y = 258;
+      const size = 52 + i * 8;
+      if (i >= 4) {
+        const glow = this.add.circle(x, y, size * 0.52, row.color, 0.16 + i * 0.03).setDepth(6);
+        glow.setStrokeStyle(i >= 6 ? 3 : 0, 0xffe08a, 0.35);
+      }
       if (this.textures.exists(badgeKey(row.id))) {
-        this.add.image(x, y, badgeKey(row.id)).setDisplaySize(56, 56);
+        this.add.image(x, y, badgeKey(row.id)).setDisplaySize(size, size).setDepth(8);
       }
       const on = !cal && medal.id === row.id;
-      this.add.text(x, y + 42, t("rank.tier." + row.id), {
-        fontFamily: UI_FONT, fontSize: "13px", fontStyle: on ? "900" : "700",
+      this.add.text(x, y + size * 0.52 + 10, t("rank.tier." + row.id), {
+        fontFamily: UI_FONT, fontSize: on ? "14px" : "12px", fontStyle: on ? "900" : "700",
         color: on ? "#c45a16" : "#3a2418", align: "center", wordWrap: { width: 140 }
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setDepth(8);
     });
 
     const body = [
@@ -60,7 +65,7 @@ export class RankScene extends Phaser.Scene {
       t("rank.body4"),
       t("rank.body5")
     ].join("\n");
-    this.add.text(W / 2, 430, body, {
+    this.add.text(W / 2, 448, body, {
       fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 1000 }, lineSpacing: 8
     }).setOrigin(0.5, 0);
 

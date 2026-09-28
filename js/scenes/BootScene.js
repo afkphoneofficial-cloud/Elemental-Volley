@@ -29,6 +29,9 @@ export class BootScene extends Phaser.Scene {
     FREE_AVATARS.forEach((a) => {
       this.load.image("av-art-" + a.id, "assets/sprites/avatars/" + a.id + ".png");
     });
+    RANK_TIERS.forEach((row) => {
+      this.load.image(badgeKey(row.id), "assets/sprites/ranks/" + row.id + ".png");
+    });
   }
 
   create() {
@@ -36,7 +39,11 @@ export class BootScene extends Phaser.Scene {
     I18n.load();
     try {
       TextureFactory.build(this);
-      RANK_TIERS.forEach((row) => TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars));
+      RANK_TIERS.forEach((row) => {
+        if (!this.textures.exists(badgeKey(row.id))) {
+          TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);
+        }
+      });
       TextureFactory.applyBall(this, "ball-art", "ball");
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
@@ -55,7 +62,11 @@ export class BootScene extends Phaser.Scene {
       });
     } catch (e) {
       TextureFactory.build(this);
-      RANK_TIERS.forEach((row) => TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars));
+      RANK_TIERS.forEach((row) => {
+        if (!this.textures.exists(badgeKey(row.id))) {
+          TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);
+        }
+      });
     }
     AuthSystem.init().then(() => {
       I18n.load();

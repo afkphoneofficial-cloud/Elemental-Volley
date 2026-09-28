@@ -115,7 +115,7 @@ export class QueueScene extends Phaser.Scene {
     const av = this.textures.exists(avatarKey(rival.avatarId)) ? avatarKey(rival.avatarId) : avatarKey("av01");
     this.add.image(W / 2 + 220, 268, av).setDisplaySize(96, 96);
     if (this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(W / 2 + 220, 360, badgeKey(medal.id)).setDisplaySize(48, 48);
+      this.add.image(W / 2 + 220, 360, badgeKey(medal.id)).setDisplaySize(64, 64);
     }
     this.add.text(W / 2 + 220, 400, rivalLabel(rival), {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"

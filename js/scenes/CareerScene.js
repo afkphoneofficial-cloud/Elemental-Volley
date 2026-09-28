@@ -43,7 +43,7 @@ export class CareerScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0, 0.5).setDepth(8);
     if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(W / 2 - 148, 178, badgeKey(medal.id)).setDisplaySize(22, 22).setDepth(8);
+      this.add.image(W / 2 - 148, 178, badgeKey(medal.id)).setDisplaySize(28, 28).setDepth(8);
     }
     makeButton(this, W / 2 + 170, 168, 220, 40, t("career.change"), () => {
       AudioSystem.ui();

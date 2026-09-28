@@ -50,7 +50,7 @@ export class HubScene extends Phaser.Scene {
     const rk = SaveSystem.data.rank;
     const medal = medalFromMmr(rk.mmr);
     if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(88, 70, badgeKey(medal.id)).setDisplaySize(22, 22).setDepth(22);
+      this.add.image(88, 70, badgeKey(medal.id)).setDisplaySize(28, 28).setDepth(22);
     }
     this.add.text(92, 52, AuthSystem.displayName() || "—", {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
