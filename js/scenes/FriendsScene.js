@@ -16,6 +16,8 @@ export class FriendsScene extends Phaser.Scene {
     this.page = 0;
     this.note = "";
     this.suggests = [];
+    this.busy = false;
+    this.rolling = false;
   }
 
   create() {
@@ -63,12 +65,16 @@ export class FriendsScene extends Phaser.Scene {
     }, 0xff8ab8);
 
     const suggests = this.suggests || [];
-    let listY = 168;
-    if (suggests.length) {
-      listY = 300;
-      this.add.text(W / 2, 128, t("friends.suggestHead"), {
-        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
-      }).setOrigin(0.5);
+    const listY = 300;
+    this.add.text(W / 2, 118, t("friends.suggestHead"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5);
+    if (this.busy) {
+      roundPanel(this, W / 2, 200, 980, 120, 0x3ad6ff, 0xfff6ea);
+      this.add.text(W / 2, 200, t("friends.suggestWait"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418"
+      }).setOrigin(0.5).setDepth(6);
+    } else if (suggests.length) {
       suggests.forEach((pal, i) => {
         const n = suggests.length;
         const x = W / 2 - ((n - 1) * 210) / 2 + i * 210;
@@ -91,14 +97,19 @@ export class FriendsScene extends Phaser.Scene {
           this.draw();
         }, 0xff8ab8);
       });
+    } else {
+      roundPanel(this, W / 2, 200, 980, 120, 0xff8ab8, 0xfff6ea);
+      this.add.text(W / 2, 200, this.note || t("friends.suggestNone"), {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 900 }
+      }).setOrigin(0.5).setDepth(6);
     }
 
     if (!list.length) {
-      roundPanel(this, W / 2, suggests.length ? 430 : 400, 640, 160, 0xff8ab8, 0xfff6ea);
-      this.add.text(W / 2, suggests.length ? 410 : 380, t("friends.empty"), {
+      roundPanel(this, W / 2, 430, 640, 160, 0xff8ab8, 0xfff6ea);
+      this.add.text(W / 2, 410, t("friends.empty"), {
         fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 560 }
       }).setOrigin(0.5).setDepth(6);
-      this.add.text(W / 2, suggests.length ? 450 : 420, t("friends.emptySub"), {
+      this.add.text(W / 2, 450, t("friends.emptySub"), {
         fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
       }).setOrigin(0.5).setDepth(6);
     } else {
@@ -141,15 +152,26 @@ export class FriendsScene extends Phaser.Scene {
         }, 0xffe08a);
       }
     }
-    if (this.note) {
-      this.add.text(W / 2, 102, this.note, {
+    if (this.note && (this.busy || suggests.length)) {
+      this.add.text(W / 2, 268, this.note, {
         fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
       }).setOrigin(0.5);
     }
   }
 
   async rollSuggest() {
+    if (this.rolling) return;
+    this.rolling = true;
+    this.busy = true;
+    this.note = t("friends.suggestWait");
+    this.draw();
     const res = await Friends.suggestFromServer();
+    if (!this.sys || !this.sys.isActive()) {
+      this.rolling = false;
+      return;
+    }
+    this.busy = false;
+    this.rolling = false;
     if (!res.ok) {
       this.note = t("friends.errCloud");
       this.suggests = [];

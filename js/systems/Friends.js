@@ -2,16 +2,27 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { AuthSystem } from "./AuthSystem.js";
 
-function pack(row) {
-  const save = (row && row.save_data) || {};
+function packRpc(row) {
+  if (!row) return null;
   return {
     id: row.id,
     name: row.display_name || "",
-    avatarId: save.avatarId || "av01",
-    fighterId: save.showcaseId || save.starterId || "ignis",
-    mmr: (save.rank && save.rank.mmr) || 1000,
+    avatarId: row.avatar_id || "av01",
+    fighterId: row.fighter_id || "ignis",
+    mmr: row.mmr | 0,
     at: Date.now()
   };
+}
+
+function shuffle(list) {
+  const pool = list.slice();
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = pool[i];
+    pool[i] = pool[j];
+    pool[j] = t;
+  }
+  return pool;
 }
 
 export const Friends = {
@@ -44,15 +55,13 @@ export const Friends = {
     if (this.count() >= this.cap()) return { ok: false, reason: "full" };
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) return { ok: false, reason: "cloud" };
-    const { data, error } = await sb.from("profiles")
-      .select("id, display_name, save_data")
-      .eq("display_name", name)
-      .maybeSingle();
+    const { data, error } = await sb.rpc("lookup_player_by_name", { raw_name: name });
     if (error) return { ok: false, reason: "cloud", detail: error.message };
-    if (!data) return { ok: false, reason: "missing" };
-    if (me && data.id === me.id) return { ok: false, reason: "self" };
-    if (this.has(data.id)) return { ok: false, reason: "dup" };
-    const pal = pack(data);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) return { ok: false, reason: "missing" };
+    const pal = packRpc(row);
+    if (me && pal.id === me.id) return { ok: false, reason: "self" };
+    if (this.has(pal.id)) return { ok: false, reason: "dup" };
     return this.addPacked(pal);
   },
 
@@ -69,26 +78,11 @@ export const Friends = {
   },
 
   async suggestFromServer() {
-    const me = AuthSystem.session && AuthSystem.session();
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) return { ok: false, reason: "cloud", list: [] };
-    const { data, error } = await sb.from("profiles")
-      .select("id, display_name, save_data, last_seen_at")
-      .not("display_name", "is", null)
-      .neq("display_name", "")
-      .order("last_seen_at", { ascending: false })
-      .limit(40);
+    const { data, error } = await sb.rpc("suggest_players", { p_limit: 40 });
     if (error) return { ok: false, reason: "cloud", list: [], detail: error.message };
-    const mine = me && me.id;
-    const pool = (data || [])
-      .map(pack)
-      .filter((p) => p.id && p.name && p.id !== mine && !this.has(p.id));
-    for (let i = pool.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const t = pool[i];
-      pool[i] = pool[j];
-      pool[j] = t;
-    }
+    const pool = shuffle((data || []).map(packRpc).filter((p) => p && p.id && p.name && !this.has(p.id)));
     const n = Math.min(pool.length, 3 + Math.floor(Math.random() * 3));
     return { ok: true, list: pool.slice(0, n) };
   },
