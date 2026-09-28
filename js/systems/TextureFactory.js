@@ -104,8 +104,10 @@ export const TextureFactory = {
         if (a < 12) return true;
         if (r >= 170 && b >= 90 && g <= 145 && (r - g) >= 40) return true;
         const mn = Math.min(r, g, b), mx = Math.max(r, g, b);
-        if (mn > 226 && mx - mn < 32) return true;
-        if (r > 228 && g > 214 && b > 218 && mx - mn < 42) return true;
+        const sat = mx - mn;
+        if (mn > 226 && sat < 32) return true;
+        if (r > 228 && g > 214 && b > 218 && sat < 42) return true;
+        if (sat <= 24 && mx >= 160 && mx <= 252) return true;
         return false;
       };
       const seen = new Uint8Array(w * h);
