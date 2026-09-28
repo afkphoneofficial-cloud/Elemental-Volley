@@ -33,18 +33,23 @@ export const COPY = {
     },
     hub: {
       title: "ล็อบบี้",
-      stats: "{account}   ·   {name}   ·   ปลดล็อก {n}/4   ·   ตรา {tokens}   ·   PVP {pvp}",
-      play: "เล่นกับบอท",
-      career: "โปรไฟล์ / สถิติ",
-      shop: "ร้านค้า / ปลดล็อกตัวละคร",
-      wiki: "แผนที่โลก",
-      home: "กลับหน้าแรก",
-      settings: "ตั้งค่า",
-      hint: "ลูกศรเดิน  ·  ENTER ตี  ·  ค้าง ENTER ปล่อยอัลติ",
-      ether: "เอเธอร์  {n}/{max}",
+      play: "เล่น",
+      navShop: "ร้าน",
+      navMap: "แผนที่",
+      navSet: "ตั้งค่า",
+      chipToken: "ตรา {n}",
+      chipPvp: "PVP {n}",
       etherWait: "อีก {t}",
       etherFull: "เต็มแล้ว",
-      etherBot: "บอทไม่กินเอเธอร์"
+      infoClose: "ปิด",
+      info: {
+        etherTitle: "เอเธอร์",
+        etherBody: "หลอดลงสนาม PVP สูงสุด {max} ก้อน เติมอีก 1 ทุก 12 นาที ({wait}) โหมดบอทไม่กินเอเธอร์",
+        tokensTitle: "ตราตัวละคร",
+        tokensBody: "ใช้ปลดล็อกนักแข่งในร้านค้า แลกได้จากแต้ม PVP",
+        pvpTitle: "แต้ม PVP",
+        pvpBody: "ได้จากแข่ง แลกเป็นตราตัวละครได้ที่ร้าน"
+      }
     },
     starter: {
       title: "เลือกตัวละครแรก",
@@ -270,18 +275,23 @@ export const COPY = {
     },
     hub: {
       title: "Lobby",
-      stats: "{account}   ·   {name}   ·   Unlocked {n}/4   ·   Tokens {tokens}   ·   PVP {pvp}",
-      play: "Play vs bot",
-      career: "Profile / stats",
-      shop: "Shop / unlock fighters",
-      wiki: "World map",
-      home: "Back to title",
-      settings: "Settings",
-      hint: "Arrows to move  ·  ENTER to hit  ·  Hold ENTER to fire your ult",
-      ether: "Ether  {n}/{max}",
+      play: "Play",
+      navShop: "Shop",
+      navMap: "Map",
+      navSet: "Settings",
+      chipToken: "Tokens {n}",
+      chipPvp: "PVP {n}",
       etherWait: "Next in {t}",
       etherFull: "Full",
-      etherBot: "Bots do not spend ether"
+      infoClose: "Close",
+      info: {
+        etherTitle: "Ether",
+        etherBody: "PVP court charge. Cap {max}. Gain 1 every 12 minutes ({wait}). Bots do not spend Ether.",
+        tokensTitle: "Character tokens",
+        tokensBody: "Spend these in the shop to unlock fighters. Exchange them from PVP points.",
+        pvpTitle: "PVP points",
+        pvpBody: "Earned from matches. Trade them for character tokens in the shop."
+      }
     },
     starter: {
       title: "Pick your first fighter",

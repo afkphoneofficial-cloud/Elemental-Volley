@@ -1,4 +1,4 @@
-import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
+import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
@@ -7,6 +7,24 @@ import { t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 
+function chip(scene, x, y, w, color, onClick) {
+  const h = 48;
+  const g = scene.add.graphics().setDepth(20);
+  const draw = (hot) => {
+    g.clear();
+    g.fillStyle(hot ? 0xffe8c8 : 0xfff6ea, 0.96);
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 24);
+    g.lineStyle(2, color, hot ? 1 : 0.7);
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 24);
+  };
+  draw(false);
+  const zone = scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(22);
+  zone.on("pointerover", () => draw(true));
+  zone.on("pointerout", () => draw(false));
+  zone.on("pointerdown", onClick);
+  return { g, zone, x, y, w, h };
+}
+
 export class HubScene extends Phaser.Scene {
   constructor() { super("hub"); }
 
@@ -14,81 +32,125 @@ export class HubScene extends Phaser.Scene {
     if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
+    const H = this.scale.height;
     const save = SaveSystem.data;
     const cur = save.currencies;
     SaveSystem.etherNow();
+    this.infoBits = [];
 
-    this.add.text(W / 2, 48, t("hub.title"), {
-      fontFamily: UI_FONT, fontSize: "36px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0.5);
-
-    roundPanel(this, W / 2, 108, 860, 52, 0xff8a3a, 0xfff6ea);
     const avId = save.avatarId;
     const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
-    const av = this.add.image(W / 2 - 380, 108, avKey).setDisplaySize(46, 46).setDepth(8).setInteractive({ useHandCursor: true });
-    av.on("pointerdown", () => this.scene.start("career"));
-    this.add.text(W / 2 + 18, 108,
-      t("hub.stats", {
-        account: AuthSystem.displayName(),
-        name: charName(save.starterId),
-        n: save.unlocked.length,
-        tokens: cur.tokens,
-        pvp: cur.pvp
-      }),
-      { fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#3a2418" }
-    ).setOrigin(0.5).setDepth(6);
-
-    const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : (this.textures.exists("ether-art") ? "ether-art" : null);
-    if (etherKey) {
-      this.add.image(W / 2 - 210, 162, etherKey).setDisplaySize(42, 42).setDepth(8);
-    } else {
-      this.add.circle(W / 2 - 210, 162, 16, 0x3ad6ff, 1).setStrokeStyle(3, 0xffe08a, 0.9).setDepth(8);
-    }
-    this.etherText = this.add.text(W / 2 - 182, 162, "", {
+    const pg = this.add.graphics().setDepth(19);
+    pg.fillStyle(0xfff6ea, 0.96);
+    pg.fillRoundedRect(28, 24, 268, 56, 28);
+    pg.lineStyle(2, 0xff6a22, 0.75);
+    pg.strokeRoundedRect(28, 24, 268, 56, 28);
+    this.add.image(60, 52, avKey).setDisplaySize(44, 44).setDepth(21);
+    this.add.text(92, 52, AuthSystem.displayName() || "—", {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5).setDepth(8);
-    this.etherHint = this.add.text(W / 2 + 20, 162, "", {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
-    }).setOrigin(0, 0.5).setDepth(8);
-    this.paintEther();
+    }).setOrigin(0, 0.5).setDepth(21);
+    this.add.zone(162, 52, 268, 56).setInteractive({ useHandCursor: true }).setDepth(23)
+      .on("pointerdown", () => {
+        AudioSystem.ui();
+        this.scene.start("career");
+      });
 
-    makeButton(this, W / 2, 228, 400, 58, t("hub.play"), () => {
+    const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
+    chip(this, W - 430, 52, 188, 0x3ad6ff, () => this.openInfo("ether"));
+    if (this.textures.exists(etherKey)) {
+      this.add.image(W - 500, 52, etherKey).setDisplaySize(34, 34).setDepth(21);
+    }
+    this.etherText = this.add.text(W - 476, 52, "", {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0, 0.5).setDepth(21);
+    this.add.text(W - 352, 52, "?", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a7a98"
+    }).setOrigin(0.5).setDepth(21);
+
+    chip(this, W - 250, 52, 140, 0xffb14a, () => this.openInfo("tokens"));
+    this.add.text(W - 250, 52, "", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(21).setText(t("hub.chipToken", { n: cur.tokens }));
+
+    chip(this, W - 92, 52, 132, 0x7d5cff, () => this.openInfo("pvp"));
+    this.add.text(W - 92, 52, t("hub.chipPvp", { n: cur.pvp }), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(21);
+
+    const heroId = save.starterId || "ignis";
+    const heroKey = this.textures.exists("vis_select_" + heroId)
+      ? "vis_select_" + heroId
+      : "vis_" + heroId;
+    this.add.circle(W / 2, 318, 168, 0xffffff, 0.35).setDepth(5);
+    this.add.circle(W / 2, 318, 168, 0x000000, 0).setStrokeStyle(5, 0xff6a22, 0.35).setDepth(5);
+    this.add.image(W / 2, 312, heroKey).setDisplaySize(300, 300).setDepth(6);
+    this.add.text(W / 2, 478, charName(heroId), {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5);
+
+    makeButton(this, W / 2, 548, 380, 64, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("select");
     });
-    makeButton(this, W / 2, 292, 360, 46, t("hub.career"), () => {
-      AudioSystem.ui();
-      this.scene.start("career");
-    }, 0x7d5cff);
-    makeButton(this, W / 2, 348, 360, 46, t("hub.shop"), () => {
-      AudioSystem.ui();
-      this.scene.start("shop");
-    }, 0xc8ff3a);
-    makeButton(this, W / 2, 404, 360, 46, t("hub.wiki"), () => {
-      AudioSystem.ui();
-      this.scene.start("wiki", { from: "hub" });
-    }, 0xffb14a);
-    makeButton(this, W / 2, 460, 360, 46, t("hub.settings"), () => {
-      AudioSystem.ui();
-      this.scene.start("settings", { from: "hub" });
-    }, 0xffe08a);
 
-    const back = this.add.text(W / 2, 530, t("hub.home"), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#7a4a30"
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    back.on("pointerdown", () => this.scene.start("menu"));
+    const nav = [
+      [W / 2 - 220, t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
+      [W / 2, t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
+      [W / 2 + 220, t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
+    ];
+    nav.forEach(([x, label, col, fn]) => {
+      makeButton(this, x, H - 52, 180, 44, label, () => {
+        AudioSystem.ui();
+        fn();
+      }, col);
+    });
 
+    this.paintEther();
     AudioSystem.playMenu();
   }
 
   paintEther() {
+    if (!this.etherText) return;
     const st = SaveSystem.etherNow();
-    this.etherText.setText(t("hub.ether", { n: st.n, max: ECONOMY.etherMax }));
+    this.etherText.setText(st.n + "/" + ECONOMY.etherMax);
+  }
+
+  openInfo(kind) {
+    this.closeInfo();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const st = SaveSystem.etherNow();
     const wait = st.full ? t("hub.etherFull") : t("hub.etherWait", { t: formatEtherWait(st.nextMs) });
-    this.etherHint.setText(wait + "  ·  " + t("hub.etherBot"));
+    const title = t("hub.info." + kind + "Title");
+    const body = kind === "ether"
+      ? t("hub.info.etherBody", { wait, max: ECONOMY.etherMax })
+      : t("hub.info." + kind + "Body");
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.5).setDepth(70).setInteractive();
+    const card = this.add.graphics().setDepth(71);
+    card.fillStyle(0xfff6ea, 0.98);
+    card.fillRoundedRect(W / 2 - 280, H / 2 - 150, 560, 300, 22);
+    card.lineStyle(3, 0xff6a22, 0.8);
+    card.strokeRoundedRect(W / 2 - 280, H / 2 - 150, 560, 300, 22);
+    const t1 = this.add.text(W / 2, H / 2 - 110, title, {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(72);
+    const t2 = this.add.text(W / 2, H / 2 - 20, body, {
+      fontFamily: UI_FONT, fontSize: "16px", color: "#5a3828", align: "center", wordWrap: { width: 480 }
+    }).setOrigin(0.5).setDepth(72);
+    const close = makeButton(this, W / 2, H / 2 + 100, 180, 44, t("hub.infoClose"), () => {
+      AudioSystem.ui();
+      this.closeInfo();
+    });
+    dim.on("pointerdown", () => this.closeInfo());
+    this.infoBits = [dim, card, t1, t2, close.bg, close.text, close.gfx];
+  }
+
+  closeInfo() {
+    this.infoBits.forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.infoBits = [];
   }
 
   update() {
-    if (this.etherText) this.paintEther();
+    this.paintEther();
   }
 }
