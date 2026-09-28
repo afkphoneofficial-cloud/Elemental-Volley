@@ -97,102 +97,110 @@ SQL Editor → วางทั้งไฟล์ supabase/chat.sql → Run
 
 
 ------------------------------------------------------------
-7) เซิร์ฟแมตช์บน VPS ไทย (ทำหลังเช่าเครื่อง Linux)
+7) เซิร์ฟแมตช์บน VPS — คัดวางทีละก้อนใน SSH
 ------------------------------------------------------------
-เกมเว็บยังอยู่ Vercel   สมาชิกยังอยู่ Supabase
-เครื่อง VPS ทำแค่ WebSocket แมตช์สด ที่ wss://play.evolley.dev
+เข้า SSH ได้แล้ว = อยู่บนเครื่องไทยแล้ว  เกมเว็บยังอยู่ Vercel ตามเดิม
+เป้าหมายมีอย่างเดียว: ให้ https://evolley.dev คุยกับเครื่องนี้ที่ wss://play.evolley.dev
 
-ค่าที่เกมชี้ไปแล้ว
-  js/config/backend.js → matchWsUrl: "wss://play.evolley.dev"
+ถ้าบรรทัดขึ้นต้น root@ ไม่ต้องพิมพ์คำว่า sudo (ลบทิ้งได้)
+nano: พิมพ์เสร็จ กด Ctrl+O แล้ว Enter บันทึก  แล้ว Ctrl+X ออก
 
-เข้าเครื่องจากวินโดว์ของคุณด้วย SSH (รีโมตข้อความ ไม่ใช่ Remote Desktop)
-  PowerShell:
-    ssh root@ไอพีของVPS
-  ครั้งแรกจะถาม yes/no แล้วใส่รหัสที่ร้านให้ตอนเช่า
-  ถ้าผู้ให้บริการมีปุ่ม Console / VNC บนเว็บ ใช้เปิดเครื่องตอน SSH ใช้ไม่ได้
 
-ขั้นตอนบนเครื่อง (SSH เข้า VPS เป็น Linux ไม่ใช้ Windows)
+ก้อน A — ติดตั้งโปรแกรม (รอจนกลับมาเป็น root@ อีกครั้ง)
+------------------------------------------------------------
+apt update
+apt install -y git curl nginx
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+npm i -g pm2
 
-1. ชี้โดเมน
-   ที่ผู้ขายโดเมน สร้างเรคคอร์ด A
-     play.evolley.dev  →  ไอพีของ VPS
-   รอ DNS ขึ้น (ลอง ping play.evolley.dev)
 
-2. เปิดพอร์ตไฟร์วอลล์
-   22 (SSH)  80  443
-   อย่าเปิดพอร์ต Postgres ออกเน็ต
+ก้อน B — ดึงโค้ดแมตช์
+------------------------------------------------------------
+mkdir -p /opt
+cd /opt
+git clone https://github.com/afkphoneofficial-cloud/Elemental-Volley.git evolley
+cd /opt/evolley/server/match
+npm install
 
-3. ติดตั้งพื้นฐาน
-   sudo apt update
-   sudo apt install -y git curl nginx
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt install -y nodejs
-   sudo npm i -g pm2
+ถ้าขึ้น already exists ให้ข้าม clone แล้วพิมพ์แค่
+  cd /opt/evolley && git pull && cd server/match && npm install
 
-4. ดึงโค้ดเกม (หรือ scp เฉพาะโฟลเดอร์ server/match ก็ได้)
-   cd /opt
-   sudo git clone https://github.com/afkphoneofficial-cloud/Elemental-Volley.git evolley
-   cd /opt/evolley/server/match
-   sudo npm install
 
-5. สร้างไฟล์สภาพแวดล้อม
-   sudo nano /opt/evolley/server/match/.env
-   ใส่ให้ครบ (anon key คัดจาก js/config/backend.js ค่า supabaseAnonKey)
+ก้อน C — สร้างไฟล์ .env
+------------------------------------------------------------
+nano /opt/evolley/server/match/.env
 
-     PORT=8787
-     MAX_LIVE_MATCHES=12
-     DECLINE_COOLDOWN_MS=300000
-     OFFER_MS=15000
-     SUPABASE_URL=https://njuhuhfehbrbmatfpxcf.supabase.co
-     SUPABASE_ANON_KEY=วาง anon public ตรงนี้
-     ALLOWED_ORIGINS=https://evolley.dev,https://www.evolley.dev,https://elemental-volley.vercel.app
+วางทั้งก้อนนี้ลงไป (anon key เป็นตัวเดียวกับในเกม ใช้ได้)
 
-   MAX_LIVE_MATCHES=12  คือสูงสุด 12 แมตช์พร้อมกันบน VPS+1
-   คนเกินโควต้ายังเห็นแค่หน้าค้นหาคู่  ไม่บอกว่าเซิร์ฟเต็ม
+PORT=8787
+MAX_LIVE_MATCHES=12
+DECLINE_COOLDOWN_MS=300000
+OFFER_MS=15000
+SUPABASE_URL=https://njuhuhfehbrbmatfpxcf.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdWh1aGZlaGJyYm1hdGZweGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MzA0NTcsImV4cCI6MjEwNjEwNjQ1N30.RXoGu7NmMvRBCZJnj1zV5Vu4XXp4UnLf771LyJqob1U
+ALLOWED_ORIGINS=https://evolley.dev,https://www.evolley.dev,https://elemental-volley.vercel.app
 
-6. รันด้วย pm2 ให้ตื่นเองหลังรีบูต
-   cd /opt/evolley/server/match
-   sudo pm2 start index.mjs --name evolley-match --update-env
-   sudo pm2 save
-   sudo pm2 startup
-   (copy คำสั่งที่มันพิมพ์แล้วรันตาม)
+Ctrl+O → Enter → Ctrl+X
 
-   ตรวจ
-     curl http://127.0.0.1:8787
-     ต้องขึ้น evolley-match ok
 
-7. ใบรับรอง HTTPS + บังคับ WSS
-   sudo apt install -y certbot python3-certbot-nginx
-   สร้างไฟล์ /etc/nginx/sites-available/play.evolley.dev
+ก้อน D — สตาร์ทแมตช์ค้างไว้
+------------------------------------------------------------
+cd /opt/evolley/server/match
+pm2 start index.mjs --name evolley-match
+pm2 save
+pm2 startup
+curl http://127.0.0.1:8787
 
-     server {
-       listen 80;
-       server_name play.evolley.dev;
-       location / {
-         proxy_pass http://127.0.0.1:8787;
-         proxy_http_version 1.1;
-         proxy_set_header Upgrade $http_upgrade;
-         proxy_set_header Connection "upgrade";
-         proxy_set_header Host $host;
-         proxy_read_timeout 86400;
-       }
-     }
+ต้องเห็นคำว่า evolley-match ok
+ถ้า pm2 startup พิมพ์คำสั่งยาวมา ให้คัดทั้งบรรทัดนั้นวางอีกครั้ง
 
-   sudo ln -s /etc/nginx/sites-available/play.evolley.dev /etc/nginx/sites-enabled/
-   sudo nginx -t && sudo systemctl reload nginx
-   sudo certbot --nginx -d play.evolley.dev
 
-8. ตรวจจากเครื่องคุณ
-   เปิด https://evolley.dev ล็อกอิน Gmail สองไอดี
-   Rank Mode ทั้งคู่เข้าคิว ต้องขึ้นปุ่มยอมรับ/ปฏิเสธกลางจอ
-   ปฏิเสธแล้วฝ่ายนั้นพักค้น 5 นาที ฝ่ายถูกปฏิเสธค้นต่อเอง
-   Exhibition กดจากรายชื่อเพื่อน อีกฝ่ายต้องออนไลน์อยู่ที่ล็อบบี้
+ก้อน E — ชี้โดเมน (ทำบนหน้าเว็บร้านโดเมน ไม่ใช่ใน SSH)
+------------------------------------------------------------
+สร้างเรคคอร์ด A
+  ชื่อ: play
+  ชี้ไป: 140.99.98.216
+ได้เป็น play.evolley.dev
 
-อัปเดตเซิร์ฟหลัง git push
-  cd /opt/evolley && sudo git pull && cd server/match && sudo npm i && sudo pm2 restart evolley-match
+รอสัก 5–30 นาที แล้วใน SSH ลอง
+  ping -c 2 play.evolley.dev
+ต้องขึ้นไอพีเครื่องคุณ  ค่อยทำก้อน F
 
-ถ้าเว็บหลัก afkphone.com อยู่เครื่องเดียวกัน อย่าทับ nginx ของเว็บนั้น
-ใช้ server_name แยก play.evolley.dev ตามด้านบน
+ไฟร์วอลล์ในแผงเช่าให้เปิด 80 และ 443 (SSH 22 เปิดอยู่แล้ว)
 
-ยังไม่ต้องเปิด Stripe
+
+ก้อน F — HTTPS ให้เกมต่อ wss ได้
+------------------------------------------------------------
+apt install -y certbot python3-certbot-nginx
+nano /etc/nginx/sites-available/play.evolley.dev
+
+วาง:
+
+server {
+  listen 80;
+  server_name play.evolley.dev;
+  location / {
+    proxy_pass http://127.0.0.1:8787;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 86400;
+  }
+}
+
+Ctrl+O → Enter → Ctrl+X
+
+ln -s /etc/nginx/sites-available/play.evolley.dev /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+certbot --nginx -d play.evolley.dev
+
+certbot จะขออีเมล กดตกลงเงื่อนไข  เสร็จแล้วเปิดเกม https://evolley.dev
+สองไอดีเข้า Rank พร้อมกัน ต้องขึ้นปุ่มยอมรับ/ปฏิเสธ
+
+ถ้าเว็บ afkphone.com อยู่เครื่องนี้แล้ว อย่าทับไฟล์ nginx ของเว็บนั้น ใช้ไฟล์ play.evolley.dev ตามด้านบน
+
+อัปเดตแมตช์หลังมีโค้ดใหม่
+  cd /opt/evolley && git pull && cd server/match && npm i && pm2 restart evolley-match
 
