@@ -6,7 +6,7 @@ export function paintTabs(scene, y, items, activeId) {
   const n = items.length;
   if (!n) return;
   const gap = 10;
-  const w = Math.min(168, Math.max(108, Math.floor((scene.scale.width - 280) / n) - gap));
+  const w = Math.min(210, Math.max(108, Math.floor((scene.scale.width - 260) / n) - gap));
   const total = n * w + (n - 1) * gap;
   const x0 = scene.scale.width / 2 - total / 2 + w / 2;
   items.forEach((it, i) => {
@@ -28,8 +28,10 @@ export function paintFighterTabs(scene, active) {
 }
 
 export function paintRankTabs(scene, active) {
+  const from = scene.from || "hub";
   paintTabs(scene, 36, [
-    { id: "board", label: t("rank.tabBoard"), color: 0xffb14a, again: true, go: () => scene.openBoard() },
-    { id: "rules", label: t("rank.tabRules"), color: 0x7d5cff, go: () => scene.scene.start("rankinfo", { from: scene.from || "hub" }) }
+    { id: "pvp", label: t("rank.tabPvp"), color: 0x7d5cff, go: () => scene.scene.start("rankinfo", { from, tab: "pvp" }) },
+    { id: "special", label: t("rank.tabSpecial"), color: 0xffd24a, go: () => scene.scene.start("rankinfo", { from, tab: "special" }) },
+    { id: "rules", label: t("rank.tabRules"), color: 0xff8a3a, go: () => scene.scene.start("rankinfo", { from, tab: "rules" }) }
   ], active);
 }

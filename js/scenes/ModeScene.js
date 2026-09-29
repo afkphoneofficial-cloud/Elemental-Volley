@@ -65,7 +65,7 @@ export class ModeScene extends Phaser.Scene {
     }, 0xff8a3a);
     makeButton(this, W - 140, 40, 180, 40, t("queue.how"), () => {
       AudioSystem.ui();
-      this.scene.start("rankinfo", { from: "mode" });
+      this.scene.start("rankinfo", { from: "mode", tab: "rules" });
     }, 0x3ad6ff);
     this.fxBoxes = [
       { x: col0, y: row1, w: cw, h: ch, kind: "rank" },

@@ -91,6 +91,10 @@ export const COPY = {
     board: {
       title: "กระดาน 100 อันดับ",
       sub: "จัดจากแต้มสนามบนเซิร์ฟ  ·  เลื่อนดูได้",
+      specialTitle: "Elements Rank 100 อันดับ",
+      specialSub: "จัดจากแมตช์ Elements Rank บนเซิร์ฟ  ·  เลื่อนดูได้",
+      specialEmpty: "ยังไม่มีใครแข่ง Elements Rank บนเซิร์ฟนี้",
+      specialOff: "แข่ง Elements Rank แล้วจะขึ้นกระดาน",
       loading: "กำลังดึงอันดับจากเซิร์ฟ…",
       empty: "ยังไม่มีใครแข่ง Rank Mode บนเซิร์ฟนี้",
       wl: "ชนะ {w}  ·  แพ้ {l}",
@@ -102,7 +106,8 @@ export const COPY = {
     rank: {
       title: "กฎอันดับ",
       sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
-      tabBoard: "กระดาน",
+      tabPvp: "Rank Mode",
+      tabSpecial: "Elements Rank",
       tabRules: "กฎอันดับ",
       calShort: "กำลังวัดระดับ {n}/{max}",
       calNow: "กำลังวัดระดับ  {n} / {max}  แมตช์",
@@ -577,6 +582,10 @@ export const COPY = {
     board: {
       title: "Top 100",
       sub: "Live court scores on this server  ·  scroll the list",
+      specialTitle: "Elements Rank top 100",
+      specialSub: "Live Elements Rank scores on this server  ·  scroll the list",
+      specialEmpty: "No Elements Rank matches on this server yet",
+      specialOff: "Play Elements Rank to join this board",
       loading: "Loading the server board…",
       empty: "No Rank Mode matches on this server yet",
       wl: "{w} wins  ·  {l} losses",
@@ -588,7 +597,8 @@ export const COPY = {
     rank: {
       title: "Rank rules",
       sub: "Etheria’s 1v1 court ranking",
-      tabBoard: "Board",
+      tabPvp: "Rank Mode",
+      tabSpecial: "Elements Rank",
       tabRules: "Rank rules",
       calShort: "Calibrating {n}/{max}",
       calNow: "Calibrating  {n} / {max}  matches",

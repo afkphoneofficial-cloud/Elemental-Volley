@@ -156,7 +156,7 @@ export class HubScene extends Phaser.Scene {
     }, 0xff8ab8);
     makeButton(this, W / 2 + 160, 572, 228, 44, t("hub.navBoard"), () => {
       AudioSystem.ui();
-      this.scene.start("rankinfo", { from: "hub" });
+      this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
     }, 0xffb14a);
 
     const navY = H - HUB_NAV.y;

@@ -72,7 +72,7 @@ export class QueueScene extends Phaser.Scene {
     makeButton(this, W - 140, 48, 180, 40, t("queue.how"), () => {
       AudioSystem.ui();
       NetPlay.cancel();
-      this.scene.start("rankinfo", { from: "select" });
+      this.scene.start("rankinfo", { from: "select", tab: "rules" });
     }, 0xffb14a);
 
     this.off = NetPlay.on((msg) => this.onNet(msg));

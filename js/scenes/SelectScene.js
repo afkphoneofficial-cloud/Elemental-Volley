@@ -117,7 +117,7 @@ export class SelectScene extends Phaser.Scene {
     } else {
       makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
         AudioSystem.ui();
-        this.scene.start("rankinfo", { from: "select" });
+        this.scene.start("rankinfo", { from: "select", tab: "rules" });
       }, 0x3ad6ff);
     }
 

@@ -64,6 +64,10 @@ function escapeHtml(s) {
   }[ch]));
 }
 
+export function boardRankLabel(mmr, games) {
+  return rankLabel(mmr, games);
+}
+
 export const Leaderboard = {
   rows: [],
   me: null,
@@ -86,6 +90,12 @@ export const Leaderboard = {
   },
 
   async show() {
+    const g = window.game;
+    const live = g && g.scene && g.scene.getScenes(true)[0];
+    if (live && live.scene) {
+      live.scene.start("rankinfo", { from: live.scene.key, tab: "pvp" });
+      return;
+    }
     this.mount();
     const ui = els();
     if (!ui.root) return;
@@ -106,7 +116,14 @@ export const Leaderboard = {
     if (ui.root) ui.root.hidden = true;
   },
 
-  async load() {
+  async load(kind) {
+    this.kind = kind === "special" ? "special" : "pvp";
+    if (this.kind === "special") {
+      this.rows = [];
+      this.me = null;
+      this.fail = false;
+      return;
+    }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) {
       this.rows = [];
