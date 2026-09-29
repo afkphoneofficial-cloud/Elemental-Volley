@@ -9,7 +9,7 @@ const PAGE_SCENES = {
   play: ["mode", "select", "queue", "luck", "starter"],
   match: ["play"],
   hangout: [
-    "settings", "shop", "friends", "wiki", "rankinfo",
+    "settings", "shop", "friends", "wiki", "explore", "rankinfo",
     "career", "growth", "dress", "bag", "result"
   ]
 };

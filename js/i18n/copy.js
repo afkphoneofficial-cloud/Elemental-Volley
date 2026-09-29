@@ -324,13 +324,16 @@ export const COPY = {
       board: "กระดานอันดับ"
     },
     select: {
-      title: "เลือกตัวที่ปลดล็อกแล้ว แล้วสู้กับบอท",
+      title: "เลือกตัวละคร เพื่อสำรวจแผนที่โลก",
+      titleExplore: "เลือกตัวละคร เพื่อสำรวจแผนที่โลก",
       titlePvp: "เลือกตัว แล้วเข้าคิว Rank Mode",
       titleSpecial: "เลือกตัว แล้วเข้าแรงก์ธาตุ",
       titleExhibit: "เลือกตัว แล้วกระชับมิตรกับเพื่อน",
       ready: "พร้อมลงสนาม",
       locked: "ล็อก  ·  100 เศษธาตุ",
-      pick: "คุณ: {name}   ·   ความยากบอท: {diff}",
+      pick: "คุณ: {name}",
+      pickExplore: "คุณ: {name}",
+      explore: "สำรวจแผนที่โลก",
       pickPvp: "คุณ: {name}   ·   คิวจะจับคู่ตามแต้มสนาม",
       pickExhibit: "คุณ: {name}   ·   กระชับมิตร ไม่ขยับอันดับ",
       pickSpecial: "คุณ: {name}  ·  เลเวล {n}  ·  แรงก์ธาตุเปิดสเตตัส",
@@ -419,6 +422,10 @@ export const COPY = {
       talkNeedPower: "ตบแรงน้อยไป ลองกดค้างตอนลูกสูงกว่านี้",
       talkNoAce: "ยังไม่มี Ace ลองเสิร์ฟหรือตบให้ฝั่งนั้นรับไม่ทัน",
       talkNext: "รอบหน้าเก็บจังหวะเดิม แล้วลดความเสี่ยงตอนรับ"
+    },
+    explore: {
+      title: "สำรวจแผนที่โลก",
+      sub: "เกาะอีเธเรีย  ·  แตะหมุดเพื่อดูที่อยู่"
     },
     wiki: {
       title: "แผนที่โลก",
@@ -902,13 +909,16 @@ export const COPY = {
       board: "Leaderboard"
     },
     select: {
-      title: "Pick an unlocked fighter, then face a bot",
+      title: "Pick a fighter to explore the world map",
+      titleExplore: "Pick a fighter to explore the world map",
       titlePvp: "Pick a fighter, then queue for Rank Mode",
       titleSpecial: "Pick a fighter, then queue Element Rank",
       titleExhibit: "Pick a fighter for a friendly Exhibition",
       ready: "Ready to play",
       locked: "Locked  ·  100 Element Shards",
-      pick: "You: {name}   ·   Bot difficulty: {diff}",
+      pick: "You: {name}",
+      pickExplore: "You: {name}",
+      explore: "Explore the world map",
       pickPvp: "You: {name}   ·   Queue matches nearby court score",
       pickExhibit: "You: {name}   ·   Exhibition, rank does not move",
       pickSpecial: "You: {name}  ·  level {n}  ·  Element Rank uses stats",
@@ -997,6 +1007,10 @@ export const COPY = {
       talkNeedPower: "Too few power hits. Hold the button when the ball is high",
       talkNoAce: "No aces yet. Serve or spike before they can set",
       talkNext: "Keep the good beats. Cut the risky receives"
+    },
+    explore: {
+      title: "Explore the world map",
+      sub: "Etheria Island  ·  Tap a pin to see a home"
     },
     wiki: {
       title: "World map",

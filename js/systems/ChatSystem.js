@@ -4,7 +4,7 @@ import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 
-const SHOW = new Set(["hub", "friends", "shop", "wiki", "settings", "career", "mode", "rank", "menu"]);
+const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "career", "mode", "rank", "menu"]);
 
 function els() {
   return {
