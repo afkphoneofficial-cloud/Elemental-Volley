@@ -12,7 +12,9 @@ function itemCopy(id, field) {
   if (row && row.effect === "champSkin") {
     return t("item.champSkin." + field, { name: charName(row.charId), n: row.set });
   }
-  if (row && row.effect === "shopLook") {
+  const champ = String(id || "").match(/^champ-([a-z]+)-(\d+)$/);
+  if (champ) return t("item.champSkin." + field, { name: charName(champ[1]), n: champ[2] | 0 });
+  if ((row && row.effect === "shopLook") || shopLookOf(id)) {
     const look = shopLookOf(id);
     return look ? shopLookLabel(look, I18n.lang) : id;
   }
@@ -36,12 +38,17 @@ function slotList(tab) {
     return rows;
   }
   Object.keys(SaveSystem.data.inventory || {}).forEach((id) => {
-    if (bagTabOf(id) !== tab && !(tab === "look" && String(id).indexOf("champ-") === 0)) return;
+    const cat = bagTabOf(id) || (String(id).indexOf("champ-") === 0 || shopLookOf(id) ? "look" : "");
+    if (cat !== tab) return;
     push(id, SaveSystem.itemCount(id), false);
   });
   if (tab === "look") {
     (SaveSystem.data.shopLooks && SaveSystem.data.shopLooks.owned || []).forEach((id) => {
       push(id, Math.max(1, SaveSystem.itemCount(id)), false);
+    });
+    Object.keys(SaveSystem.data.champEquipped || {}).forEach((charId) => {
+      const set = SaveSystem.data.champEquipped[charId] | 0;
+      if (set >= 1 && set <= 3) push("champ-" + charId + "-" + set, Math.max(1, SaveSystem.itemCount("champ-" + charId + "-" + set)), false);
     });
   }
   return rows;
@@ -61,7 +68,9 @@ function iconKey(scene, id) {
 
 function isWear(id) {
   const row = ITEMS[id];
-  return row && (row.effect === "champSkin" || row.effect === "shopLook");
+  return Boolean(row && (row.effect === "champSkin" || row.effect === "shopLook"))
+    || String(id).indexOf("champ-") === 0
+    || Boolean(shopLookOf(id));
 }
 
 export class BagScene extends Phaser.Scene {
@@ -81,7 +90,7 @@ export class BagScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
-    this.tab = this.tab || startTab();
+    this.tab = startTab();
     this.page = 0;
     this.pick = 0;
     this.bits = [];

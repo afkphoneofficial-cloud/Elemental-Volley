@@ -16,6 +16,7 @@ import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
+import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -60,6 +61,78 @@ const empty = () => ({
   shopLooks: emptyShopLooks()
 });
 
+function stackN(raw) {
+  if (raw == null) return 0;
+  if (typeof raw === "number" || typeof raw === "string") return raw | 0;
+  if (typeof raw === "object") return (raw.n || raw.count || raw.qty || raw.amount || 0) | 0;
+  return raw | 0;
+}
+
+function readInventory(raw) {
+  const out = {};
+  const add = (id, n) => {
+    if (!id || typeof id !== "string") return;
+    const v = stackN(n);
+    if (v > 0) out[id] = (out[id] | 0) + v;
+  };
+  if (Array.isArray(raw)) {
+    raw.forEach((row) => {
+      if (typeof row === "string") add(row, 1);
+      else if (row && typeof row === "object") add(row.id || row.itemId || row.key, row);
+    });
+    return out;
+  }
+  if (!raw || typeof raw !== "object") return out;
+  Object.keys(raw).forEach((id) => add(id, raw[id]));
+  return out;
+}
+
+function isLookItem(id) {
+  const row = ITEMS[id];
+  if (row && (row.effect === "champSkin" || row.effect === "shopLook")) return true;
+  if (String(id).indexOf("champ-") === 0) return true;
+  return Boolean(lookRow(id));
+}
+
+function unionIds(a, b) {
+  const out = [];
+  const add = (id) => {
+    if (id && typeof id === "string" && out.indexOf(id) < 0) out.push(id);
+  };
+  (a || []).forEach(add);
+  (b || []).forEach(add);
+  return out;
+}
+
+function unionInv(prev, cloud) {
+  const out = { ...(cloud || {}) };
+  Object.keys(prev || {}).forEach((id) => {
+    const n = prev[id] | 0;
+    if (n <= 0) return;
+    if (isLookItem(id)) out[id] = Math.max(out[id] | 0, n);
+    else if (out[id] == null) out[id] = n;
+  });
+  return out;
+}
+
+function restoreOutfitItems(data) {
+  if (!data.inventory || typeof data.inventory !== "object" || Array.isArray(data.inventory)) data.inventory = {};
+  const give = (id) => {
+    if (!id || typeof id !== "string") return;
+    if (!(data.inventory[id] | 0)) data.inventory[id] = 1;
+  };
+  Object.keys(data.champEquipped || {}).forEach((charId) => {
+    const set = data.champEquipped[charId] | 0;
+    if (set >= 1 && set <= 3) give("champ-" + charId + "-" + set);
+  });
+  (data.shopLooks && data.shopLooks.owned || []).forEach(give);
+  (data.seasonBadges || []).forEach((row) => {
+    if (!row || !row.cheer) return;
+    const cyc = seasonCycleOf(row.cycle | 0);
+    if (cyc && cyc.champItem) give(cyc.champItem);
+  });
+}
+
 function finish(data) {
   data.settings = { ...empty().settings, ...(data.settings || {}) };
   data.settings.bgmPages = { ...empty().settings.bgmPages, ...(data.settings.bgmPages || {}) };
@@ -78,12 +151,7 @@ function finish(data) {
   if (!Array.isArray(data.matchLog)) data.matchLog = [];
   if (data.ether == null) data.ether = ECONOMY.etherMax;
   if (!data.etherAt) data.etherAt = Date.now();
-  if (!data.inventory || typeof data.inventory !== "object" || Array.isArray(data.inventory)) data.inventory = {};
-  Object.keys(data.inventory).forEach((id) => {
-    const n = data.inventory[id] | 0;
-    if (n > 0) data.inventory[id] = n;
-    else delete data.inventory[id];
-  });
+  data.inventory = readInventory(data.inventory);
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
   migrateCosmetics(data);
@@ -129,6 +197,7 @@ function finish(data) {
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
   }
+  restoreOutfitItems(data);
   return data;
 }
 
@@ -165,9 +234,20 @@ export const SaveSystem = {
   },
 
   applyCloud(save) {
-    if (!save || typeof save !== "object") return;
-    this.data = finish({ ...empty(), ...save });
-    this.persist({ push: false });
+    if (!save || typeof save !== "object" || Array.isArray(save)) return;
+    const prev = this.data || empty();
+    const next = finish({ ...empty(), ...save });
+    next.inventory = unionInv(readInventory(prev.inventory), next.inventory);
+    if (!next.shopLooks) next.shopLooks = emptyShopLooks();
+    next.shopLooks.owned = unionIds(prev.shopLooks && prev.shopLooks.owned, next.shopLooks.owned);
+    Object.keys((prev.champEquipped || {})).forEach((id) => {
+      if (!(next.champEquipped[id] | 0) && (prev.champEquipped[id] | 0)) {
+        next.champEquipped[id] = prev.champEquipped[id] | 0;
+      }
+    });
+    restoreOutfitItems(next);
+    this.data = next;
+    this.persist();
   },
 
   persist(opts) {
