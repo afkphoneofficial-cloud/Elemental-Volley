@@ -71,11 +71,14 @@ export class QueueScene extends Phaser.Scene {
       this.status.setText(t("queue.noServer"));
       return;
     }
-    if (NetPlay.cooldownUntil > Date.now()) {
+    if (NetPlay.cooldownUntil > Date.now() && !Session.exhibitIncoming) {
       this.status.setText(t("queue.cooldown", { n: Math.ceil((NetPlay.cooldownUntil - Date.now()) / 60000) }));
       return;
     }
-    if (Session.mode === "exhibit" && Session.exhibitFriendId) {
+    if (Session.exhibitIncoming) {
+      Session.exhibitIncoming = false;
+      this.status.setText(t("queue.searching"));
+    } else if (Session.mode === "exhibit" && Session.exhibitFriendId) {
       NetPlay.exhibit(Session.exhibitFriendId);
     } else {
       const st = SaveSystem.etherNow();
@@ -92,7 +95,7 @@ export class QueueScene extends Phaser.Scene {
     if (!this.sys || !this.sys.isActive()) return;
     if (msg.t === "searching") {
       this.clearOffer();
-      this.found = false;
+      if (this.found) return;
       this.status.setText(t("queue.searching"));
     }
     if (msg.t === "cooldown") {

@@ -11,6 +11,7 @@ export const Session = {
   net: false,
   netHost: false,
   exhibitFriendId: null,
+  exhibitIncoming: false,
   youSkin: 1,
   foeSkin: 1
 };

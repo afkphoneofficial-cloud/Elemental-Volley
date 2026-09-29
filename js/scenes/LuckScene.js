@@ -83,9 +83,11 @@ export class LuckScene extends Phaser.Scene {
 
     this.net = Session.net === true;
     this.luckId = null;
+    this.rollDone = false;
+    this.pendingGo = null;
     this.off = this.net ? NetPlay.on((msg) => {
       if (msg.t === "luck") this.playNetLuck(msg);
-      if (msg.t === "go") this.scene.start("play");
+      if (msg.t === "go") this.armGo(msg);
     }) : null;
     this.events.once("shutdown", () => {
       if (this.off) this.off();
@@ -117,6 +119,23 @@ export class LuckScene extends Phaser.Scene {
     this._retry = null;
   }
 
+  armGo(msg) {
+    this.pendingGo = msg || true;
+    if (this.rollDone) this.leaveToPlay(500);
+  }
+
+  leaveToPlay(delay) {
+    this._rollTimers = this._rollTimers || [];
+    this._rollTimers.push(window.setTimeout(() => {
+      if (this.sys && this.sys.isActive()) this.scene.start("play");
+    }, delay || 0));
+  }
+
+  goReady(msg) {
+    const go = this.pendingGo || NetPlay.lastGo;
+    return !!(go && (!msg.roomId || !go.roomId || go.roomId === msg.roomId));
+  }
+
   playNetLuck(msg) {
     if (!msg || msg.youRoll == null) {
       this.status.setText(t("luck.rolling"));
@@ -131,7 +150,9 @@ export class LuckScene extends Phaser.Scene {
     const id = msg.roomId || (msg.youRoll + ":" + msg.foeRoll);
     if (this.luckId === id) return;
     this.luckId = id;
+    this.rollDone = false;
     Session.netHost = msg.host === true;
+    if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
     if (msg.youSide) Session.youSide = msg.youSide === 2 ? 2 : 1;
     if (msg.rival) {
       Session.rival = {
@@ -156,6 +177,12 @@ export class LuckScene extends Phaser.Scene {
       this.youRoll.setText(String(msg.youRoll | 0).padStart(2, "0"));
       this.botRoll.setText(String(msg.foeRoll | 0).padStart(2, "0"));
       AudioSystem.ui();
+      this.rollDone = true;
+      if (this.goReady(msg)) {
+        this.status.setText(t("luck.waitGo"));
+        this.leaveToPlay(550);
+        return;
+      }
       if (msg.youPick) {
         this.status.setText(t("luck.youWin"));
         this.showPicks();

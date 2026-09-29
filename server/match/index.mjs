@@ -330,12 +330,13 @@ function beginLuck(a, b, mode) {
   b.roomId = roomId;
   rooms.set(roomId, room);
   if (room.mode === "pvp") noteRankedPair(a.id, b.id);
-  send(a.ws, { t: "luck", roomId, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, host: true, rival: preview(b) });
-  send(b.ws, { t: "luck", roomId, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, host: false, rival: preview(a) });
-  if (!aPicks) {
-    room.courtId = COURTS[Math.floor(Math.random() * COURTS.length)];
-    setTimeout(() => startPlay(room), 1100);
-  }
+  send(a.ws, { t: "luck", roomId, mode: room.mode, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, host: true, rival: preview(b) });
+  send(b.ws, { t: "luck", roomId, mode: room.mode, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, host: false, rival: preview(a) });
+  room.luckTimer = setTimeout(() => {
+    if (!rooms.has(roomId) || room.phase !== "luck") return;
+    if (!room.courtId) room.courtId = COURTS[Math.floor(Math.random() * COURTS.length)];
+    startPlay(room);
+  }, 20000);
 }
 
 function pickCourt(p, courtId) {
@@ -349,6 +350,10 @@ function pickCourt(p, courtId) {
 
 function startPlay(room) {
   if (!room || room.phase === "play") return;
+  if (room.luckTimer) {
+    clearTimeout(room.luckTimer);
+    room.luckTimer = null;
+  }
   room.phase = "play";
   room.courtId = room.courtId || "summer";
   const aServe = room.rollA <= room.rollB;
@@ -534,6 +539,7 @@ function goPayload(room, you, foe, host) {
 function closeRoom(room, reason, loserId) {
   if (!room) return;
   if (room.timer) clearInterval(room.timer);
+  if (room.luckTimer) clearTimeout(room.luckTimer);
   rooms.delete(room.id);
   rememberEnd(room, reason, loserId);
   send(room.a.ws, pendingEnd.get(room.a.id).msg);
@@ -634,6 +640,7 @@ function onHello(ws, user, body) {
         send(ws, {
           t: "luck",
           roomId: liveRoom.id,
+          mode: liveRoom.mode || "pvp",
           youSide: youIsA ? liveRoom.sideA : (liveRoom.sideA === 1 ? 2 : 1),
           youRoll: youIsA ? liveRoom.rollA : liveRoom.rollB,
           foeRoll: youIsA ? liveRoom.rollB : liveRoom.rollA,

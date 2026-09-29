@@ -123,10 +123,14 @@ export const NetPlay = {
         if (this.ticks.length > 24) this.ticks.splice(0, this.ticks.length - 24);
       }
       if (msg.t === "offer") this.lastOffer = msg;
-      if (msg.t === "luck") this.lastLuck = msg;
+      if (msg.t === "luck") {
+        this.lastLuck = msg;
+        this.lastGo = null;
+      }
       if (msg.t === "invite") this.lastInvite = msg;
       if (msg.t === "cooldown") this.cooldownUntil = Date.now() + (msg.ms | 0);
       if (msg.t === "go" || msg.t === "rejoin") {
+        this.lastGo = msg;
         Session.net = true;
         Session.netHost = msg.host === true;
         if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
@@ -329,9 +333,14 @@ export function mountExhibitInvite() {
     yes.onclick = () => {
       Session.mode = "exhibit";
       Session.net = true;
+      Session.exhibitIncoming = true;
       Session.playerId = SaveSystem.data.showcaseId || SaveSystem.data.starterId || Session.playerId;
-      NetPlay.exhibitVote(m.from.id, true);
       hide();
+      const g = window.game;
+      const live = g && g.scene && g.scene.getScenes(true)[0];
+      const key = live && live.scene && live.scene.key;
+      if (live && key !== "luck" && key !== "queue") live.scene.start("queue");
+      NetPlay.exhibitVote(m.from.id, true);
     };
     no.onclick = () => {
       NetPlay.exhibitVote(m.from.id, false);

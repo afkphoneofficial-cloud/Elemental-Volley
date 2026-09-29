@@ -67,13 +67,22 @@ NetPlay.on((msg) => {
   const live = g.scene.getScenes(true)[0];
   if (!live) return;
   const key = live.scene.key;
-  if (msg.t === "luck" && key !== "luck" && key !== "queue" && key !== "play") {
+  if (msg.t === "luck" && key !== "luck" && key !== "queue") {
     Session.net = true;
     Session.netHost = msg.host === true;
-    if (Session.mode !== "pvp") Session.mode = "exhibit";
+    if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
+    else if (Session.mode !== "pvp") Session.mode = "exhibit";
     live.scene.start("luck", msg);
   }
-  if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") live.scene.start("play");
+  if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") {
+    const luck = NetPlay.lastLuck;
+    if (msg.t === "go" && luck && luck.roomId === msg.roomId && key !== "luck") {
+      Session.net = true;
+      live.scene.start("luck", luck);
+      return;
+    }
+    live.scene.start("play");
+  }
   if (msg.t === "end" && key !== "play" && key !== "result") {
     const me = AuthSystem.session && AuthSystem.session();
     const youLost = me && msg.loserId && msg.loserId === me.id;
