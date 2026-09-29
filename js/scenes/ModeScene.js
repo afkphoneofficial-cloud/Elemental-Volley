@@ -24,24 +24,32 @@ export class ModeScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 1000 }
     }).setOrigin(0.5);
 
-    this.card(W / 2 - 390, 360, 0xffb14a, t("hub.playBot"), t("hub.modeBotBody"), () => {
+    this.card(W / 2 - 390, 330, 0xffb14a, t("hub.playBot"), t("hub.modeBotBody"), () => {
       Session.mode = "bot";
       Session.rival = null;
       AudioSystem.ui();
       this.scene.start("select");
     });
-    this.card(W / 2, 360, 0x7d5cff, t("hub.playPvp"), t("hub.modePvpBody", {
+    this.card(W / 2, 330, 0x7d5cff, t("hub.playPvp"), t("hub.modePvpBody", {
       n: st.n, max: ECONOMY.etherMax, wait
     }), () => {
       Session.mode = "pvp";
       AudioSystem.ui();
       this.scene.start("select");
     });
-    this.card(W / 2 + 390, 360, 0xff8ab8, t("hub.playExhibit"), t("hub.modeExhibitBody"), () => {
+    this.card(W / 2 + 390, 330, 0xff8ab8, t("hub.playExhibit"), t("hub.modeExhibitBody"), () => {
       Session.mode = "exhibit";
       AudioSystem.ui();
       this.scene.start("friends", { pick: true });
     });
+    makeButton(this, W / 2, 580, 420, 48, t("hub.playSpecial"), () => {
+      Session.mode = "special";
+      AudioSystem.ui();
+      this.scene.start("select");
+    }, 0x3ad6ff);
+    this.add.text(W / 2, 624, t("hub.modeSpecialBody"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#5a3828", align: "center", wordWrap: { width: 720 }
+    }).setOrigin(0.5);
 
     makeButton(this, 120, 44, 140, 40, t("nav.back"), () => {
       AudioSystem.ui();
@@ -55,13 +63,13 @@ export class ModeScene extends Phaser.Scene {
   }
 
   card(x, y, color, title, body, onClick) {
-    roundPanel(this, x, y, 360, 400, color, 0xfff6ea);
-    this.add.text(x, y - 130, title, {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418", align: "center", wordWrap: { width: 320 }
+    roundPanel(this, x, y, 360, 280, color, 0xfff6ea);
+    this.add.text(x, y - 90, title, {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418", align: "center", wordWrap: { width: 320 }
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 10, body, {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 300 }
+    this.add.text(x, y + 8, body, {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#5a3828", align: "center", wordWrap: { width: 300 }
     }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 150, 220, 48, title, () => onClick(), color);
+    makeButton(this, x, y + 100, 220, 44, title, () => onClick(), color);
   }
 }

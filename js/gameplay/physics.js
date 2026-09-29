@@ -29,6 +29,7 @@
 'use strict';
 import { rand } from "./rand.js";
 import { MATCH_FX, stickBall } from "./UltSystem.js";
+import { GROWTH_FX } from "../data/growth.js";
 
 /** @constant @type {number} ground width */
 const GROUND_WIDTH = 432;
@@ -533,11 +534,11 @@ function processPlayerMovementAndSetPlayerPosition(
  if (MATCH_FX.slippery[side] === true && dir !== 0 && (rand() % 100) < 48) {
  dir = -dir;
  }
- playerVelocityX = dir * 6 * MATCH_FX.walkMul[side];
+ playerVelocityX = dir * 6 * MATCH_FX.walkMul[side] * GROWTH_FX.walkMul[side];
  if (MATCH_FX.slippery[side] === true) playerVelocityX *= 1.4;
  if (MATCH_FX.walkMul[side] < 0.99 && (rand() % 100) < 12) playerVelocityX = 0;
  } else {
- playerVelocityX = player.divingDirection * 8 * MATCH_FX.walkMul[side];
+ playerVelocityX = player.divingDirection * 8 * MATCH_FX.walkMul[side] * GROWTH_FX.diveMul[side];
  }
  }
 
@@ -567,7 +568,7 @@ function processPlayerMovementAndSetPlayerPosition(
  userInput.yDirection === -1 && // up-direction input
  player.y === PLAYER_TOUCHING_GROUND_Y_COORD // player is touching on the ground
  ) {
- player.yVelocity = -16 * MATCH_FX.jumpMul[player.isPlayer2 ? 1 : 0];
+ player.yVelocity = -16 * MATCH_FX.jumpMul[player.isPlayer2 ? 1 : 0] * GROWTH_FX.jumpMul[player.isPlayer2 ? 1 : 0];
  player.state = 1;
  player.frameNumber = 0;
  // maybe-stereo-sound function FUN_00408470 (0x90) omitted:
@@ -590,7 +591,7 @@ function processPlayerMovementAndSetPlayerPosition(
  // if player is diving..
  player.state = 4;
  player.frameNumber = 0;
- player.lyingDownDurationLeft = 3;
+ player.lyingDownDurationLeft = Math.max(1, Math.round(3 * GROWTH_FX.lieMul[player.isPlayer2 ? 1 : 0]));
  } else {
  player.state = 0;
  }
@@ -715,6 +716,10 @@ function processCollisionBetweenBallAndPlayer(
  if (ball.xVelocity === 0) {
  ball.xVelocity = (rand() % 3) - 1;
  }
+ const jitter = GROWTH_FX.aimJitter[player.isPlayer2 ? 1 : 0];
+ if (jitter < 0.99 && ball.xVelocity !== 0 && playerState !== 2) {
+ ball.xVelocity = Math.round(ball.xVelocity * jitter) || (ball.xVelocity > 0 ? 1 : -1);
+ }
 
  const ballAbsYVelocity = Math.abs(ball.yVelocity);
  ball.yVelocity = -ballAbsYVelocity;
@@ -725,10 +730,11 @@ function processCollisionBetweenBallAndPlayer(
 
  // player is jumping and power hitting
  if (playerState === 2) {
+ const smash = GROWTH_FX.spikeMul[player.isPlayer2 ? 1 : 0];
  if (ball.x < GROUND_HALF_WIDTH) {
- ball.xVelocity = (Math.abs(userInput.xDirection) + 1) * 10;
+ ball.xVelocity = (Math.abs(userInput.xDirection) + 1) * 10 * smash;
  } else {
- ball.xVelocity = -(Math.abs(userInput.xDirection) + 1) * 10;
+ ball.xVelocity = -(Math.abs(userInput.xDirection) + 1) * 10 * smash;
  }
  ball.punchEffectX = ball.x;
  ball.punchEffectY = ball.y;

@@ -13,5 +13,5 @@ export const Session = {
   exhibitFriendId: null,
   exhibitIncoming: false,
   youSkin: 1,
-  foeSkin: 1
+  botSheet: null
 };

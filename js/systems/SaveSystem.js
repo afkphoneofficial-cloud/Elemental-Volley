@@ -10,6 +10,8 @@ import {
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin } from "../data/skins.js";
+import { emptyGrowth, clampGrowth, sheetFromRow } from "../data/growth.js";
+import { ROSTER_IDS } from "../data/roster.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -31,7 +33,8 @@ const empty = () => ({
   rank: emptyRank(),
   showcaseId: null,
   friends: [],
-  skins: emptySkins()
+  skins: emptySkins(),
+  growth: emptyGrowth()
 });
 
 function finish(data) {
@@ -51,6 +54,9 @@ function finish(data) {
   migrateCosmetics(data);
   data.skins = { ...emptySkins(), ...(data.skins || {}) };
   Object.keys(data.skins).forEach((id) => { data.skins[id] = clampSkin(data.skins[id]); });
+  const g = { ...emptyGrowth(), ...(data.growth || {}) };
+  ROSTER_IDS.forEach((id) => { g[id] = clampGrowth(g[id]); });
+  data.growth = g;
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
   if (!Array.isArray(data.friends)) data.friends = [];
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
@@ -291,6 +297,44 @@ export const SaveSystem = {
     if (!this.isUnlocked(id)) return false;
     if (!this.data.skins) this.data.skins = emptySkins();
     this.data.skins[id] = clampSkin(tier);
+    this.persist();
+    return true;
+  },
+
+  growthOf(id) {
+    const pack = this.data.growth || emptyGrowth();
+    return sheetFromRow(id, pack[id]);
+  },
+
+  addGrowthXp(id, amount) {
+    if (!this.data.growth) this.data.growth = emptyGrowth();
+    const row = clampGrowth(this.data.growth[id]);
+    row.xp += Math.max(0, amount | 0);
+    this.data.growth[id] = row;
+    this.persist();
+    return this.growthOf(id);
+  },
+
+  spendGrowth(id, stat) {
+    if (!this.isUnlocked(id)) return false;
+    const sheet = this.growthOf(id);
+    if (sheet.unspent < 1) return false;
+    if ((sheet.spent[stat] | 0) >= sheet.cap) return false;
+    const row = clampGrowth(this.data.growth[id]);
+    row.spent[stat] = (row.spent[stat] | 0) + 1;
+    this.data.growth[id] = row;
+    this.persist();
+    return true;
+  },
+
+  respecGrowth(id) {
+    if (!this.isUnlocked(id)) return false;
+    const sheet = this.growthOf(id);
+    if (!sheet.freeRespec) return false;
+    const row = clampGrowth(this.data.growth[id]);
+    row.spent = { spike: 0, touch: 0, aim: 0, spring: 0 };
+    row.freeRespec = false;
+    this.data.growth[id] = row;
     this.persist();
     return true;
   },

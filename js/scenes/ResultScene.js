@@ -8,6 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
+import { xpForBotMatch } from "../data/growth.js";
 import { NetPlay } from "../systems/NetPlay.js";
 
 const SEASON_FX = {
@@ -53,6 +54,8 @@ export class ResultScene extends Phaser.Scene {
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
+    this.xpGain = 0;
+    this.xpLevel = 0;
     if (this.pvpMode) {
       const opp = (Session.rival && Session.rival.mmr) || 1000;
       const gap = Math.abs((sc.p1 | 0) - (sc.p2 | 0));
@@ -61,6 +64,12 @@ export class ResultScene extends Phaser.Scene {
       this.rankDelta = applied.delta;
       this.rankAfter = applied.after;
       this.rankCal = isCalibrating(applied.rank);
+    }
+    if (Session.mode === "bot") {
+      const gained = xpForBotMatch(this.win, Session.difficulty || "normal");
+      const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, gained);
+      this.xpGain = gained;
+      this.xpLevel = sheet.level;
     }
     const rival = Session.rival;
     const foeName = rival ? (I18n.lang === "en" ? rival.nameEn : rival.nameTh) : "";
@@ -233,6 +242,9 @@ export class ResultScene extends Phaser.Scene {
         pvp: SaveSystem.data.currencies.pvp,
         tokens: SaveSystem.data.currencies.tokens
       });
+      if (this.xpGain) {
+        line += "\n" + t("result.xpGain", { n: this.xpGain, lv: this.xpLevel });
+      }
       if (this.pvpMode && this.rankAfter) {
         const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
         if (this.rankCal) {

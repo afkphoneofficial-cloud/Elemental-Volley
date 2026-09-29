@@ -150,10 +150,14 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("mode");
     });
-    makeButton(this, W / 2, 554, 280, 42, t("hub.navDress"), () => {
+    makeButton(this, W / 2 - 150, 554, 200, 42, t("hub.navDress"), () => {
       AudioSystem.ui();
       this.scene.start("dress");
     }, 0xff8ab8);
+    makeButton(this, W / 2 + 150, 554, 200, 42, t("hub.navGrowth"), () => {
+      AudioSystem.ui();
+      this.scene.start("growth");
+    }, 0x7d5cff);
     makeButton(this, W / 2, 602, 280, 42, t("hub.navBoard"), () => {
       AudioSystem.ui();
       Leaderboard.show();

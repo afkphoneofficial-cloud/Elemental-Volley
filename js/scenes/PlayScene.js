@@ -1,6 +1,8 @@
 import { GAME, PHYSICS } from "../config/gameConfig.js";
 import { COURTS } from "../data/courts.js";
 import { getCharacter, pickMatchRef } from "../data/roster.js";
+import { botSheet, statsLive, modsFromTotals, applyGrowthFx, resetGrowthFx } from "../data/growth.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -24,7 +26,6 @@ import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
-import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
@@ -73,6 +74,12 @@ export class PlayScene extends Phaser.Scene {
     this.physAcc = 0;
     this.stepMs = 1000 / PHYSICS.fps;
     this.physicsPack = new PikaPhysics(this.net ? false : this.youSide !== 1, this.net ? false : this.youSide !== 2);
+    resetGrowthFx();
+    if (statsLive(Session.mode)) {
+      const youMods = modsFromTotals(SaveSystem.growthOf(this.youData.id).totals);
+      const foeRow = Session.botSheet || botSheet(this.botData.id, Session.difficulty || "normal");
+      applyGrowthFx(this.youSide, youMods, modsFromTotals(foeRow.totals));
+    }
     this.p1In = new PikaUserInput();
     this.p2In = new PikaUserInput();
     this.enterWasDown = false;
