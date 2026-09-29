@@ -10,6 +10,7 @@ import { MenuScene } from "./scenes/MenuScene.js";
 import { HubScene } from "./scenes/HubScene.js";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js";
+import { ShopScene } from "./scenes/ShopScene.js";
 import { TopupScene } from "./scenes/TopupScene.js";
 import { PlayScene } from "./scenes/PlayScene.js";
 import { LuckScene } from "./scenes/LuckScene.js";
