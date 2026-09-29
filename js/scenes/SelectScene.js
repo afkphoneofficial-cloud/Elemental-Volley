@@ -10,6 +10,7 @@ import { texSelect } from "../data/skins.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { botSheet, STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
+import { ROSTER_STRIP, rosterPageCount, rosterPageOf, rosterShiftX, rosterSlotX } from "../ui/rosterStrip.js";
 
 const PLATE_R = 118;
 
@@ -33,6 +34,8 @@ export class SelectScene extends Phaser.Scene {
       : ROSTER_IDS.find((id) => SaveSystem.isUnlocked(id)) || SaveSystem.data.starterId;
     this.diff = "normal";
     this.cards = [];
+    this.rosterPages = rosterPageCount(ROSTER_IDS.length);
+    this.rosterPage = Phaser.Math.Clamp(rosterPageOf(ROSTER_IDS.indexOf(this.pick)), 0, this.rosterPages - 1);
 
     this.add.text(W / 2, 48, t(this.pvpMode ? "select.titlePvp" : this.exhibitMode ? "select.titleExhibit" : this.specialMode ? "select.titleSpecial" : "select.titleExplore"), {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
@@ -54,14 +57,16 @@ export class SelectScene extends Phaser.Scene {
       this.hopSpark = null;
     }
 
+    this.rosterBox = this.add.container(0, 0).setDepth(5);
+    const y = ROSTER_STRIP.y;
     ROSTER_IDS.forEach((id, i) => {
-      const data = ROSTER[id];
-      const x = 190 + i * 300;
-      const y = 262;
+      const data = ROSTER[id] || { colors: { main: 0xffb14a } };
+      const x = rosterSlotX(i);
       const unlocked = SaveSystem.isUnlocked(id);
       const key = texSelect(this, id, SaveSystem.skinOf(id));
+      const plateCol = SELECT_PLATE[id] != null ? SELECT_PLATE[id] : data.colors.main;
 
-      const plate = this.add.circle(x, y, PLATE_R, SELECT_PLATE[id], 1)
+      const plate = this.add.circle(x, y, PLATE_R, plateCol, 1)
         .setStrokeStyle(3, 0xfff6ea, 0.95)
         .setDepth(5);
       const orbit = this.add.graphics().setDepth(8);
@@ -76,14 +81,16 @@ export class SelectScene extends Phaser.Scene {
       const lockGfx = this.add.graphics().setDepth(13);
       if (!unlocked) drawLock(lockGfx, x, y);
 
-      this.add.text(x, y + 142, I18n.charName(id), {
+      const name = this.add.text(x, y + 142, I18n.charName(id), {
         fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "22px", fontStyle: "800",
         color: unlocked ? "#3a2418" : "#8a7a90"
       }).setOrigin(0.5);
-      this.add.text(x, y + 168, unlocked ? t("select.ready") : t("select.locked"), {
+      const tag = this.add.text(x, y + 168, unlocked ? t("select.ready") : t("select.locked"), {
         fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "14px",
         color: unlocked ? "#2a7a38" : "#c45a2a"
       }).setOrigin(0.5);
+
+      this.rosterBox.add([plate, orbit, aura, hopGfx, sprite, form, lockGfx, name, tag]);
 
       const card = {
         id, x, y, unlocked, plate, sprite, form, orbit, aura, hopGfx, lockGfx,
@@ -101,6 +108,21 @@ export class SelectScene extends Phaser.Scene {
         });
       }
     });
+
+    const maskG = this.make.graphics();
+    maskG.fillStyle(0xffffff, 1);
+    maskG.fillRoundedRect(118, 118, 1044, 330, 24);
+    maskG.setVisible(false);
+    this.rosterBox.setMask(maskG.createGeometryMask());
+
+    this.prevRoster = makeButton(this, 56, y, 56, 56, "‹", () => this.shiftRoster(-1), 0x7d5cff, 30);
+    this.nextRoster = makeButton(this, W - 56, y, 56, 56, "›", () => this.shiftRoster(1), 0x7d5cff, 30);
+    this.pageDots = this.add.container(W / 2, 438).setDepth(21);
+    this.input.on("wheel", (_p, _g, dx, dy) => {
+      if (Math.abs(dx) > Math.abs(dy)) this.shiftRoster(dx > 0 ? 1 : -1);
+      else this.shiftRoster(dy > 0 ? 1 : -1);
+    });
+    this.applyRosterPage(false);
 
     this.pickText = this.add.text(W / 2, 470, "", {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", color: "#7a4a30"
@@ -154,6 +176,64 @@ export class SelectScene extends Phaser.Scene {
     makeButton(this, 120, 48, 140, 40, t("nav.back"), () => this.scene.start("mode"), 0x7d5cff);
   }
 
+  shiftRoster(dir) {
+    if (this.rosterPages <= 1) return;
+    const next = Phaser.Math.Clamp((this.rosterPage | 0) + dir, 0, this.rosterPages - 1);
+    if (next === this.rosterPage) return;
+    this.rosterPage = next;
+    AudioSystem.ui();
+    this.applyRosterPage(true);
+  }
+
+  applyRosterPage(animate) {
+    if (!this.rosterBox) return;
+    const x = rosterShiftX(this.rosterPage, ROSTER_IDS.length);
+    if (this.rosterTween) this.rosterTween.stop();
+    if (animate) {
+      this.rosterTween = this.tweens.add({
+        targets: this.rosterBox, x, duration: 280, ease: "Cubic.easeOut"
+      });
+    } else {
+      this.rosterBox.x = x;
+    }
+    const vis = this.rosterPages > 1;
+    [this.prevRoster, this.nextRoster].forEach((b) => {
+      if (!b) return;
+      b.gfx.setVisible(vis);
+      b.text.setVisible(vis);
+      b.bg.setVisible(vis);
+      if (vis) b.bg.setInteractive({ useHandCursor: true });
+      else b.bg.disableInteractive();
+    });
+    if (vis && this.prevRoster) {
+      const on = this.rosterPage > 0;
+      this.prevRoster.gfx.setAlpha(on ? 1 : 0.35);
+      this.prevRoster.text.setAlpha(on ? 1 : 0.45);
+    }
+    if (vis && this.nextRoster) {
+      const on = this.rosterPage < this.rosterPages - 1;
+      this.nextRoster.gfx.setAlpha(on ? 1 : 0.35);
+      this.nextRoster.text.setAlpha(on ? 1 : 0.45);
+    }
+    this.cards.forEach((card, i) => {
+      const onPage = Math.floor(i / ROSTER_STRIP.visible) === this.rosterPage;
+      if (card.plate.input) card.plate.input.enabled = !!(onPage && card.unlocked);
+    });
+    this.paintPageDots();
+  }
+
+  paintPageDots() {
+    if (!this.pageDots) return;
+    this.pageDots.removeAll(true);
+    if (this.rosterPages <= 1) return;
+    const gap = 16;
+    const total = (this.rosterPages - 1) * gap;
+    for (let i = 0; i < this.rosterPages; i += 1) {
+      const on = i === this.rosterPage;
+      this.pageDots.add(this.add.circle(-total / 2 + i * gap, 0, on ? 6 : 4, on ? 0xff6a22 : 0xc8bdd8, 1));
+    }
+  }
+
   isActiveCard(card) {
     return card.unlocked && card.id === this.pick;
   }
@@ -196,6 +276,12 @@ export class SelectScene extends Phaser.Scene {
       }));
     } else {
       this.pickText.setText(t("select.pickExplore", { name: I18n.charName(this.pick) }));
+    }
+    const idx = ROSTER_IDS.indexOf(this.pick);
+    const page = rosterPageOf(idx);
+    if (page !== this.rosterPage) {
+      this.rosterPage = page;
+      this.applyRosterPage(true);
     }
     this.cards.forEach((card) => {
       const selected = this.isActiveCard(card);
@@ -271,9 +357,16 @@ export class SelectScene extends Phaser.Scene {
       drawOrbit(card.orbit, card.x, card.y, PLATE_R + 6, now, card.id);
       const rising = card.sprite.y < card.landY - 2;
       paintHopFx(
-        card.hopGfx, card.form, this.hopSpark,
+        card.hopGfx, card.form, null,
         card.x, card.sprite.y, card.landY, card.id, now, 130, rising
       );
+      if (rising && this.hopSpark) {
+        try {
+          const tint = card.id === "aqua" ? 0x66e8ff : card.id === "volt" ? 0xe8ff3a : card.id === "terra" ? 0xc07830 : 0xff6a22;
+          if (this.hopSpark.setParticleTint) this.hopSpark.setParticleTint(tint);
+          this.hopSpark.emitParticleAt(card.x + this.rosterBox.x, card.sprite.y + 6, 2);
+        } catch (e) {}
+      }
     });
   }
 }

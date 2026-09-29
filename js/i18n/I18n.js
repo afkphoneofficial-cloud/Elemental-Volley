@@ -48,7 +48,8 @@ export const I18n = {
   },
 
   charName(id) {
-    const data = ROSTER[id] || ROSTER.ignis;
+    const data = ROSTER[id];
+    if (!data) return String(id || "—");
     return this.lang === "en" ? data.name : data.thName;
   },
 
