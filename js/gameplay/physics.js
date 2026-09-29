@@ -31,6 +31,12 @@ import { rand } from "./rand.js";
 import { MATCH_FX, stickBall } from "./UltSystem.js";
 import { GROWTH_FX } from "../data/growth.js";
 
+function growthMul(table, side) {
+  const v = Number(table && table[side]);
+  if (!Number.isFinite(v) || v <= 0) return 1;
+  return v > 1.6 ? 1.6 : v;
+}
+
 /** @constant @type {number} ground width */
 const GROUND_WIDTH = 432;
 /** @constant @type {number} ground half-width, it is also the net pillar x coordinate */
@@ -534,11 +540,11 @@ function processPlayerMovementAndSetPlayerPosition(
  if (MATCH_FX.slippery[side] === true && dir !== 0 && (rand() % 100) < 48) {
  dir = -dir;
  }
- playerVelocityX = dir * 6 * MATCH_FX.walkMul[side] * GROWTH_FX.walkMul[side];
+ playerVelocityX = dir * 6 * MATCH_FX.walkMul[side] * growthMul(GROWTH_FX.walkMul, side);
  if (MATCH_FX.slippery[side] === true) playerVelocityX *= 1.4;
  if (MATCH_FX.walkMul[side] < 0.99 && (rand() % 100) < 12) playerVelocityX = 0;
  } else {
- playerVelocityX = player.divingDirection * 8 * MATCH_FX.walkMul[side] * GROWTH_FX.diveMul[side];
+ playerVelocityX = player.divingDirection * 8 * MATCH_FX.walkMul[side] * growthMul(GROWTH_FX.diveMul, side);
  }
  }
 
@@ -568,7 +574,8 @@ function processPlayerMovementAndSetPlayerPosition(
  userInput.yDirection === -1 && // up-direction input
  player.y === PLAYER_TOUCHING_GROUND_Y_COORD // player is touching on the ground
  ) {
- player.yVelocity = -16 * MATCH_FX.jumpMul[player.isPlayer2 ? 1 : 0] * GROWTH_FX.jumpMul[player.isPlayer2 ? 1 : 0];
+ const jMul = growthMul(MATCH_FX.jumpMul, player.isPlayer2 ? 1 : 0) * growthMul(GROWTH_FX.jumpMul, player.isPlayer2 ? 1 : 0);
+ player.yVelocity = -16 * jMul;
  player.state = 1;
  player.frameNumber = 0;
  // maybe-stereo-sound function FUN_00408470 (0x90) omitted:
@@ -578,8 +585,12 @@ function processPlayerMovementAndSetPlayerPosition(
  }
 
  // gravity
+ if (!Number.isFinite(player.yVelocity)) player.yVelocity = 0;
+ if (!Number.isFinite(player.y)) player.y = PLAYER_TOUCHING_GROUND_Y_COORD;
  const futurePlayerY = player.y + player.yVelocity;
  player.y = futurePlayerY;
+ if (player.y < 40) player.y = 40;
+ if (player.y > PLAYER_TOUCHING_GROUND_Y_COORD) player.y = PLAYER_TOUCHING_GROUND_Y_COORD;
  if (futurePlayerY < PLAYER_TOUCHING_GROUND_Y_COORD) {
  player.yVelocity += 1;
  } else if (futurePlayerY > PLAYER_TOUCHING_GROUND_Y_COORD) {
@@ -591,7 +602,7 @@ function processPlayerMovementAndSetPlayerPosition(
  // if player is diving..
  player.state = 4;
  player.frameNumber = 0;
- player.lyingDownDurationLeft = Math.max(1, Math.round(3 * GROWTH_FX.lieMul[player.isPlayer2 ? 1 : 0]));
+ player.lyingDownDurationLeft = Math.max(1, Math.round(3 * growthMul(GROWTH_FX.lieMul, player.isPlayer2 ? 1 : 0)));
  } else {
  player.state = 0;
  }

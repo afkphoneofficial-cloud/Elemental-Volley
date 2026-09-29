@@ -4,7 +4,12 @@ function airborne(p) {
   return p.state === 1 || p.state === 2;
 }
 
+function fin(n, fallback) {
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function zigzag(g, x0, y0, x1, y1, segs, amp, color, width, alpha, phase) {
+  if (![x0, y0, x1, y1].every(Number.isFinite)) return;
   g.lineStyle(width, color, alpha);
   g.beginPath();
   g.moveTo(x0, y0);
@@ -61,11 +66,18 @@ function popReveal(scene, x, y, color) {
 export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now, size, spark) {
   const jumping = airborne(player);
   const rising = jumping && player.yVelocity < 0;
-  const x = toScreenX(player.x);
-  const y = toScreenY(player.y);
-  const groundY = toScreenY(WORLD.playerGroundY);
+  const x = fin(toScreenX(player.x), 640);
+  const y = fin(toScreenY(player.y), 400);
+  const groundY = fin(toScreenY(WORLD.playerGroundY), 580);
   gfx.clear();
   form.setVisible(false);
+
+  if (!Number.isFinite(player.x) || !Number.isFinite(player.y)) {
+    slot.rising = false;
+    sprite.setAlpha(1);
+    sprite.setAngle(0);
+    return;
+  }
 
   if (!jumping) {
     slot.origin = { x, y: groundY };
@@ -133,14 +145,14 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
       gfx.fillCircle(x, y, 28);
       sparkles(gfx, x, y, now, 14, 0xffffaa, 40);
     } else {
-      const top = Math.min(y, groundY - 10);
-      const h = Math.max(18, groundY - top);
+      const top = Math.max(groundY - 130, Math.min(y, groundY - 18));
+      const h = Math.max(18, Math.min(130, groundY - top));
       gfx.fillStyle(0x3a2210, 0.55);
-      gfx.fillEllipse(x, groundY + 4, 70, 16);
+      gfx.fillCircle(x, groundY + 4, 18);
       gfx.fillStyle(0x6b3e1e, 1);
       gfx.fillRect(x - 26, top, 52, h);
       gfx.fillStyle(0xa06a32, 1);
-      gfx.fillRect(x - 16, top + 6, 32, h - 6);
+      gfx.fillRect(x - 16, top + 6, 32, Math.max(8, h - 6));
       gfx.fillStyle(0x4e8a32, 1);
       gfx.fillCircle(x - 16, top + 2, 12);
       gfx.fillCircle(x + 16, top, 14);
@@ -165,8 +177,8 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
     sprite.setAngle(flap * 9);
     gfx.fillStyle(0xff6a22, 0.38);
     const spread = size * 0.36 + flap * 18;
-    gfx.fillEllipse(x - spread, y - 6, size * 0.5, size * 0.2);
-    gfx.fillEllipse(x + spread, y - 6, size * 0.5, size * 0.2);
+    gfx.fillCircle(x - spread, y - 6, 10);
+    gfx.fillCircle(x + spread, y - 6, 10);
     sparkles(gfx, x, y, now, 8, 0xffe08a, 28);
   } else {
     sprite.setAngle(0);

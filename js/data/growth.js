@@ -317,12 +317,17 @@ export function applyGrowthFx(youSide, youMods, foeMods) {
   const iYou = youSide === 2 ? 1 : 0;
   const iFoe = 1 - iYou;
   const put = (i, m) => {
-    GROWTH_FX.jumpMul[i] = m.jumpMul;
-    GROWTH_FX.walkMul[i] = m.walkMul;
-    GROWTH_FX.diveMul[i] = m.diveMul;
-    GROWTH_FX.lieMul[i] = m.lieMul;
-    GROWTH_FX.spikeMul[i] = m.spikeMul;
-    GROWTH_FX.aimJitter[i] = m.aimJitter;
+    const n = (v, d) => {
+      const x = Number(v);
+      if (!Number.isFinite(x)) return d;
+      return Math.max(0.35, Math.min(1.6, x));
+    };
+    GROWTH_FX.jumpMul[i] = n(m && m.jumpMul, 1);
+    GROWTH_FX.walkMul[i] = n(m && m.walkMul, 1);
+    GROWTH_FX.diveMul[i] = n(m && m.diveMul, 1);
+    GROWTH_FX.lieMul[i] = n(m && m.lieMul, 1);
+    GROWTH_FX.spikeMul[i] = n(m && m.spikeMul, 1);
+    GROWTH_FX.aimJitter[i] = n(m && m.aimJitter, 1);
   };
   put(iYou, youMods);
   put(iFoe, foeMods);
