@@ -264,6 +264,41 @@ body {
 #friend-add { background: #ff8ab8; color: #3a2418; }
 #friend-cancel { background: #ffe08a; color: #3a2418; }
 
+#rename-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 6, 14, 0.45);
+}
+
+#rename-overlay[hidden] { display: none; }
+
+#rename-input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 196, 120, 0.45);
+  background: #fff8ee;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+#rename-ok, #rename-cancel {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 0;
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#rename-ok { background: #ff8ab8; color: #3a2418; }
+#rename-cancel { background: #ffe08a; color: #3a2418; }
+
 #wrap {
   position: fixed;
   inset: 0;

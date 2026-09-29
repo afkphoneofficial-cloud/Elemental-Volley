@@ -8,6 +8,36 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 
+function weekLabel(weekId) {
+  const p = String(weekId || "").split("-");
+  if (p.length < 3) return weekId || "—";
+  return p[2] + "/" + p[1] + "/" + p[0];
+}
+
+function seasonRows(board) {
+  const map = {};
+  (SaveSystem.data.matchLog || []).forEach((m) => {
+    if (m.mode !== board || !m.week) return;
+    if (!map[m.week]) map[m.week] = { week: m.week, games: 0, wins: 0, place: 0 };
+    map[m.week].games += 1;
+    if (m.win) map[m.week].wins += 1;
+  });
+  (SaveSystem.data.seasonBadges || []).forEach((b) => {
+    if (b.board !== board || !b.week) return;
+    if (!map[b.week]) map[b.week] = { week: b.week, games: 0, wins: 0, place: 0 };
+    if (b.place) map[b.week].place = b.place | 0;
+  });
+  const snap = (SaveSystem.data.seasonSnap || {})[board];
+  if (snap && snap.week) {
+    if (!map[snap.week]) map[snap.week] = { week: snap.week, games: snap.games | 0, wins: 0, place: snap.place | 0 };
+    else {
+      if (snap.place) map[snap.week].place = snap.place | 0;
+      if ((snap.games | 0) > map[snap.week].games) map[snap.week].games = snap.games | 0;
+    }
+  }
+  return Object.keys(map).sort().reverse().map((k) => map[k]).slice(0, 5);
+}
+
 export class CareerScene extends Phaser.Scene {
   constructor() { super("career"); }
 
@@ -23,36 +53,50 @@ export class CareerScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "32px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
-    roundPanel(this, W / 2, 148, 640, 150, 0xff8a3a, 0xfff6ea);
+    const sess = AuthSystem.session() || {};
+    const mail = sess.email || "";
+    const pid = sess.id ? String(sess.id).slice(0, 8) : "—";
+
+    roundPanel(this, W / 2, 142, 1100, 156, 0xff8a3a, 0xfff6ea);
     const avId = SaveSystem.data.avatarId;
     const key = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
-    this.avImg = this.add.image(W / 2 - 210, 148, key).setDisplaySize(112, 112).setDepth(8);
-    this.add.circle(W / 2 - 210, 148, 58, 0x000000, 0).setStrokeStyle(4, 0xc45a16, 0.85).setDepth(9);
-    this.add.text(W / 2 - 120, 118, AuthSystem.displayName(), {
+    this.avImg = this.add.image(130, 142, key).setDisplaySize(112, 112).setDepth(8);
+    this.add.circle(130, 142, 58, 0x000000, 0).setStrokeStyle(4, 0xc45a16, 0.85).setDepth(9);
+    this.add.text(210, 92, AuthSystem.displayName(), {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.avName = this.add.text(W / 2 - 120, 152, avatarLabel(avId, I18n.lang), {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30"
+    this.add.text(210, 122, mail || "—", {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30"
+    }).setOrigin(0, 0.5).setDepth(8);
+    this.add.text(210, 146, t("career.idLine", { id: pid }), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#8a5a38"
+    }).setOrigin(0, 0.5).setDepth(8);
+    this.avName = this.add.text(210, 170, avatarLabel(avId, I18n.lang), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(8);
     const rk = SaveSystem.data.rank;
     const medal = medalFromMmr(rk.mmr);
     const rankLab = isCalibrating(rk)
       ? t("rank.calShort", { n: rk.games, max: RANK_CAL_GAMES })
       : t("rank.chip", { name: t("rank.tier." + medal.id), star: medal.star || "" });
-    this.add.text(W / 2 - 120, 178, rankLab, {
+    this.add.text(210, 194, rankLab, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0, 0.5).setDepth(8);
     const shown = displayBadgeId(rk);
     if (this.textures.exists(badgeKey(shown))) {
-      this.add.image(W / 2 - 148, 178, badgeKey(shown)).setDisplaySize(28, 28).setDepth(8);
+      this.add.image(178, 194, badgeKey(shown)).setDisplaySize(26, 26).setDepth(8);
     }
-    makeButton(this, W / 2 + 170, 168, 220, 40, t("career.change"), () => {
+    makeButton(this, W - 330, 118, 220, 40, t("career.change"), () => {
       AudioSystem.ui();
       this.openPicker();
     }, 0x7d5cff);
+    makeButton(this, W - 330, 168, 220, 40, t("career.rename"), () => {
+      AudioSystem.ui();
+      this.scene.start("shop", { tab: "items" });
+    }, 0xff8ab8);
 
-    roundPanel(this, W / 2, 268, 1100, 72, 0xff8a3a, 0xfff6ea);
-    this.add.text(W / 2, 268,
+    roundPanel(this, W / 2, 250, 1100, 56, 0xff8a3a, 0xfff6ea);
+    this.add.text(W / 2, 250,
       t("career.totals", {
         m: c.matches,
         w: c.wins,
@@ -66,17 +110,17 @@ export class CareerScene extends Phaser.Scene {
       { fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: 1040 } }
     ).setOrigin(0.5).setDepth(6);
 
-    this.add.text(W / 2, 322, t("career.logHead", { n: Math.min(log.length, ECONOMY.matchLogMax) }), {
+    roundPanel(this, 330, 500, 580, 430, 0xffb14a, 0xfff6ea);
+    this.add.text(330, 310, t("career.logHead", { n: Math.min(log.length, ECONOMY.matchLogMax) }), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
-    }).setOrigin(0.5);
-
+    }).setOrigin(0.5).setDepth(8);
     if (!log.length) {
-      this.add.text(W / 2, 430, t("career.empty"), {
-        fontFamily: UI_FONT, fontSize: "18px", color: "#7a4a30"
-      }).setOrigin(0.5);
+      this.add.text(330, 500, t("career.empty"), {
+        fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 500 }
+      }).setOrigin(0.5).setDepth(8);
     } else {
-      log.slice(0, 6).forEach((row, i) => {
-        const y = 356 + i * 38;
+      log.slice(0, 8).forEach((row, i) => {
+        const y = 348 + i * 36;
         const line = t("career.row", {
           result: row.win ? t("career.win") : t("career.lose"),
           you: charName(row.you),
@@ -85,30 +129,45 @@ export class CareerScene extends Phaser.Scene {
           b: row.foeScore,
           mode: row.mode === "pvp" ? t("career.pvp") : row.mode === "exhibit" ? t("career.exhibit") : row.mode === "special" ? t("career.special") : t("career.bot")
         });
-        this.add.text(W / 2, y, line, {
-          fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: row.win ? "#2a7a38" : "#7a4a30"
-        }).setOrigin(0.5);
+        this.add.text(330, y, line, {
+          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: row.win ? "#2a7a38" : "#7a4a30",
+          wordWrap: { width: 540 }, align: "center"
+        }).setOrigin(0.5).setDepth(8);
       });
-      if (log.length > 6) {
-        this.add.text(W / 2, 356 + 6 * 38, t("career.more", { n: log.length - 6 }), {
-          fontFamily: UI_FONT, fontSize: "14px", color: "#8a5a38"
-        }).setOrigin(0.5);
+      if (log.length > 8) {
+        this.add.text(330, 348 + 8 * 36, t("career.more", { n: log.length - 8 }), {
+          fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+        }).setOrigin(0.5).setDepth(8);
       }
     }
 
+    roundPanel(this, 950, 500, 580, 430, 0x3ad6ff, 0xfff6ea);
+    this.add.text(950, 310, t("career.seasonHead"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(8);
+
+    [["pvp", t("career.pvpBoard"), 348], ["special", t("career.elemBoard"), 528]].forEach(([board, label, y0]) => {
+      this.add.text(950, y0, label, {
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#3a2418"
+      }).setOrigin(0.5).setDepth(8);
+      const rows = seasonRows(board);
+      if (!rows.length) {
+        this.add.text(950, y0 + 40, t("career.seasonEmpty"), {
+          fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+        }).setOrigin(0.5).setDepth(8);
+        return;
+      }
+      rows.forEach((row, i) => {
+        const line = row.place
+          ? t("career.seasonRow", { week: weekLabel(row.week), games: row.games, place: row.place, wins: row.wins })
+          : t("career.seasonRowNo", { week: weekLabel(row.week), games: row.games, wins: row.wins });
+        this.add.text(950, y0 + 28 + i * 26, line, {
+          fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828"
+        }).setOrigin(0.5).setDepth(8);
+      });
+    });
+
     makeButton(this, 120, 36, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
-    makeButton(this, W - 360, 36, 180, 40, t("career.board"), () => {
-      AudioSystem.ui();
-      this.scene.start("rankinfo", { from: "career", tab: "pvp" });
-    }, 0xffb14a);
-    makeButton(this, W - 150, 36, 200, 40, t("career.season"), () => {
-      AudioSystem.ui();
-      this.scene.start("season", { from: "career", tab: "pvp" });
-    }, 0xc8ff3a);
-    makeButton(this, 280, 36, 180, 40, t("career.howRank"), () => {
-      AudioSystem.ui();
-      this.scene.start("rankinfo", { from: "career", tab: "rules" });
-    }, 0x3ad6ff);
     AudioSystem.playMenu();
   }
 

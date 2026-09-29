@@ -49,6 +49,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("icon-friends", "assets/sprites/items/icon-friends.png");
     this.load.image("icon-settings", "assets/sprites/items/icon-settings.png");
     this.load.image("icon-chat", "assets/sprites/items/icon-chat.png");
+    this.load.image("icon-namestone", "assets/sprites/items/icon-namestone.png");
     this.load.image("item-plate-champ", "assets/sprites/items/item-plate-champ.png");
     this.load.image("item-plate-runner", "assets/sprites/items/item-plate-runner.png");
     this.load.image("item-plate-frame", "assets/sprites/items/item-plate-frame.png");
@@ -100,6 +101,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "icon-friends", "vis_icon_friends");
       TextureFactory.applyChibi(this, "icon-settings", "vis_icon_settings");
       TextureFactory.applyChibi(this, "icon-chat", "vis_icon_chat");
+      TextureFactory.applyChibi(this, "icon-namestone", "icon-namestone");
       TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
       TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
       TextureFactory.applyChibi(this, "item-plate-frame", "item-plate-frame");

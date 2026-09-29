@@ -419,6 +419,9 @@ export const SaveSystem = {
       this.persist();
       return { ok: true, effect: "respecLevel", charId };
     }
+    if (row.effect === "rename") {
+      return { ok: true, effect: "rename", hold: true };
+    }
     if (row.effect === "champSkin") {
       const charId = row.charId;
       if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };

@@ -1,11 +1,11 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
-import { paintFighterTabs } from "../ui/sceneTabs.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, charName, I18n } from "../i18n/I18n.js";
 import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots } from "../data/items.js";
 import { shopLookLabel, shopLookOf } from "../data/costumeShop.js";
+import { openRename, hideRename } from "../ui/renameOverlay.js";
 
 function itemCopy(id, field) {
   const row = ITEMS[id];
@@ -80,13 +80,12 @@ export class BagScene extends Phaser.Scene {
     if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
-    paintFighterTabs(this, "bag");
     makeButton(this, 96, 36, 132, 40, t("nav.back"), () => {
       AudioSystem.ui();
       this.scene.start("hub");
     }, 0x7d5cff);
 
-    this.add.text(W / 2, 100, t("bag.title"), {
+    this.add.text(W / 2, 36, t("bag.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
@@ -105,7 +104,7 @@ export class BagScene extends Phaser.Scene {
     const keep = (o) => { this.bits.push(o); return o; };
     BAG_TABS.forEach((row, i) => {
       const on = this.tab === row.id;
-      const btn = makeButton(this, 220 + i * 168, 148, 152, 36, t("bag.tab" + row.id.charAt(0).toUpperCase() + row.id.slice(1)), () => {
+      const btn = makeButton(this, 220 + i * 168, 92, 152, 36, t("bag.tab" + row.id.charAt(0).toUpperCase() + row.id.slice(1)), () => {
         AudioSystem.ui();
         this.tab = row.id;
         this.page = 0;
@@ -126,7 +125,7 @@ export class BagScene extends Phaser.Scene {
     const size = 108;
     const gap = 12;
     const x0 = 72 + size / 2;
-    const y0 = 248;
+    const y0 = 200;
 
     slots.forEach((row, i) => {
       const col = i % BAG_COLS;
@@ -154,20 +153,20 @@ export class BagScene extends Phaser.Scene {
     });
 
     if (pages > 1) {
-      const prev = makeButton(this, 640, 148, 72, 36, "‹", () => {
+      const prev = makeButton(this, 640, 92, 72, 36, "‹", () => {
         AudioSystem.ui();
         this.page = Math.max(0, this.page - 1);
         this.pick = 0;
         this.paintGrid();
       }, 0xff6a22);
-      const next = makeButton(this, 800, 148, 72, 36, "›", () => {
+      const next = makeButton(this, 800, 92, 72, 36, "›", () => {
         AudioSystem.ui();
         this.page = Math.min(pages - 1, this.page + 1);
         this.pick = 0;
         this.paintGrid();
       }, 0xff6a22);
       this.bits.push(prev.gfx, prev.text, prev.bg, next.gfx, next.text, next.bg);
-      keep(this.add.text(720, 148, (this.page + 1) + "/" + pages, {
+      keep(this.add.text(720, 92, (this.page + 1) + "/" + pages, {
         fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#7a4a30"
       }).setOrigin(0.5).setDepth(8));
     }
@@ -235,6 +234,18 @@ export class BagScene extends Phaser.Scene {
 
   tryUse(id) {
     AudioSystem.ui();
+    if (id === "namestone") {
+      openRename((ok, name) => {
+        if (!ok) return;
+        if (!SaveSystem.consumeItem("namestone", 1)) {
+          this.flash(t("bag.err.none"), false);
+          return;
+        }
+        this.paintGrid();
+        this.flash(t("bag.usedRename", { name }), true);
+      });
+      return;
+    }
     const ctx = id === "bodyfruit" ? { charId: this.useChar } : {};
     const res = SaveSystem.useItem(id, ctx);
     let note = res.ok ? t("bag.used") : t("bag.err." + (res.reason || "no"));
@@ -257,5 +268,9 @@ export class BagScene extends Phaser.Scene {
       : t("bag.err." + (res.reason || "no"));
     this.paintGrid();
     this.flash(note, res.ok);
+  }
+
+  shutdown() {
+    hideRename();
   }
 }

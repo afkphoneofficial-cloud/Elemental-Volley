@@ -335,13 +335,14 @@ export class ShopScene extends Phaser.Scene {
   paintItems() {
     const cells = this.slots(SHOP_USE_GOODS.length);
     SHOP_USE_GOODS.forEach((good, i) => {
+      const powder = good.currency === "premium";
       this.paintCard(cells[i].x, cells[i].y, {
         title: t("item." + good.id + ".name"),
         icon: itemIconKey(good.id),
         hint: "",
-        stroke: 0xffd24a,
-        accent: 0xffb14a,
-        priceIcon: "item-coin",
+        stroke: powder ? 0x7ae8a0 : 0xffd24a,
+        accent: powder ? 0x3ad68a : 0xffb14a,
+        priceIcon: powder ? "item-powder" : "item-coin",
         price: good.price,
         onClick: () => {
           openShopBuy(this, {
@@ -350,11 +351,13 @@ export class ShopScene extends Phaser.Scene {
             kind: t("shop.kindUse"),
             owned: SaveSystem.itemCount(good.id),
             body: t("item." + good.id + ".body"),
-            priceIcon: "item-coin",
+            priceIcon: powder ? "item-powder" : "item-coin",
             unitPrice: good.price,
-            have: this.bag().coins | 0,
+            have: powder ? (this.bag().premium | 0) : (this.bag().coins | 0),
             maxQty: 99,
-            onConfirm: (qty) => SaveSystem.buyWithCoins(good.id, good.price, qty),
+            onConfirm: (qty) => powder
+              ? SaveSystem.buyWithPremium(good.id, good.price, qty)
+              : SaveSystem.buyWithCoins(good.id, good.price, qty),
             after: (qty) => this.bought(t("item." + good.id + ".name"), qty)
           });
         }

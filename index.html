@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local156" />
+  <link rel="stylesheet" href="css/styles.css?v=local157" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -111,6 +111,16 @@
       </div>
     </div>
   </div>
+  <div id="rename-overlay" hidden>
+    <div class="auth-card">
+      <p id="rename-msg"></p>
+      <input id="rename-input" maxlength="12" autocomplete="nickname" />
+      <div class="friend-actions">
+        <button type="button" id="rename-ok">บันทึกชื่อ</button>
+        <button type="button" id="rename-cancel">ปิด</button>
+      </div>
+    </div>
+  </div>
   <div id="chat-dock" hidden>
     <button type="button" id="chat-toggle">แชท</button>
     <div id="chat-panel">
@@ -152,6 +162,6 @@
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="js/main.js?v=local156"></script>
+  <script type="module" src="js/main.js?v=local157"></script>
 </body>
 </html>

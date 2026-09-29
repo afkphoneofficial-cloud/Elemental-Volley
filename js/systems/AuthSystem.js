@@ -217,7 +217,7 @@ export const AuthSystem = {
     } catch (e) {}
   },
 
-  async submitName(name) {
+  cleanName(name) {
     const clean = String(name || "").trim().replace(/\s+/g, " ");
     if (clean.length < 2 || clean.length > 12) {
       throw new Error(t("web.authNameLen"));
@@ -225,6 +225,11 @@ export const AuthSystem = {
     if (!/^[\u0E00-\u0E7Fa-zA-Z0-9_ ]+$/.test(clean)) {
       throw new Error(t("web.authNameChars"));
     }
+    return clean;
+  },
+
+  async changeName(name) {
+    const clean = this.cleanName(name);
     const sb = await getSb();
     if (!sb || !session || !session.id) throw new Error(t("web.authNoBackend"));
     const { error } = await sb.from("profiles").update({
@@ -238,6 +243,11 @@ export const AuthSystem = {
       throw new Error(error.message);
     }
     profile = { ...(profile || {}), display_name: clean, email: session && session.email };
+    return clean;
+  },
+
+  async submitName(name) {
+    await this.changeName(name);
     this.hideOverlay();
     this.onAuthed();
   },

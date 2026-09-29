@@ -1,7 +1,7 @@
 import { CHAMP_ITEMS } from "./seasonCycle.js";
 import { SHOP_LOOKS, shopLookVis } from "./costumeShop.js";
 
-export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit"].concat(Object.keys(CHAMP_ITEMS));
+export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS));
 
 export const LOOK_ITEMS = {};
 SHOP_LOOKS.forEach((row) => {
@@ -39,6 +39,12 @@ export const ITEMS = {
     kind: "use",
     icon: "item-fruit",
     effect: "respecLevel"
+  },
+  namestone: {
+    id: "namestone",
+    kind: "use",
+    icon: "icon-namestone",
+    effect: "rename"
   },
   ...CHAMP_ITEMS,
   ...LOOK_ITEMS

@@ -9,7 +9,6 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { texHeroSelect } from "../data/seasonLooks.js";
-import { paintFighterTabs } from "../ui/sceneTabs.js";
 
 function setBtnLive(btn, on) {
   const a = on ? 1 : 0.38;
@@ -31,10 +30,12 @@ export class GrowthScene extends Phaser.Scene {
     this.hintPart = 0;
     this.hintBits = [];
 
-    paintFighterTabs(this, "growth");
     makeButton(this, 96, 36, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
     makeButton(this, W - 90, 36, 150, 40, t("growth.hintBtn"), () => this.toggleHint(), 0x3ad6ff);
-    this.sub = this.add.text(W / 2, 78, t("growth.sub"), {
+    this.add.text(W / 2, 36, t("growth.title"), {
+      fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5);
+    this.sub = this.add.text(W / 2, 72, t("growth.sub"), {
       fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
     }).setOrigin(0.5);
 
