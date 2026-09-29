@@ -28,7 +28,8 @@ const empty = () => ({
     bgmPages: { lobby: true, login: true, play: true, hangout: true, match: true },
     reducedFx: false,
     cameraShake: true,
-    lobbyMotion: true
+    lobbyMotion: true,
+    timeZone: "Bangkok"
   },
   unlockedCheers: ["classic"],
   equippedCheer: "classic",

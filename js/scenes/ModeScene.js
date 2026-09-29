@@ -1,12 +1,9 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
-import { ECONOMY } from "../data/economy.js";
-import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { formatEtherWait } from "../systems/Ether.js";
 
 export class ModeScene extends Phaser.Scene {
   constructor() { super("mode"); }
@@ -15,8 +12,6 @@ export class ModeScene extends Phaser.Scene {
     if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
-    const st = SaveSystem.etherNow();
-    const wait = st.full ? t("hub.etherFull") : t("hub.etherWait", { t: formatEtherWait(st.nextMs) });
     this.ruleBits = [];
     this.fxRing = this.add.graphics().setDepth(7);
 
@@ -25,12 +20,12 @@ export class ModeScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     const cw = 500;
-    const ch = 248;
+    const ch = 262;
     const gapX = 28;
     const col0 = W / 2 - gapX / 2 - cw / 2;
     const col1 = W / 2 + gapX / 2 + cw / 2;
-    const row0 = 210;
-    const row1 = 478;
+    const row0 = 216;
+    const row1 = 492;
 
     this.card(col0, row0, cw, ch, 0xffb14a, t("hub.playBot"), t("hub.modeBotBody"), () => {
       Session.mode = "bot";
@@ -43,9 +38,7 @@ export class ModeScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("friends", { pick: true });
     });
-    this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody", {
-      n: st.n, max: ECONOMY.etherMax, wait
-    }), () => {
+    this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody"), () => {
       Session.mode = "pvp";
       AudioSystem.ui();
       this.scene.start("select");
@@ -77,15 +70,15 @@ export class ModeScene extends Phaser.Scene {
 
   card(x, y, w, h, color, title, body, onClick) {
     roundPanel(this, x, y, w, h, color, 0xfff6ea);
-    this.add.text(x, y - 68, title, {
+    this.add.text(x, y - 78, title, {
       fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418",
       align: "center", wordWrap: { width: w - 40 }
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 4, body, {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#5a3828",
-      align: "center", wordWrap: { width: w - 64 }
+    this.add.text(x, y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#5a3828",
+      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
     }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 82, 220, 44, title, () => onClick(), color);
+    makeButton(this, x, y + 88, 220, 44, title, () => onClick(), color);
   }
 
   rankCard(x, y, w, h, title, body, onClick) {
@@ -109,15 +102,15 @@ export class ModeScene extends Phaser.Scene {
     panel.lineStyle(1.5, 0xc8b8ff, 0.55);
     panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
 
-    this.add.text(x, y - 68, title, {
+    this.add.text(x, y - 78, title, {
       fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418",
       align: "center", wordWrap: { width: w - 40 }
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 4, body, {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#5a3828",
-      align: "center", wordWrap: { width: w - 64 }
+    this.add.text(x, y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#5a3828",
+      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
     }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 82, 220, 44, title, () => onClick(), 0x7d5cff);
+    makeButton(this, x, y + 88, 220, 44, title, () => onClick(), 0x7d5cff);
 
     if (wantFx() && this.textures.exists("dot")) {
       try {
@@ -165,16 +158,16 @@ export class ModeScene extends Phaser.Scene {
     panel.fillStyle(0xffffff, 0.08);
     panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 14, w - 36, 36, 12);
 
-    this.add.text(x, y - 68, title, {
+    this.add.text(x, y - 78, title, {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#ffe08a",
       stroke: "#3a1870", strokeThickness: 6,
       align: "center", wordWrap: { width: w - 40 }
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 4, body, {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#e8dcff",
-      align: "center", wordWrap: { width: w - 64 }
+    this.add.text(x, y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#e8dcff",
+      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
     }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 82, 260, 46, title, () => onClick(), 0xffd24a);
+    makeButton(this, x, y + 88, 260, 46, title, () => onClick(), 0xffd24a);
 
     if (wantFx() && this.textures.exists("dot")) {
       try {

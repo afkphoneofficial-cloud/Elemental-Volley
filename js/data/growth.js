@@ -34,7 +34,7 @@ export function resetGrowthFx() {
 }
 
 export function statsLive(mode) {
-  return mode === "bot" || mode === "special";
+  return mode === "bot" || mode === "special" || mode === "exhibit";
 }
 
 export function zeroSpent() {

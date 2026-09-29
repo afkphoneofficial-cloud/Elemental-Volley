@@ -43,10 +43,12 @@ export const COPY = {
       playHint: "ฝึกฝนไม่กินเอเธอร์  ·  Rank Mode กิน 1 เอเธอร์เมื่อทั้งคู่ายอมรับ  ·  Exhibition เล่นกับเพื่อน",
       playRules: "กติกา",
       modeTitle: "เลือกโหมด",
-      modeBotBody: "ซ้อมจังหวะ เลือกความยากได้เอง  ไม่กินเอเธอร์  ไม่ขยับอันดับสนาม",
-      modePvpBody: "จับคู่ตามแต้มสนาม  เอเธอร์ตอนนี้ {n}/{max}  {wait}",
-      modeSpecialBody: "สเตตัสเปิด  ·  ตัวที่เข้าคิวต้องเลเวล 40–50  ·  ยังไม่ทับ Rank Mode เดิม",
-      modeExhibitBody: "กระชับมิตรกับเพื่อนในรายชื่อ  ไม่กินเอเธอร์  ไม่ขยับอันดับ",
+      modeBotBody: "สำรวจแผนที่โลก ฝึกฝน อัพเลเวลตัวละคร",
+      modePvpBody: "จับคู่ตามแต้มสนาม ใช้เอเธอร์ในการเข้าร่วม มีโอกาสดรอปไอเท็มพื้นฐาน และซีซั่นเปิด จ.–พฤ.",
+      modeSpecialBody: "เปิดใช้งานสเตตัสตัวละคร เข้าร่วมได้เมื่อเลเวล 40 ขึ้นไป มีโอกาสดรอปไอเท็มพื้นฐาน และซีซั่นเปิด ศ.–อา.",
+      modeExhibitBody: "กระชับมิตรกับเพื่อนในรายชื่อเท่านั้น ไม่ส่งผลใดๆ ต่อคอนเทนต์ในเกม ตัวละครสเตตัสเต็มทุกทักษะ",
+      serverClock: "เซิร์ฟไทย  {time}",
+      serverClockLocal: "เซิร์ฟไทย  {server}   ·   คุณ  {local}",
       navShop: "ร้าน",
       navMap: "แผนที่",
       navSet: "ตั้งค่า",
@@ -512,7 +514,17 @@ export const COPY = {
       cameraShake: "สั่นกล้องตอนอัลติ",
       lobbyMotion: "ภาพเคลื่อนไหวหลังล็อบบี้",
       fullscreen: "เต็มจอ",
-      videoHint: "ลดเอฟเฟกต์จะตัดประกายและอนุภาค ช่วยเครื่องช้า  บางเบราว์เซอร์อาจไม่รองรับเต็มจอ"
+      videoHint: "ลดเอฟเฟกต์จะตัดประกายและอนุภาค ช่วยเครื่องช้า  บางเบราว์เซอร์อาจไม่รองรับเต็มจอ",
+      tzTitle: "โซนเวลา",
+      tzHint: "ซีซั่นและของดรอปยึดเวลาเซิร์ฟไทย  เลือกโซนเพื่อดูนาฬิกาให้ตรงกับคุณ",
+      tz: {
+        Bangkok: "ไทย  UTC+7",
+        Jakarta: "อินโดนีเซีย  UTC+7",
+        Saigon: "เวียดนาม  UTC+7",
+        Singapore: "สิงคโปร์  UTC+8",
+        KL: "มาเลเซีย  UTC+8",
+        Manila: "ฟิลิปปินส์  UTC+8"
+      }
     },
     pause: {
       title: "พักการแข่ง",
@@ -600,10 +612,12 @@ export const COPY = {
       playHint: "Training skips Ether  ·  Rank Mode spends 1 Ether when both accept  ·  Exhibition is with friends",
       playRules: "Rules",
       modeTitle: "Choose a mode",
-      modeBotBody: "Practice with a difficulty you pick. No Ether. Rank does not move.",
-      modePvpBody: "Match nearby court scores. Ether now {n}/{max}  {wait}",
-      modeSpecialBody: "Stats on  ·  queued fighter must be level 40–50  ·  does not replace classic Rank",
-      modeExhibitBody: "Friendly match with someone on your friend list. No Ether. Rank does not move.",
+      modeBotBody: "Explore the world map, train, and level up your fighter.",
+      modePvpBody: "Matched by court score. Costs Ether to join. Can drop basic items. Season open Mon–Thu.",
+      modeSpecialBody: "Character stats on. Join from level 40. Can drop basic items. Season open Fri–Sun.",
+      modeExhibitBody: "Friends-list only. No effect on game content. Fighters use their full skill stats.",
+      serverClock: "Thai server  {time}",
+      serverClockLocal: "Thai server  {server}   ·   You  {local}",
       navShop: "Shop",
       navMap: "Map",
       navSet: "Settings",
@@ -1069,7 +1083,17 @@ export const COPY = {
       cameraShake: "Camera shake on ultimates",
       lobbyMotion: "Animated lobby backdrop",
       fullscreen: "Fullscreen",
-      videoHint: "Reduced effects skip sparks and particles on slower devices. Some browsers block fullscreen."
+      videoHint: "Reduced effects skip sparks and particles on slower devices. Some browsers block fullscreen.",
+      tzTitle: "Time zone",
+      tzHint: "Seasons and drops stay on Thai server time. Pick a zone to show the clock in your local time.",
+      tz: {
+        Bangkok: "Thailand  UTC+7",
+        Jakarta: "Indonesia  UTC+7",
+        Saigon: "Vietnam  UTC+7",
+        Singapore: "Singapore  UTC+8",
+        KL: "Malaysia  UTC+8",
+        Manila: "Philippines  UTC+8"
+      }
     },
     pause: {
       title: "Paused",

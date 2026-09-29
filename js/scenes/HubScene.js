@@ -3,7 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, charName } from "../i18n/I18n.js";
+import { I18n, t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 import { isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
@@ -18,7 +18,8 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
-import { wantFx } from "../systems/GameSettings.js";
+import { wantFx, settings } from "../systems/GameSettings.js";
+import { SERVER_TZ, formatZoneClock, timeZoneOf } from "../data/timeZones.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -175,6 +176,7 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
     }, 0xffb14a);
+    this.mountClock(W);
 
     const navY = H - HUB_NAV.y;
     const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
@@ -242,6 +244,36 @@ export class HubScene extends Phaser.Scene {
     }
   }
 
+  mountClock(W) {
+    const y = 628;
+    const w = 420;
+    const h = 34;
+    const g = this.add.graphics().setDepth(8);
+    g.fillStyle(0xfff6ea, 0.94);
+    g.fillRoundedRect(W / 2 - w / 2, y - h / 2, w, h, 17);
+    g.lineStyle(2, 0x3ad6ff, 0.55);
+    g.strokeRoundedRect(W / 2 - w / 2, y - h / 2, w, h, 17);
+    this.clockText = this.add.text(W / 2, y, "", {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(9);
+    this.add.zone(W / 2, y, w, h).setInteractive({ useHandCursor: true }).setDepth(10)
+      .on("pointerdown", () => {
+        AudioSystem.ui();
+        this.scene.start("settings", { from: "hub", tab: "general" });
+      });
+    this.paintClock();
+  }
+
+  paintClock() {
+    if (!this.clockText) return;
+    const lang = I18n.lang;
+    const server = formatZoneClock(SERVER_TZ, lang);
+    const zone = timeZoneOf(settings().timeZone);
+    const local = formatZoneClock(zone.tz, lang);
+    if (zone.tz === SERVER_TZ) this.clockText.setText(t("hub.serverClock", { time: server }));
+    else this.clockText.setText(t("hub.serverClockLocal", { server, local }));
+  }
+
   cycleShowcase(dir) {
     const owned = ROSTER_IDS.filter((id) => SaveSystem.isUnlocked(id));
     if (!owned.length) return;
@@ -264,6 +296,10 @@ export class HubScene extends Phaser.Scene {
     }
     paintHubBoardFx(this, now);
     this.paintEther();
+    if (this.time.now - (this.clockAt || 0) > 1000) {
+      this.clockAt = this.time.now;
+      this.paintClock();
+    }
     if (this.playDraw) {
       const pulse = (Math.sin(now / 380) + 1) / 2;
       this.playDraw(pulse);

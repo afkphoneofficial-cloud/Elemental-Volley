@@ -14,6 +14,7 @@ import {
 import { I18n, t } from "../i18n/I18n.js";
 import { TouchControls } from "../ui/TouchControls.js";
 import { paintSettingsTabs } from "../ui/sceneTabs.js";
+import { TIME_ZONES } from "../data/timeZones.js";
 
 const MODES = ["auto", "pc", "mobile"];
 const TABS = ["general", "video", "audio", "controls"];
@@ -70,11 +71,31 @@ export class SettingsScene extends Phaser.Scene {
       I18n.setLang("en");
     }, 0xff6a22);
 
-    this.add.text(W / 2, 268, t("settings.credits"), {
+    this.add.text(W / 2, 256, t("settings.tzTitle"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
+    this.add.text(W / 2, 282, t("settings.tzHint"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38", align: "center", wordWrap: { width: 760 }
+    }).setOrigin(0.5);
+    const s = settings();
+    TIME_ZONES.forEach((row, i) => {
+      const col = i % 3;
+      const r = Math.floor(i / 3);
+      const x = W / 2 - 220 + col * 220;
+      const y = 338 + r * 52;
+      const on = s.timeZone === row.id;
+      makeButton(this, x, y, 200, 42, mark(on, t("settings.tz." + row.id)), () => {
+        AudioSystem.ui();
+        patchSettings({ timeZone: row.id });
+        this.scene.restart({ from: this.backTo, tab: "general" });
+      }, on ? 0x3ad6ff : 0xe8dcc8);
+    });
+
+    this.add.text(W / 2, 470, t("settings.credits"), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
     }).setOrigin(0.5);
 
-    makeButton(this, W / 2, 360, 300, 50, t("settings.logout"), () => {
+    makeButton(this, W / 2, 540, 300, 50, t("settings.logout"), () => {
       AudioSystem.ui();
       AuthSystem.logout();
     }, 0xff5a1f);

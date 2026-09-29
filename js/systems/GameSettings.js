@@ -1,4 +1,5 @@
 import { SaveSystem } from "./SaveSystem.js";
+import { TIME_ZONES } from "../data/timeZones.js";
 
 export const BGM_PAGES = ["lobby", "login", "play", "hangout", "match"];
 
@@ -27,7 +28,8 @@ export function defaultSettings() {
     },
     reducedFx: false,
     cameraShake: true,
-    lobbyMotion: true
+    lobbyMotion: true,
+    timeZone: "Bangkok"
   };
 }
 
@@ -40,6 +42,7 @@ export function mergeSettings(raw) {
   next.reducedFx = Boolean(next.reducedFx);
   next.cameraShake = next.cameraShake !== false;
   next.lobbyMotion = next.lobbyMotion !== false;
+  if (!TIME_ZONES.some((row) => row.id === next.timeZone)) next.timeZone = "Bangkok";
   return next;
 }
 
