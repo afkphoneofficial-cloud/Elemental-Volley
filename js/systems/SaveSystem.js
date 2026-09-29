@@ -114,9 +114,17 @@ function finish(data) {
     owned: Array.isArray(rawLooks.owned) ? rawLooks.owned.filter((id) => typeof id === "string") : [],
     worn: { ...looks.worn, ...(rawLooks.worn || {}) }
   };
+  data.shopLooks.owned.forEach((id) => {
+    if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
+  });
+  Object.keys(data.inventory).forEach((id) => {
+    if (lookRow(id) && (data.inventory[id] | 0) > 0 && data.shopLooks.owned.indexOf(id) < 0) {
+      data.shopLooks.owned.push(id);
+    }
+  });
   ROSTER_IDS.forEach((id) => {
     const wear = data.shopLooks.worn[id];
-    if (wear && !data.shopLooks.owned.includes(wear)) data.shopLooks.worn[id] = "";
+    if (wear && !data.shopLooks.owned.includes(wear) && !(data.inventory[wear] | 0)) data.shopLooks.worn[id] = "";
   });
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
@@ -327,11 +335,14 @@ export const SaveSystem = {
       const charId = row.charId;
       if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };
       if (!this.data.champEquipped) this.data.champEquipped = {};
-      const set = row.set | 0;
-      const on = (this.data.champEquipped[charId] | 0) === set;
-      this.data.champEquipped[charId] = on ? 0 : set;
+      this.data.champEquipped[charId] = row.set | 0;
       this.persist();
-      return { ok: true, effect: "champSkin", charId, on: !on, set };
+      return { ok: true, effect: "champSkin", charId, on: true, set: row.set | 0 };
+    }
+    if (row.effect === "shopLook") {
+      const res = this.wearShopLook(row.lookId || id);
+      if (!res.ok) return res;
+      return { ok: true, effect: "shopLook", charId: row.charId, on: true };
     }
     return { ok: false, reason: "no" };
   },
@@ -388,6 +399,7 @@ export const SaveSystem = {
   },
 
   ownedShopLook(id) {
+    if (this.itemCount(id) > 0) return true;
     return (this.data.shopLooks.owned || []).indexOf(id) >= 0;
   },
 
@@ -402,16 +414,26 @@ export const SaveSystem = {
     const cost = Math.max(1, row.price | 0);
     if ((this.data.currencies.premium | 0) < cost) return { ok: false, reason: "premium" };
     this.data.currencies.premium -= cost;
-    this.data.shopLooks.owned.push(id);
-    this.data.shopLooks.worn[row.charId] = id;
-    this.persist();
+    if ((this.data.shopLooks.owned || []).indexOf(id) < 0) this.data.shopLooks.owned.push(id);
+    this.addItem(id, 1);
     return { ok: true };
   },
 
   wearShopLook(id) {
     const row = lookRow(id);
     if (!row || !this.ownedShopLook(id)) return { ok: false, reason: "no" };
+    if (!this.data.champEquipped) this.data.champEquipped = {};
+    this.data.champEquipped[row.charId] = 0;
     this.data.shopLooks.worn[row.charId] = id;
+    this.persist();
+    return { ok: true };
+  },
+
+  unequipOutfit(charId) {
+    if (!charId) return { ok: false, reason: "char" };
+    if (!this.data.champEquipped) this.data.champEquipped = {};
+    this.data.champEquipped[charId] = 0;
+    if (this.data.shopLooks && this.data.shopLooks.worn) this.data.shopLooks.worn[charId] = "";
     this.persist();
     return { ok: true };
   },

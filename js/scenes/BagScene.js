@@ -3,30 +3,51 @@ import { paintFighterTabs } from "../ui/sceneTabs.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
-import { t, charName } from "../i18n/I18n.js";
-import { BAG_COLS, BAG_SLOTS, ITEMS, itemIconKey } from "../data/items.js";
+import { t, charName, I18n } from "../i18n/I18n.js";
+import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots } from "../data/items.js";
+import { shopLookLabel, shopLookOf } from "../data/costumeShop.js";
 
-function itemCopy(id, field, extra) {
+function itemCopy(id, field) {
   const row = ITEMS[id];
   if (row && row.effect === "champSkin") {
-    return t("item.champSkin." + field, { name: charName(row.charId), n: row.set, ...(extra || {}) });
+    return t("item.champSkin." + field, { name: charName(row.charId), n: row.set });
   }
-  return t("item." + id + "." + field, extra);
+  if (row && row.effect === "shopLook") {
+    const look = shopLookOf(id);
+    return look ? shopLookLabel(look, I18n.lang) : id;
+  }
+  return t("item." + id + "." + field);
 }
 
-function slotList() {
+function slotList(tab) {
   const cur = SaveSystem.data.currencies || {};
   const rows = [];
-  const stones = cur.pvp | 0;
-  const shards = cur.tokens | 0;
-  if (stones > 0) rows.push({ id: "stone", n: stones, material: false });
-  if (shards > 0) rows.push({ id: "shard", n: shards, material: true });
+  if (tab === "mat") {
+    const stones = cur.pvp | 0;
+    const shards = cur.tokens | 0;
+    if (stones > 0) stackSlots("stone", stones).forEach((row) => rows.push({ ...row, material: true }));
+    if (shards > 0) stackSlots("shard", shards).forEach((row) => rows.push({ ...row, material: true }));
+    return rows;
+  }
   Object.keys(SaveSystem.data.inventory || {}).forEach((id) => {
+    if (bagTabOf(id) !== tab) return;
     const n = SaveSystem.itemCount(id);
-    if (n > 0 && ITEMS[id] && ITEMS[id].kind === "use") rows.push({ id, n, material: false });
+    if (n > 0 && ITEMS[id]) stackSlots(id, n).forEach((row) => rows.push({ ...row, material: false }));
   });
-  while (rows.length < BAG_SLOTS) rows.push(null);
-  return rows.slice(0, BAG_SLOTS);
+  return rows;
+}
+
+function iconKey(scene, id) {
+  const key = itemIconKey(id);
+  if (scene.textures.exists(key)) return key;
+  const row = ITEMS[id];
+  if (row && row.charId && scene.textures.exists("vis_select_" + row.charId)) return "vis_select_" + row.charId;
+  return "item-stone";
+}
+
+function isWear(id) {
+  const row = ITEMS[id];
+  return row && (row.effect === "champSkin" || row.effect === "shopLook");
 }
 
 export class BagScene extends Phaser.Scene {
@@ -46,6 +67,8 @@ export class BagScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
+    this.tab = this.tab || "use";
+    this.page = 0;
     this.pick = 0;
     this.bits = [];
     this.paintGrid();
@@ -56,13 +79,31 @@ export class BagScene extends Phaser.Scene {
     this.bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
     this.bits = [];
     const W = this.scale.width;
-    const slots = slotList();
+    const keep = (o) => { this.bits.push(o); return o; };
+    BAG_TABS.forEach((row, i) => {
+      const on = this.tab === row.id;
+      const btn = makeButton(this, 220 + i * 168, 148, 152, 36, t("bag.tab" + row.id.charAt(0).toUpperCase() + row.id.slice(1)), () => {
+        AudioSystem.ui();
+        this.tab = row.id;
+        this.page = 0;
+        this.pick = 0;
+        this.paintGrid();
+      }, on ? row.color : 0xc8bdd8);
+      this.bits.push(btn.gfx, btn.text, btn.bg);
+    });
+
+    const all = slotList(this.tab);
+    const pages = Math.max(1, Math.ceil(all.length / BAG_SLOTS) || 1);
+    if (this.page >= pages) this.page = pages - 1;
+    const start = this.page * BAG_SLOTS;
+    const slots = all.slice(start, start + BAG_SLOTS);
+    while (slots.length < BAG_SLOTS) slots.push(null);
+    if (this.pick >= BAG_SLOTS) this.pick = 0;
+
     const size = 108;
     const gap = 12;
-    const gridW = BAG_COLS * size + (BAG_COLS - 1) * gap;
     const x0 = 72 + size / 2;
-    const y0 = 210;
-    const keep = (o) => { this.bits.push(o); return o; };
+    const y0 = 248;
 
     slots.forEach((row, i) => {
       const col = i % BAG_COLS;
@@ -76,8 +117,7 @@ export class BagScene extends Phaser.Scene {
       g.lineStyle(3, on ? 0xff6a22 : 0xffb14a, on ? 1 : 0.55);
       g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 16);
       if (row) {
-        const key = this.textures.exists(itemIconKey(row.id)) ? itemIconKey(row.id) : "item-stone";
-        keep(this.add.image(x, y - 6, key).setDisplaySize(68, 68).setDepth(7));
+        keep(this.add.image(x, y - 6, iconKey(this, row.id)).setDisplaySize(68, 68).setDepth(7));
         keep(this.add.text(x + 40, y + 38, "x" + row.n, {
           fontFamily: UI_FONT, fontSize: "14px", fontStyle: "900", color: "#3a2418"
         }).setOrigin(1, 1).setDepth(8));
@@ -89,6 +129,25 @@ export class BagScene extends Phaser.Scene {
           this.paintGrid();
         }));
     });
+
+    if (pages > 1) {
+      const prev = makeButton(this, 640, 148, 72, 36, "‹", () => {
+        AudioSystem.ui();
+        this.page = Math.max(0, this.page - 1);
+        this.pick = 0;
+        this.paintGrid();
+      }, 0xff6a22);
+      const next = makeButton(this, 800, 148, 72, 36, "›", () => {
+        AudioSystem.ui();
+        this.page = Math.min(pages - 1, this.page + 1);
+        this.pick = 0;
+        this.paintGrid();
+      }, 0xff6a22);
+      this.bits.push(prev.gfx, prev.text, prev.bg, next.gfx, next.text, next.bg);
+      keep(this.add.text(720, 148, (this.page + 1) + "/" + pages, {
+        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#7a4a30"
+      }).setOrigin(0.5).setDepth(8));
+    }
 
     const panelX = W - 250;
     const panelY = 390;
@@ -105,24 +164,15 @@ export class BagScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(8));
       return;
     }
-    const key = this.textures.exists(itemIconKey(chosen.id)) ? itemIconKey(chosen.id) : "item-stone";
-    keep(this.add.image(panelX, panelY - 170, key).setDisplaySize(96, 96).setDepth(8));
+    keep(this.add.image(panelX, panelY - 170, iconKey(this, chosen.id)).setDisplaySize(96, 96).setDepth(8));
     keep(this.add.text(panelX, panelY - 96, itemCopy(chosen.id, "name"), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(8));
-    keep(this.add.text(panelX, panelY - 40, itemCopy(chosen.id, "body"), {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 360 }
-    }).setOrigin(0.5).setDepth(8));
-    keep(this.add.text(panelX, panelY + 40, t("bag.held", { n: chosen.n }), {
+    keep(this.add.text(panelX, panelY - 40, t("bag.held", { n: chosen.n }), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5).setDepth(8));
 
-    if (chosen.material) {
-      keep(this.add.text(panelX, panelY + 100, t("bag.materialHint"), {
-        fontFamily: UI_FONT, fontSize: "14px", color: "#8a5a38", align: "center", wordWrap: { width: 340 }
-      }).setOrigin(0.5).setDepth(8));
-      return;
-    }
+    if (chosen.material) return;
 
     if (chosen.id === "bodyfruit") {
       const unlocked = SaveSystem.data.unlocked || [];
@@ -141,27 +191,48 @@ export class BagScene extends Phaser.Scene {
       });
     }
 
-    const use = makeButton(this, panelX, panelY + 210, 220, 48, t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
+    const wear = isWear(chosen.id);
+    const useX = wear ? panelX - 78 : panelX;
+    const useW = wear ? 140 : 220;
+    const use = makeButton(this, useX, panelY + 210, useW, 44, t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
     this.bits.push(use.gfx, use.text, use.bg);
+    if (wear) {
+      const off = makeButton(this, panelX + 78, panelY + 210, 140, 44, t("shop.buyCancel"), () => this.tryOff(chosen.id), 0xff6a22);
+      this.bits.push(off.gfx, off.text, off.bg);
+    }
+  }
+
+  flash(note, ok) {
+    const W = this.scale.width;
+    const msg = this.add.text(W / 2, 660, note, {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: ok ? "#1a7a48" : "#c45a16"
+    }).setOrigin(0.5).setDepth(20);
+    this.time.delayedCall(1600, () => { if (msg && msg.destroy) msg.destroy(); });
   }
 
   tryUse(id) {
     AudioSystem.ui();
     const ctx = id === "bodyfruit" ? { charId: this.useChar } : {};
     const res = SaveSystem.useItem(id, ctx);
-    this.note = res.ok
-      ? t("bag.used")
-      : t("bag.err." + (res.reason || "no"));
-    if (res.ok && id === "stone") this.note = t("bag.usedStone");
-    if (res.ok && res.charId) this.note = t("bag.usedFruit", { name: charName(res.charId) });
-    if (res.ok && res.effect === "champSkin") {
-      this.note = t(res.on ? "bag.usedChamp" : "bag.usedChampOff", { name: charName(res.charId) });
+    let note = res.ok ? t("bag.used") : t("bag.err." + (res.reason || "no"));
+    if (res.ok && id === "stone") note = t("bag.usedStone");
+    if (res.ok && res.charId && res.effect === "respecLevel") note = t("bag.usedFruit", { name: charName(res.charId) });
+    if (res.ok && (res.effect === "champSkin" || res.effect === "shopLook")) {
+      note = t("bag.usedChamp", { name: charName(res.charId) });
     }
     this.paintGrid();
-    const W = this.scale.width;
-    const msg = this.add.text(W / 2, 660, this.note, {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: res.ok ? "#1a7a48" : "#c45a16"
-    }).setOrigin(0.5).setDepth(20);
-    this.time.delayedCall(1600, () => { if (msg && msg.destroy) msg.destroy(); });
+    this.flash(note, res.ok);
+  }
+
+  tryOff(id) {
+    AudioSystem.ui();
+    const row = ITEMS[id];
+    const charId = row && row.charId;
+    const res = SaveSystem.unequipOutfit(charId);
+    const note = res.ok
+      ? t("bag.usedChampOff", { name: charName(charId) })
+      : t("bag.err." + (res.reason || "no"));
+    this.paintGrid();
+    this.flash(note, res.ok);
   }
 }
