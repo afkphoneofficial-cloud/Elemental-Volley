@@ -138,7 +138,7 @@ export const ChatSystem = {
     const badge = this.unread > 0 && !this.open ? " · " + (this.unread > 9 ? "9+" : this.unread) : "";
     const title = t("chat.title") + badge;
     if (ui.toggle) ui.toggle.textContent = (this.open ? "▾ " : "▸ ") + title;
-    if (this.hubScene && this.hubScene.chatLabel) this.hubScene.chatLabel.setText(title);
+    if (this.hubScene && this.hubScene.paintChatBadge) this.hubScene.paintChatBadge();
     ui.tabWorld.textContent = t("chat.world");
     ui.tabFriends.textContent = t("chat.friends");
     ui.tabWorld.classList.toggle("on", this.tab === "world");

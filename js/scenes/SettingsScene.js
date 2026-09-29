@@ -4,8 +4,14 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import {
   BGM_PAGES,
+  KEY_ACTIONS,
+  assignKey,
   isFullscreen,
+  keyNameFromEvent,
+  keyNameOf,
   patchSettings,
+  prettyKey,
+  resetSettings,
   setBgmMode,
   settings,
   toggleBgmPage,
@@ -30,7 +36,8 @@ export class SettingsScene extends Phaser.Scene {
     this.backTo = (data && data.from) || "hub";
     this.tab = (data && data.tab) || "general";
     if (TABS.indexOf(this.tab) < 0) this.tab = "general";
-    this.sys.settings.data = { from: this.backTo, tab: this.tab };
+    this.waitBind = (data && data.waitBind) || null;
+    this.sys.settings.data = { from: this.backTo, tab: this.tab, waitBind: this.waitBind };
   }
 
   create() {
@@ -54,8 +61,21 @@ export class SettingsScene extends Phaser.Scene {
     else if (this.tab === "audio") this.paintAudio(W);
     else if (this.tab === "controls") this.paintControls(W);
     else this.paintGeneral(W);
+    this.paintReset(W);
 
     AudioSystem.playMenu();
+  }
+
+  paintReset(W) {
+    makeButton(this, W / 2, 672, 280, 42, t("settings.reset"), () => {
+      AudioSystem.ui();
+      resetSettings();
+      AudioSystem.setMusicVol(0.55);
+      AudioSystem.setSfxVol(1);
+      I18n.setLang("th");
+      TouchControls.sync();
+      this.scene.restart({ from: this.backTo, tab: this.tab });
+    }, 0xff8ab8);
   }
 
   paintGeneral(W) {
@@ -114,7 +134,19 @@ export class SettingsScene extends Phaser.Scene {
         if (this.sys && this.sys.isActive()) this.scene.restart({ from: this.backTo, tab: "video" });
       });
     });
-    this.add.text(W / 2, 420, t("settings.videoHint"), {
+    this.add.text(W / 2 - 280, 430, t("settings.contrast"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0, 0.5);
+    const c0 = s.contrast;
+    const cLabel = this.add.text(W / 2 + 280, 430, Math.round(c0 * 100) + "%", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(1, 0.5);
+    makeSlider(this, W / 2 + 70, 430, 280, (c0 - 0.5) / 1, (v) => {
+      const next = 0.5 + v * 1;
+      patchSettings({ contrast: next });
+      cLabel.setText(Math.round(next * 100) + "%");
+    });
+    this.add.text(W / 2, 500, t("settings.videoHint"), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
     }).setOrigin(0.5);
   }
@@ -181,14 +213,14 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   paintControls(W) {
-    this.add.text(W / 2, 154, t("settings.controls"), {
+    this.add.text(W / 2, 146, t("settings.controls"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5);
 
     const cur = (SaveSystem.data.settings && SaveSystem.data.settings.controlMode) || "auto";
     MODES.forEach((id, i) => {
       const on = id === cur;
-      makeButton(this, W / 2, 208 + i * 58, 480, 50, mark(on, t("settings." + id)), () => {
+      makeButton(this, W / 2 - 220 + i * 220, 196, 200, 44, mark(on, t("settings." + id)), () => {
         AudioSystem.ui();
         patchSettings({ controlMode: id });
         TouchControls.sync();
@@ -196,11 +228,42 @@ export class SettingsScene extends Phaser.Scene {
       }, on ? 0xffe08a : 0xe8dcc8);
     });
 
-    this.add.text(W / 2, 400, t("settings.note"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
+    this.add.text(W / 2, 250, t("settings.keysTitle"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 468, t("settings.keys"), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: 720 }
+    this.add.text(W / 2, 274, this.waitBind ? t("settings.keysWait") : t("settings.keysHint"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#c45a16", align: "center", wordWrap: { width: 760 }
     }).setOrigin(0.5);
+
+    KEY_ACTIONS.forEach((id, i) => {
+      const y = 324 + i * 52;
+      const on = this.waitBind === id;
+      this.add.text(W / 2 - 200, y, t("settings.key." + id), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+      }).setOrigin(1, 0.5);
+      makeButton(this, W / 2 + 70, y, 220, 42, prettyKey(keyNameOf(id)), () => {
+        AudioSystem.ui();
+        this.scene.restart({ from: this.backTo, tab: "controls", waitBind: id });
+      }, on ? 0x3ad6ff : 0xffe08a);
+    });
+
+    this.add.text(W / 2, 600, t("settings.note"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
+    }).setOrigin(0.5);
+
+    if (this.waitBind) {
+      const catchKey = (ev) => {
+        if (!this.sys || !this.sys.isActive()) return;
+        const name = keyNameFromEvent(ev);
+        if (!name) {
+          window.addEventListener("keydown", catchKey, { once: true, capture: true });
+          return;
+        }
+        if (ev.preventDefault) ev.preventDefault();
+        assignKey(this.waitBind, name);
+        this.scene.restart({ from: this.backTo, tab: "controls" });
+      };
+      window.addEventListener("keydown", catchKey, { once: true, capture: true });
+    }
   }
 }

@@ -653,7 +653,19 @@ export const COPY = {
       cameraShake: "สั่นกล้องตอนอัลติ",
       lobbyMotion: "ภาพเคลื่อนไหวหลังล็อบบี้",
       fullscreen: "เต็มจอ",
+      contrast: "คอนทราสต์ภาพ",
+      reset: "รีเซ็ตเป็นค่าเริ่มต้น",
       videoHint: "ลดเอฟเฟกต์จะตัดประกายและอนุภาค ช่วยเครื่องช้า  บางเบราว์เซอร์อาจไม่รองรับเต็มจอ",
+      keysTitle: "ปุ่มคีย์บอร์ด",
+      keysHint: "กดปุ่มทางขวา แล้วกดคีย์ใหม่ที่อยากใช้  ปุ่มที่ซ้ำจะสลับกันให้อัตโนมัติ",
+      keysWait: "กำลังรอคีย์ใหม่… กดปุ่มบนคีย์บอร์ดเลย",
+      key: {
+        left: "ซ้าย",
+        right: "ขวา",
+        jump: "กระโดด",
+        down: "ลง",
+        hit: "ตบ / อัลติ"
+      },
       tzTitle: "โซนเวลา",
       tzHint: "ซีซั่นและของดรอปยึดเวลาเซิร์ฟไทย  เลือกโซนเพื่อดูนาฬิกาให้ตรงกับคุณ",
       tz: {
@@ -1361,7 +1373,19 @@ export const COPY = {
       cameraShake: "Camera shake on ultimates",
       lobbyMotion: "Animated lobby backdrop",
       fullscreen: "Fullscreen",
+      contrast: "Picture contrast",
+      reset: "Reset to defaults",
       videoHint: "Reduced effects skip sparks and particles on slower devices. Some browsers block fullscreen.",
+      keysTitle: "Keyboard",
+      keysHint: "Tap a bind on the right, then press the key you want. Duplicate keys swap automatically.",
+      keysWait: "Waiting for a key… press it on the keyboard",
+      key: {
+        left: "Left",
+        right: "Right",
+        jump: "Jump",
+        down: "Down",
+        hit: "Hit / ult"
+      },
       tzTitle: "Time zone",
       tzHint: "Seasons and drops stay on Thai server time. Pick a zone to show the clock in your local time.",
       tz: {

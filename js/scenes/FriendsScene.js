@@ -32,7 +32,7 @@ export class FriendsScene extends Phaser.Scene {
       this.inputBound = true;
       this.input.on("wheel", (_p, _g, _dx, dy) => this.nudgeList(dy * 0.45));
       this.input.on("pointerdown", (p) => {
-        if (p.y < 260 || p.y > 675) return;
+        if (p.y < 330 || p.y > 675) return;
         this._drag = { y: p.y, s: this.listScroll };
       });
       this.input.on("pointerup", () => { this._drag = null; });
@@ -82,10 +82,6 @@ export class FriendsScene extends Phaser.Scene {
       this.hideForm();
       this.scene.start(this.pickMode ? "mode" : "hub");
     }, 0x7d5cff);
-    makeButton(this, 280, 42, 140, 40, t("friends.chat"), () => {
-      AudioSystem.ui();
-      ChatSystem.setOpen(true);
-    }, 0x3ad6ff);
     makeButton(this, W - 330, 42, 200, 40, t("friends.suggest"), () => {
       AudioSystem.ui();
       this.rollSuggest();
@@ -149,8 +145,8 @@ export class FriendsScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(6);
     } else {
       const rowH = 100;
-      const listTop = 300;
-      const viewH = 392;
+      const listTop = 380;
+      const viewH = 320;
       this.listMax = Math.max(0, list.length * rowH - viewH);
       this.listScroll = Phaser.Math.Clamp(this.listScroll || 0, 0, this.listMax);
       this.listBox = this.add.container(0, -this.listScroll);
@@ -195,7 +191,7 @@ export class FriendsScene extends Phaser.Scene {
       });
     }
     if (this.note && (this.busy || suggests.length)) {
-      this.add.text(W / 2, 268, this.note, {
+      this.add.text(W / 2, 278, this.note, {
         fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
       }).setOrigin(0.5);
     }

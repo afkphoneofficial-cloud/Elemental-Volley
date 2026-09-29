@@ -14,6 +14,44 @@ const PAGE_SCENES = {
   ]
 };
 
+export const DEFAULT_KEYS = {
+  left: "LEFT",
+  right: "RIGHT",
+  jump: "UP",
+  down: "DOWN",
+  hit: "ENTER"
+};
+
+export const KEY_ACTIONS = ["left", "right", "jump", "down", "hit"];
+
+function clampContrast(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return 1;
+  return Math.max(0.5, Math.min(1.5, v));
+}
+
+function cleanKeyName(name) {
+  const raw = String(name || "").toUpperCase();
+  if (!raw) return "";
+  try {
+    if (typeof Phaser !== "undefined" && Phaser.Input && Phaser.Input.Keyboard && Phaser.Input.Keyboard.KeyCodes) {
+      if (Phaser.Input.Keyboard.KeyCodes[raw] != null) return raw;
+      return "";
+    }
+  } catch (e) {}
+  return raw;
+}
+
+function mergeKeys(raw) {
+  const next = { ...DEFAULT_KEYS };
+  const src = raw && typeof raw === "object" ? raw : {};
+  KEY_ACTIONS.forEach((id) => {
+    const name = cleanKeyName(src[id]);
+    if (name) next[id] = name;
+  });
+  return next;
+}
+
 export function defaultSettings() {
   return {
     lang: "th",
@@ -30,7 +68,9 @@ export function defaultSettings() {
     cameraShake: true,
     lobbyMotion: true,
     timeZone: "Bangkok",
-    hubMenuOpen: false
+    hubMenuOpen: false,
+    contrast: 1,
+    keys: { ...DEFAULT_KEYS }
   };
 }
 
@@ -44,6 +84,8 @@ export function mergeSettings(raw) {
   next.cameraShake = next.cameraShake !== false;
   next.lobbyMotion = next.lobbyMotion !== false;
   if (!TIME_ZONES.some((row) => row.id === next.timeZone)) next.timeZone = "Bangkok";
+  next.contrast = clampContrast(next.contrast);
+  next.keys = mergeKeys(next.keys);
   return next;
 }
 
@@ -72,11 +114,84 @@ export function patchSettings(partial) {
   if (partial && partial.bgmPages) {
     next.bgmPages = { ...cur.bgmPages, ...partial.bgmPages };
   }
+  if (partial && partial.keys) {
+    next.keys = mergeKeys({ ...cur.keys, ...partial.keys });
+  }
   SaveSystem.data.settings = next;
   bagCache = next;
   SaveSystem.persist();
+  applyContrast();
   try { window.dispatchEvent(new CustomEvent("ev-settings")); } catch (e) {}
   return next;
+}
+
+export function resetSettings() {
+  bagCache = null;
+  const next = defaultSettings();
+  if (SaveSystem.data) SaveSystem.data.settings = next;
+  bagCache = next;
+  SaveSystem.persist();
+  applyContrast();
+  try { window.dispatchEvent(new CustomEvent("ev-settings")); } catch (e) {}
+  return next;
+}
+
+export function applyContrast() {
+  const n = clampContrast(settings().contrast);
+  const el = document.getElementById("game");
+  if (!el) return;
+  el.style.filter = Math.abs(n - 1) < 0.02 ? "none" : "contrast(" + n + ")";
+}
+
+export function keyNameOf(action) {
+  return (settings().keys && settings().keys[action]) || DEFAULT_KEYS[action] || "ENTER";
+}
+
+export function phaserKeyCode(action) {
+  const name = keyNameOf(action);
+  const codes = Phaser.Input.Keyboard.KeyCodes;
+  if (codes[name] != null) return codes[name];
+  return codes[DEFAULT_KEYS[action]] || codes.ENTER;
+}
+
+export function prettyKey(name) {
+  const n = String(name || "");
+  const map = {
+    LEFT: "←", RIGHT: "→", UP: "↑", DOWN: "↓",
+    ENTER: "Enter", SPACE: "Space", BACKSPACE: "Backspace",
+    SHIFT: "Shift", TAB: "Tab", ESC: "Esc",
+    ZERO: "0", ONE: "1", TWO: "2", THREE: "3", FOUR: "4",
+    FIVE: "5", SIX: "6", SEVEN: "7", EIGHT: "8", NINE: "9"
+  };
+  return map[n] || n;
+}
+
+export function keyNameFromEvent(ev) {
+  if (!ev) return "";
+  const k = ev.key;
+  if (!k || k === "Escape" || k === "Tab" || k === "Meta" || k === "Control" || k === "Alt" || k === "Shift" || k === "Dead") return "";
+  if (k === "ArrowLeft") return "LEFT";
+  if (k === "ArrowRight") return "RIGHT";
+  if (k === "ArrowUp") return "UP";
+  if (k === "ArrowDown") return "DOWN";
+  if (k === "Enter") return "ENTER";
+  if (k === " ") return "SPACE";
+  if (k === "Backspace") return "BACKSPACE";
+  if (/^[a-zA-Z]$/.test(k)) return k.toUpperCase();
+  const digits = ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"];
+  if (/^[0-9]$/.test(k)) return digits[Number(k)];
+  return cleanKeyName(k);
+}
+
+export function assignKey(action, name) {
+  if (KEY_ACTIONS.indexOf(action) < 0) return null;
+  const nextName = cleanKeyName(name);
+  if (!nextName) return null;
+  const keys = { ...settings().keys };
+  const taken = KEY_ACTIONS.find((id) => id !== action && keys[id] === nextName);
+  if (taken) keys[taken] = keys[action];
+  keys[action] = nextName;
+  return patchSettings({ keys });
 }
 
 export function sceneBgmPage(key) {

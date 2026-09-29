@@ -6,7 +6,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { shakeCam, wantFx } from "../systems/GameSettings.js";
+import { shakeCam, wantFx, phaserKeyCode } from "../systems/GameSettings.js";
 import {
   PikaPhysics,
   PikaUserInput,
@@ -584,8 +584,11 @@ export class PlayScene extends Phaser.Scene {
   }
 
   bindKeys() {
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.keyLeft = this.input.keyboard.addKey(phaserKeyCode("left"));
+    this.keyRight = this.input.keyboard.addKey(phaserKeyCode("right"));
+    this.keyJump = this.input.keyboard.addKey(phaserKeyCode("jump"));
+    this.keyDown = this.input.keyboard.addKey(phaserKeyCode("down"));
+    this.enter = this.input.keyboard.addKey(phaserKeyCode("hit"));
     this.input.keyboard.on("keydown-ESC", () => this.requestPlayerPause());
   }
 
@@ -600,12 +603,11 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
     const pad = TouchControls.snapshot();
-    const c = this.cursors;
     const input = this.youSide === 1 ? this.p1In : this.p2In;
     const idle = this.youSide === 1 ? this.p2In : this.p1In;
     const myIdx = this.youSide - 1;
-    const keyX = c.left.isDown ? -1 : c.right.isDown ? 1 : 0;
-    const keyY = c.up.isDown ? -1 : c.down.isDown ? 1 : 0;
+    const keyX = this.keyLeft.isDown ? -1 : this.keyRight.isDown ? 1 : 0;
+    const keyY = this.keyJump.isDown ? -1 : this.keyDown.isDown ? 1 : 0;
     input.xDirection = pad.x || keyX;
     input.yDirection = pad.y || keyY;
     const down = this.enter.isDown || pad.hit;
