@@ -3,37 +3,14 @@ import { UI_FONT } from "../ui/Ui.js";
 import { I18n } from "../i18n/I18n.js";
 import { pickCheer, getCheerTheme } from "../data/cheers.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
+import { texCheer, clampSkin } from "../data/skins.js";
 
-function drawBurst(g, color, glow) {
-  const spikes = 11;
-  const outer = 118;
-  const inner = 78;
-  g.fillStyle(color, 0.96);
-  g.beginPath();
-  for (let i = 0; i <= spikes * 2; i += 1) {
-    const r = i % 2 === 0 ? outer : inner;
-    const a = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
-    const x = Math.cos(a) * r;
-    const y = Math.sin(a) * r;
-    if (i === 0) g.moveTo(x, y);
-    else g.lineTo(x, y);
-  }
-  g.closePath();
-  g.fillPath();
-  g.lineStyle(4, glow, 0.95);
-  g.strokePath();
-  g.lineStyle(8, glow, 0.16);
-  g.strokePath();
-}
-
-function pill(scene, w, h, fill, stroke) {
-  const g = scene.add.graphics();
-  g.fillStyle(fill, 0.92);
-  g.fillRoundedRect(-w / 2, -h / 2, w, h, Math.min(18, h / 2));
-  g.lineStyle(3, stroke, 1);
-  g.strokeRoundedRect(-w / 2, -h / 2, w, h, Math.min(18, h / 2));
-  return g;
-}
+const COURT_LOOK = {
+  summer: { stroke: 0xffb14a, fill: 0xfff6ea, ink: "#3a2418", name: "#c45a16", spark: [0xffe08a, 0xff6a22, 0xffffff] },
+  rain: { stroke: 0x3ad6ff, fill: 0xeffbff, ink: "#1a4a68", name: "#1a7a98", spark: [0x9af6ff, 0x3ad6ff, 0xffffff] },
+  spring: { stroke: 0xff8ab8, fill: 0xfff3f8, ink: "#5a2840", name: "#c45a78", spark: [0xffc8dc, 0xff8ab8, 0xffffff] },
+  winter: { stroke: 0x9ec8e8, fill: 0xf4fbff, ink: "#2a4060", name: "#4a6a88", spark: [0xffffff, 0xc8e8ff, 0x8eb8e8] }
+};
 
 export class CheerPopup {
   constructor(scene) {
@@ -51,94 +28,80 @@ export class CheerPopup {
     this.scene.tweens.killTweensOf(this.root);
   }
 
-  show(side, charId) {
+  show(side, charId, opts) {
     this.clear();
-    const theme = getCheerTheme(SaveSystem.equippedCheer());
+    const you = opts && opts.you === true;
+    if (!you) return;
+    const skin = clampSkin(opts && opts.skin);
+    const look = COURT_LOOK[(opts && opts.season) || "summer"] || COURT_LOOK.summer;
+    const theme = getCheerTheme("classic");
     const cheer = pickCheer(charId);
     const left = side === 1;
-    const x = left ? GAME.courtLeft + 250 : GAME.courtRight - 250;
-    const y = 378;
+    const x = left ? GAME.courtLeft + 196 : GAME.courtRight - 196;
+    const y = 428;
     this.root.setPosition(x, y);
     this.root.setVisible(true);
     this.root.setAlpha(1);
-    this.root.setScale(0.88);
-    this.root.setAngle(0);
+    this.root.setScale(0.82);
 
-    const stamp = this.scene.add.container(0, -36);
-    const glow = this.scene.add.circle(0, 0, 108, theme.glow, 0.3);
-    const burst = this.scene.add.graphics();
-    drawBurst(burst, theme.panel, theme.stroke);
-    const ring = this.scene.add.circle(0, 0, 62, 0x000000, 0).setStrokeStyle(5, theme.glow, 0.9);
-    const key = this.scene.textures.exists("vis_" + charId) ? "vis_" + charId : "vis_ignis";
-    const face = this.scene.add.image(0, 0, key).setDisplaySize(108, 108);
-    stamp.add([glow, burst, ring, face]);
+    const faceKey = texCheer(this.scene, charId, skin);
+    const halo = this.scene.add.circle(0, -28, 128, look.stroke, 0.22);
+    const plate = this.scene.add.circle(0, -28, 118, look.fill, 0.96)
+      .setStrokeStyle(5, look.stroke, 0.95);
+    const face = this.scene.add.image(0, -34, faceKey).setDisplaySize(228, 228);
+    if (!left) face.setFlipX(true);
 
-    const titleBg = pill(this.scene, 210, 42, 0x12080e, theme.stroke);
-    titleBg.setPosition(0, -168);
-    const title = this.scene.add.text(0, -168, cheer.title, {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#fff6ea",
-      stroke: "#12080e", strokeThickness: 5
+    const boxW = 268;
+    const boxH = 86;
+    const boxY = 118;
+    const box = this.scene.add.graphics();
+    box.fillStyle(look.fill, 0.96);
+    box.fillRoundedRect(-boxW / 2, boxY - boxH / 2, boxW, boxH, 18);
+    box.lineStyle(3, look.stroke, 0.95);
+    box.strokeRoundedRect(-boxW / 2, boxY - boxH / 2, boxW, boxH, 18);
+
+    const name = this.scene.add.text(-boxW / 2 + 16, boxY - 28, I18n.charName(charId), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: look.name
+    }).setOrigin(0, 0.5);
+    const line = this.scene.add.text(0, boxY + 10, cheer.line, {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: look.ink,
+      align: "center", wordWrap: { width: 236 }
     }).setOrigin(0.5);
 
-    const quote = "“" + cheer.line + "”";
-    const captionBg = pill(this.scene, 268, 92, 0x140a10, theme.stroke);
-    captionBg.setPosition(0, 118);
-    const name = this.scene.add.text(0, 90, I18n.charName(charId), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#ffe08a",
-      stroke: "#12080e", strokeThickness: 4
-    }).setOrigin(0.5);
-    const line = this.scene.add.text(0, 128, quote, {
-      fontFamily: UI_FONT, fontSize: "20px", fontStyle: "700", color: "#fff6ea",
-      align: "center", wordWrap: { width: 240 },
-      stroke: "#12080e", strokeThickness: 5
-    }).setOrigin(0.5);
+    this.root.add([halo, plate, face, box, name, line]);
 
-    this.root.add([stamp, titleBg, title, captionBg, name, line]);
-
-    theme.bits.forEach((c, i) => {
-      let sparkle;
+    const sparks = theme.bits && theme.bits.length ? theme.bits : look.spark;
+    sparks.slice(0, 6).forEach((c, i) => {
+      const sx = x + (left ? -70 : 70) + (i % 3) * 18;
+      const sy = y + 40;
+      let bit;
       try {
-        sparkle = this.scene.add.star(
-          x + (i % 2 === 0 ? -78 : 78) + i * 5,
-          y - 20,
-          5, 4, 9, c, 1
-        ).setDepth(23);
+        bit = this.scene.add.star(sx, sy, 5, 3, 8, c, 1).setDepth(23);
       } catch (e) {
-        sparkle = this.scene.add.circle(
-          x + (i % 2 === 0 ? -78 : 78) + i * 5,
-          y - 20,
-          6, c, 1
-        ).setDepth(23);
+        bit = this.scene.add.circle(sx, sy, 5, c, 1).setDepth(23);
       }
       this.scene.tweens.add({
-        targets: sparkle,
-        y: sparkle.y - 90 - i * 8,
-        x: sparkle.x + (left ? -24 : 24) + i * 5,
+        targets: bit,
+        y: sy - 70 - i * 8,
+        x: sx + (left ? -16 : 16),
         alpha: 0,
-        angle: 160,
-        duration: 720 + i * 40,
-        onComplete: () => sparkle.destroy()
+        angle: 120,
+        duration: 680 + i * 40,
+        onComplete: () => bit.destroy()
       });
-      this.bits.push(sparkle);
+      this.bits.push(bit);
     });
 
     this.scene.tweens.add({
       targets: this.root,
       scale: 1,
-      duration: 160,
+      duration: 180,
       ease: "Back.out"
-    });
-    this.scene.tweens.add({
-      targets: stamp,
-      angle: left ? -5 : 5,
-      duration: 110,
-      yoyo: true,
-      repeat: 1
     });
     this.scene.tweens.add({
       targets: this.root,
       alpha: 0,
-      delay: 1480,
+      delay: 1520,
       duration: 220,
       onComplete: () => this.root.setVisible(false)
     });

@@ -782,7 +782,11 @@ export class PlayScene extends Phaser.Scene {
       const leftWon = this.score[1] > was1;
       const winSide = leftWon ? 2 : 1;
       const winData = winSide === 1 ? this.leftData : this.rightData;
-      this.cheer.show(winSide, winData.id);
+      this.cheer.show(winSide, winData.id, {
+        you: winSide === this.youSide,
+        skin: this.skinForSide(winSide),
+        season: this.season
+      });
       this.showBanner(winData.name, leftWon ? "#c8ff3a" : "#ff8a3a");
       this.pointSlowMs = 500;
       this.roundHoldMs = 1400;
@@ -1002,7 +1006,11 @@ export class PlayScene extends Phaser.Scene {
       this.streak = 1;
       this.streakSide = winSide;
     }
-    this.cheer.show(winSide, winData.id);
+    this.cheer.show(winSide, winData.id, {
+      you: winSide === this.youSide,
+      skin: this.skinForSide(winSide),
+      season: this.season
+    });
     this.notePointStats(winSide);
     this.showBanner(winData.name, leftLand ? "#c8ff3a" : "#ff8a3a");
     if (this.streak >= 2) {

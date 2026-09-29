@@ -58,6 +58,17 @@ export function artSrc(id, tier, facing) {
   return "assets/sprites/skins/select-" + id + "-t" + t + ".png";
 }
 
+export function cheerKey(id, tier) {
+  const t = clampSkin(tier);
+  return t <= 1 ? "vis_cheer_" + id : "vis_cheer_" + id + "_" + t;
+}
+
+export function texCheer(scene, id, tier) {
+  const k = cheerKey(id, tier);
+  if (scene.textures.exists(k)) return k;
+  return texSelect(scene, id, tier);
+}
+
 export function texSelect(scene, id, tier) {
   const k = selectKey(id, tier);
   if (scene.textures.exists(k)) return k;
