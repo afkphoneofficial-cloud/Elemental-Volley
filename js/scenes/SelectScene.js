@@ -8,6 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
+import { RosterCarousel } from "../ui/RosterCarousel.js";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
