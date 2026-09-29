@@ -57,38 +57,38 @@ export class HubScene extends Phaser.Scene {
     const TOP = 48;
     const CH = 48;
     const GAP = 12;
-    const pw = 220;
+    const av = 36;
+    const nameGap = 6;
+    const name = (AuthSystem.displayName() || "—").slice(0, 12);
+    const nm = this.add.text(0, 0, name, {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0, 0.5);
+    const pw = Math.max(156, av + nameGap + Math.ceil(nm.width) + 22);
     const bagW = 124;
-    const fx = PAD + pw + GAP + bagW / 2;
-    const mailW = 100;
+    const mailW = 124;
     const pvpW = 108;
     const tokW = 96;
     const etherW = 108;
-    const mx = W - PAD - mailW / 2;
-    const pvx = mx - mailW / 2 - GAP - pvpW / 2;
+    const profileX = PAD + pw / 2;
+    const fx = PAD + pw + GAP + bagW / 2;
+    const mx = PAD + pw + GAP + bagW + GAP + mailW / 2;
+    const pvx = W - PAD - pvpW / 2;
     const tx = pvx - pvpW / 2 - GAP - tokW / 2;
     const ex = tx - tokW / 2 - GAP - etherW / 2;
     this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
 
     const avId = save.avatarId;
     const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
-    const profileX = PAD + pw / 2;
     const pg = this.add.graphics().setDepth(19);
     pg.fillStyle(0xfff6ea, 0.96);
     pg.fillRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
     pg.lineStyle(2, 0xff6a22, 0.75);
     pg.strokeRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
     const profileBox = this.add.container(profileX, TOP).setDepth(21);
-    const name = (AuthSystem.displayName() || "—").slice(0, 12);
-    const nm = this.add.text(0, 0, name, {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5);
-    const av = 40;
-    const gap = 8;
-    const inner = av + gap + nm.width;
+    const inner = av + nameGap + nm.width;
     const avX = -inner / 2 + av / 2;
     const face = this.add.image(avX, 0, avKey).setDisplaySize(av, av);
-    nm.setPosition(avX + av / 2 + gap, 0);
+    nm.setPosition(avX + av / 2 + nameGap, 0);
     profileBox.add([face, nm]);
     const rk = SaveSystem.data.rank;
     const shown = displayBadgeId(rk);

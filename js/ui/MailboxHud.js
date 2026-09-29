@@ -41,11 +41,11 @@ export function paintMailbox(scene) {
   g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 24);
   g.lineStyle(2, 0xff8ab8, hot ? 1 : 0.78);
   g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 24);
-  keep(scene, scene.add.text(x - 28, y, "✉", {
+  keep(scene, scene.add.text(x - 26, y, "✉", {
     fontFamily: UI_FONT, fontSize: "18px", color: "#c45a16"
   }).setOrigin(0.5).setDepth(25));
-  keep(scene, scene.add.text(x + 10, y, t("mail.title"), {
-    fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#3a2418"
+  keep(scene, scene.add.text(x + 12, y, t("mail.title"), {
+    fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
   }).setOrigin(0.5).setDepth(25));
   if (unread > 0) {
     keep(scene, scene.add.circle(x + w / 2 - 10, y - h / 2 + 8, 9, 0xff4a6a, 1).setDepth(26));
@@ -64,7 +64,7 @@ export function paintMailbox(scene) {
 
   const items = Mailbox.items || [];
   const panelW = 268;
-  const panelX = Math.min(x, scene.scale.width - 28 - panelW / 2);
+  const panelX = Math.max(28 + panelW / 2, Math.min(x, scene.scale.width - 28 - panelW / 2));
   const panelH = 214;
   const pg = keep(scene, scene.add.graphics().setDepth(24));
   pg.fillStyle(0xfff6ea, 0.98);
