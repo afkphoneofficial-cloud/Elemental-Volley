@@ -213,12 +213,13 @@ export const SaveSystem = {
     this.persist();
   },
 
-  buyWithCoins(id, price) {
-    const cost = Math.max(1, price | 0);
+  buyWithCoins(id, price, qty) {
+    const n = Math.max(1, qty | 0);
+    const cost = Math.max(1, price | 0) * n;
     if ((this.data.currencies.coins | 0) < cost) return { ok: false, reason: "coins" };
     if (!ITEMS[id] || ITEMS[id].kind !== "use") return { ok: false, reason: "no" };
     this.data.currencies.coins -= cost;
-    this.addItem(id, 1);
+    this.addItem(id, n);
     return { ok: true };
   },
 

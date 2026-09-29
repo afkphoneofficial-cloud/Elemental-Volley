@@ -11,6 +11,7 @@ import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
+import { openShopBuy } from "../ui/shopBuyPopup.js";
 
 const CARD_W = 196;
 const CARD_H = 236;
@@ -146,8 +147,12 @@ export class ShopScene extends Phaser.Scene {
     }
   }
 
-  paintCheerIcon(theme, x, y) {
-    const g = this.add.graphics().setDepth(8);
+  bag() {
+    return SaveSystem.data.currencies || {};
+  }
+
+  paintCheerIcon(theme, x, y, depth) {
+    const g = this.add.graphics().setDepth(depth == null ? 8 : depth);
     const bits = theme.bits || [theme.glow];
     bits.forEach((c, i) => {
       const a = (i / bits.length) * Math.PI * 2 - Math.PI / 2;
@@ -158,6 +163,7 @@ export class ShopScene extends Phaser.Scene {
     g.fillCircle(x, y, 16);
     g.fillStyle(0xfff6ea, 0.9);
     g.fillCircle(x - 4, y - 5, 5);
+    return g;
   }
 
   paintFighters() {
@@ -178,9 +184,19 @@ export class ShopScene extends Phaser.Scene {
         priceIcon: owned ? null : "item-shard",
         price: owned ? null : ECONOMY.unlockTokenCost,
         onClick: owned ? null : () => {
-          const res = SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost);
-          res.ok ? AudioSystem.ui() : AudioSystem.error();
-          this.refresh();
+          openShopBuy(this, {
+            title: I18n.charName(id),
+            icon: face,
+            kind: t("shop.kindFighter"),
+            owned: owned ? 1 : 0,
+            body: t("shop.buyUnlockBody"),
+            priceIcon: "item-shard",
+            unitPrice: ECONOMY.unlockTokenCost,
+            have: this.bag().tokens | 0,
+            stack: false,
+            onConfirm: () => SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost),
+            after: () => this.refresh()
+          });
         }
       });
     });
@@ -212,9 +228,19 @@ export class ShopScene extends Phaser.Scene {
         priceIcon = "item-powder";
         price = theme.price;
         onClick = () => {
-          const res = SaveSystem.unlockCheer(id);
-          res.ok ? AudioSystem.ui() : AudioSystem.error();
-          this.refresh();
+          openShopBuy(this, {
+            title: cheerThemeLabel(theme),
+            kind: t("shop.kindCheer"),
+            owned: 0,
+            body: t("shop.buyCheerBody"),
+            priceIcon: "item-powder",
+            unitPrice: theme.price,
+            have: this.bag().premium | 0,
+            stack: false,
+            paintIcon: (x, y, d) => this.paintCheerIcon(theme, x, y, d),
+            onConfirm: () => SaveSystem.unlockCheer(id),
+            after: () => this.refresh()
+          });
         };
       }
       this.paintCard(cells[i].x, cells[i].y, {
@@ -245,9 +271,19 @@ export class ShopScene extends Phaser.Scene {
         priceIcon: "item-coin",
         price: good.price,
         onClick: () => {
-          const res = SaveSystem.buyWithCoins(good.id, good.price);
-          res.ok ? AudioSystem.ui() : AudioSystem.error();
-          this.refresh();
+          openShopBuy(this, {
+            title: t("item." + good.id + ".name"),
+            icon: itemIconKey(good.id),
+            kind: t("shop.kindUse"),
+            owned: SaveSystem.itemCount(good.id),
+            body: t("item." + good.id + ".body"),
+            priceIcon: "item-coin",
+            unitPrice: good.price,
+            have: this.bag().coins | 0,
+            maxQty: 99,
+            onConfirm: (qty) => SaveSystem.buyWithCoins(good.id, good.price, qty),
+            after: () => this.refresh()
+          });
         }
       });
     });
@@ -267,9 +303,22 @@ export class ShopScene extends Phaser.Scene {
           priceIcon: "item-stone",
           price: rate,
           onClick: () => {
-            const res = SaveSystem.useItem("stone");
-            res.ok ? AudioSystem.ui() : AudioSystem.error();
-            this.refresh();
+            openShopBuy(this, {
+              title: t("item.stone.name"),
+              icon: "item-stone",
+              kind: t("shop.kindTrade"),
+              owned: this.bag().pvp | 0,
+              body: t("item.stone.use"),
+              priceIcon: "item-stone",
+              unitPrice: rate,
+              have: this.bag().pvp | 0,
+              maxQty: 99,
+              onConfirm: (qty) => {
+                const ok = SaveSystem.exchangePvpToTokens(qty);
+                return { ok };
+              },
+              after: () => this.refresh()
+            });
           }
         });
       } else {
@@ -282,8 +331,22 @@ export class ShopScene extends Phaser.Scene {
           priceIcon: "item-powder",
           price: good.price,
           onClick: () => {
-            SaveSystem.buyTokensWithPremium(good.shards) ? AudioSystem.ui() : AudioSystem.error();
-            this.refresh();
+            openShopBuy(this, {
+              title: t("item.shard.name"),
+              icon: "item-shard",
+              kind: t("shop.kindTrade"),
+              owned: this.bag().tokens | 0,
+              body: t("shop.hintPack", { n: good.shards }),
+              priceIcon: "item-powder",
+              unitPrice: good.price,
+              have: this.bag().premium | 0,
+              maxQty: 99,
+              onConfirm: (qty) => {
+                const ok = SaveSystem.buyTokensWithPremium(good.shards * qty);
+                return { ok };
+              },
+              after: () => this.refresh()
+            });
           }
         });
       }
