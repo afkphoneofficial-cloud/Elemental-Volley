@@ -11,12 +11,12 @@ import { paintSkinAura } from "../fx/SkinAura.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
-import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
 import { mountHubMenu } from "../ui/hubMenu.js";
+import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 
@@ -129,26 +129,6 @@ export class HubScene extends Phaser.Scene {
 
     this.mountPlay(W);
 
-    const navY = H - HUB_NAV.y;
-    const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
-      AudioSystem.ui();
-      ChatSystem.setOpen(!ChatSystem.open);
-    }, 0x3ad6ff);
-    this.chatLabel = chatBtn.text;
-    ChatSystem.bindHub(this);
-    const nav = [
-      [hubNavX(1, W), t("hub.navFriends"), 0xff8ab8, () => this.scene.start("friends")],
-      [hubNavX(2, W), t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
-      [hubNavX(3, W), t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
-      [hubNavX(4, W), t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
-    ];
-    nav.forEach(([x, label, col, fn]) => {
-      makeButton(this, x, navY, HUB_NAV.w, HUB_NAV.h, label, () => {
-        AudioSystem.ui();
-        fn();
-      }, col);
-    });
-
     this.paintEther();
     this.layoutChip(this.coinBox, this.coinIcon, this.coinText);
     this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
@@ -157,6 +137,7 @@ export class HubScene extends Phaser.Scene {
     mountHubMenu(this);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
+    mountHubNav(this);
     Friends.sync();
     AudioSystem.playMenu();
   }

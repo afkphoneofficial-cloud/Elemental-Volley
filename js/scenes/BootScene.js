@@ -41,6 +41,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image("item-ether", "assets/sprites/items/item-ether.png");
     this.load.image("item-fruit", "assets/sprites/items/item-fruit.png");
     this.load.image("item-bag", "assets/sprites/items/item-bag.png");
+    this.load.image("icon-news", "assets/sprites/items/icon-news.png");
+    this.load.image("icon-mirror", "assets/sprites/items/icon-mirror.png");
     this.load.image("item-plate-champ", "assets/sprites/items/item-plate-champ.png");
     this.load.image("item-plate-runner", "assets/sprites/items/item-plate-runner.png");
     this.load.image("item-plate-frame", "assets/sprites/items/item-plate-frame.png");
@@ -84,6 +86,8 @@ export class BootScene extends Phaser.Scene {
         TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
       }
       TextureFactory.applyChibi(this, "item-cheer-champ", "item-cheer-champ");
+      TextureFactory.applyChibi(this, "icon-news", "vis_icon_news");
+      TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
       TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
       TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
       TextureFactory.applyChibi(this, "item-plate-frame", "item-plate-frame");

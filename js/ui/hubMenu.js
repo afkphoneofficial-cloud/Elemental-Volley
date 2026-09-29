@@ -1,12 +1,9 @@
 import { UI_FONT } from "./Ui.js";
 import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { AuthSystem } from "../systems/AuthSystem.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
-import { badgeKey, displayBadgeId } from "../data/ranks.js";
-import { texHeroSelect } from "../data/seasonLooks.js";
 
 const D = 92;
 
@@ -92,18 +89,17 @@ export function paintHubMenu(scene) {
   if (!open) return;
 
   const save = SaveSystem.data;
-  const heroId = save.showcaseId || save.starterId || "ignis";
   const avId = save.avatarId;
   const entries = [
-    { label: t("hub.navFighter"), icon: texHeroSelect(scene, heroId), go: () => scene.scene.start("dress") },
-    { label: t("hub.navNews"), icon: scene.textures.exists("item-cheer-champ") ? "item-cheer-champ" : "item-ether", go: () => scene.scene.start("news") },
-    { label: t("hub.navBoard"), icon: scene.textures.exists(badgeKey(displayBadgeId(save.rank))) ? badgeKey(displayBadgeId(save.rank)) : "item-plate-champ", go: () => scene.scene.start("rankinfo", { from: "hub", tab: "pvp" }) },
-    { label: t("hub.navBag"), icon: "item-bag", go: () => scene.scene.start("bag") },
+    { label: t("hub.navNews"), icon: "vis_icon_news", go: () => scene.scene.start("news") },
     { label: unread ? t("mail.title") + " " + unread : t("mail.title"), icon: "", mail: true, go: () => {
       scene.mailOpen = !scene.mailOpen;
       if (scene.paintMailbox) scene.paintMailbox();
     } },
-    { label: t("career.title"), icon: avatarKey(avId), go: () => scene.scene.start("career") }
+    { label: t("career.title"), icon: avatarKey(avId), go: () => scene.scene.start("career") },
+    { label: t("hub.navGrowth"), icon: "item-fruit", go: () => scene.scene.start("growth") },
+    { label: t("hub.navBag"), icon: "item-bag", go: () => scene.scene.start("bag") },
+    { label: t("hub.navDress"), icon: "vis_icon_mirror", go: () => scene.scene.start("dress") }
   ];
 
   const cols = 2;
