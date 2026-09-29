@@ -15,7 +15,6 @@ export class ModeScene extends Phaser.Scene {
     if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
-    this.cameras.main.roundPixels = true;
     this.ruleBits = [];
     this.fxRing = this.add.graphics().setDepth(2);
 
@@ -78,22 +77,17 @@ export class ModeScene extends Phaser.Scene {
     this.scene.start("select");
   }
 
-  paintCopy(x, y, w, title, body, titleColor, bodyColor, seasonKind, epic) {
-    x = Math.round(x);
-    y = Math.round(y);
-    const titleStyle = {
+  paintCopy(x, y, w, title, body, seasonKind, epic) {
+    const titleColor = epic ? "#ffe08a" : "#3a2418";
+    const bodyColor = epic ? "#fff6ea" : "#5a3828";
+    this.add.text(x, y - 96, title, {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: titleColor,
       align: "center", wordWrap: { width: w - 36 }
-    };
-    if (epic) {
-      titleStyle.stroke = "#2a1048";
-      titleStyle.strokeThickness = 2;
-    }
-    this.add.text(x, y - 96, title, titleStyle).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
-    this.add.text(x, seasonKind ? y - 36 : y - 8, body, {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: bodyColor,
-      align: "center", wordWrap: { width: w - 48 }, lineSpacing: 5
-    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, seasonKind ? y - 38 : y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: bodyColor,
+      align: "center", wordWrap: { width: w - 48 }, lineSpacing: 4
+    }).setOrigin(0.5).setDepth(8);
     if (!seasonKind) return false;
     const win = rankWindow(seasonKind);
     const lang = I18n.lang;
@@ -104,15 +98,15 @@ export class ModeScene extends Phaser.Scene {
       end: formatYmdShort(win.week.end, lang)
     });
     this.add.text(x, y + 18, t("hub.modeSeason"), {
-      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: epic ? "#ffe08a" : "#c45a16"
-    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
-    this.add.text(x, y + 42, days, {
-      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "800", color: bodyColor
-    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
-    this.add.text(x, y + 64, status + "  ·  " + week, {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800",
-      color: win.open ? (epic ? "#d8ff6a" : "#146038") : (epic ? "#ff8ab8" : "#c45a16")
-    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: epic ? "#ffe08a" : "#c45a16"
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, y + 40, days, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: bodyColor
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, y + 62, status + "  ·  " + week, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700",
+      color: win.open ? (epic ? "#c8ff3a" : "#1a7a48") : (epic ? "#ff8ab8" : "#c45a16")
+    }).setOrigin(0.5).setDepth(8);
     return !win.open;
   }
 
@@ -169,7 +163,7 @@ export class ModeScene extends Phaser.Scene {
 
   card(x, y, w, h, color, title, body, onClick) {
     roundPanel(this, x, y, w, h, color, 0xfff6ea);
-    this.paintCopy(x, y, w, title, body, "#3a2418", "#3a2418", null, false);
+    this.paintCopy(x, y, w, title, body, null, false);
     makeButton(this, x, y + 108, 220, 44, title, () => onClick(), color);
   }
 
@@ -194,7 +188,7 @@ export class ModeScene extends Phaser.Scene {
     panel.lineStyle(1.5, 0xc8b8ff, 0.55);
     panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
 
-    const locked = this.paintCopy(x, y, w, title, body, "#3a2418", "#3a2418", kind, false);
+    const locked = this.paintCopy(x, y, w, title, body, kind, false);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x12080e, 0.22);
@@ -249,7 +243,7 @@ export class ModeScene extends Phaser.Scene {
     panel.fillStyle(0xffffff, 0.08);
     panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 14, w - 36, 36, 12);
 
-    const locked = this.paintCopy(x, y, w, title, body, "#ffe08a", "#fff6ea", kind, true);
+    const locked = this.paintCopy(x, y, w, title, body, kind, true);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x000000, 0.28);
