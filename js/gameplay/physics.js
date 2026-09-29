@@ -367,9 +367,8 @@ function physicsEngine(player1, player2, ball, userInputArray) {
  if (player.isCollisionWithBallHappened === false) {
  processCollisionBetweenBallAndPlayer(
  ball,
- player.x,
- userInputArray[i],
- player.state
+ player,
+ userInputArray[i]
  );
  if (MATCH_FX.slippery[side] === true) {
  ball.xVelocity = (rand() % 23) - 11;
@@ -701,16 +700,17 @@ function processGameEndFrameFor(player) {
  * The ball position is set by {@link processCollisionBetweenBallAndWorldAndSetBallPosition} function
  *
  * @param {Ball} ball
- * @param {Player["x"]} playerX
+ * @param {Player} player
  * @param {PikaUserInput} userInput
- * @param {Player["state"]} playerState
  */
 function processCollisionBetweenBallAndPlayer(
  ball,
- playerX,
- userInput,
- playerState
+ player,
+ userInput
 ) {
+ const playerX = player.x;
+ const playerState = player.state;
+ const side = player.isPlayer2 ? 1 : 0;
  // playerX is pika's x position
  // if collision occur,
  // greater the x position difference between pika and ball,
@@ -727,7 +727,7 @@ function processCollisionBetweenBallAndPlayer(
  if (ball.xVelocity === 0) {
  ball.xVelocity = (rand() % 3) - 1;
  }
- const jitter = GROWTH_FX.aimJitter[player.isPlayer2 ? 1 : 0];
+ const jitter = growthMul(GROWTH_FX.aimJitter, side);
  if (playerState !== 2 && ball.xVelocity !== 0) {
  if (jitter < 0.99) {
  ball.xVelocity = Math.round(ball.xVelocity * jitter) || (ball.xVelocity > 0 ? 1 : -1);
@@ -746,7 +746,7 @@ function processCollisionBetweenBallAndPlayer(
 
  // player is jumping and power hitting
  if (playerState === 2) {
- const smash = GROWTH_FX.spikeMul[player.isPlayer2 ? 1 : 0];
+ const smash = growthMul(GROWTH_FX.spikeMul, side);
  if (ball.x < GROUND_HALF_WIDTH) {
  ball.xVelocity = (Math.abs(userInput.xDirection) + 1) * 10 * smash;
  } else {
@@ -767,6 +767,8 @@ function processCollisionBetweenBallAndPlayer(
  ball.isPowerHit = false;
  }
 
+ if (!Number.isFinite(ball.xVelocity)) ball.xVelocity = ball.x < GROUND_HALF_WIDTH ? 8 : -8;
+ if (!Number.isFinite(ball.yVelocity)) ball.yVelocity = -15;
  calculateExpectedLandingPointXFor(ball);
 }
 
@@ -776,6 +778,10 @@ function processCollisionBetweenBallAndPlayer(
  * @param {Ball} ball
  */
 function calculateExpectedLandingPointXFor(ball) {
+ if (!Number.isFinite(ball.x) || !Number.isFinite(ball.y) || !Number.isFinite(ball.xVelocity) || !Number.isFinite(ball.yVelocity)) {
+ ball.expectedLandingPointX = Number.isFinite(ball.x) ? ball.x : GROUND_HALF_WIDTH;
+ return;
+ }
  const copyBall = {
  x: ball.x,
  y: ball.y,
