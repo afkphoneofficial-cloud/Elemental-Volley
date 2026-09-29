@@ -112,7 +112,9 @@ export class GrowthScene extends Phaser.Scene {
       if (res && res.ok) {
         AudioSystem.ui();
         this.refresh();
+        return;
       }
+      this.showBagHint(res && res.reason);
     }, 0x7d5cff);
 
     this.refresh();
@@ -253,5 +255,13 @@ export class GrowthScene extends Phaser.Scene {
     }, 0xffb14a, 53);
     const close = makeButton(this, W / 2, 590, 120, 42, t("growth.hintClose"), () => this.closeHint(), 0x7d5cff, 53);
     this.hintBits = [veil, panel, title, body, page, prev.gfx, prev.text, prev.bg, next.gfx, next.text, next.bg, close.gfx, close.text, close.bg];
+  }
+
+  showBagHint(reason) {
+    const key = reason === "none" || reason === "needFruit" ? "growth.needFruit" : "bag.err." + (reason || "no");
+    const msg = this.add.text(this.scale.width / 2, 670, t(key), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c42a4a"
+    }).setOrigin(0.5).setDepth(30);
+    this.time.delayedCall(1800, () => { if (msg && msg.destroy) msg.destroy(); });
   }
 }

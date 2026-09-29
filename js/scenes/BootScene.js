@@ -32,6 +32,10 @@ export class BootScene extends Phaser.Scene {
       });
     });
     this.load.image("ether-art", "assets/sprites/ether.png");
+    this.load.image("item-stone", "assets/sprites/items/item-stone.png");
+    this.load.image("item-shard", "assets/sprites/items/item-shard.png");
+    this.load.image("item-ether", "assets/sprites/items/item-ether.png");
+    this.load.image("item-fruit", "assets/sprites/items/item-fruit.png");
     this.load.image("ball-art", "assets/sprites/ball.png");
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {

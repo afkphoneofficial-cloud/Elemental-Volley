@@ -120,14 +120,22 @@ export class HubScene extends Phaser.Scene {
     this.etherBox.add([this.etherText, this.etherHint]);
 
     chip(this, tx, TOP, tokW, 0xffb14a, () => this.openInfo("tokens"));
-    this.add.text(tx, TOP, "", {
+    this.tokenBox = this.add.container(tx, TOP).setDepth(21);
+    this.tokenIcon = this.textures.exists("item-shard") ? this.add.image(0, 0, "item-shard").setDisplaySize(28, 28) : null;
+    this.tokenText = this.add.text(0, 0, t("hub.chipToken", { n: cur.tokens }), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(21).setText(t("hub.chipToken", { n: cur.tokens }));
+    }).setOrigin(0, 0.5);
+    if (this.tokenIcon) this.tokenBox.add(this.tokenIcon);
+    this.tokenBox.add(this.tokenText);
 
     chip(this, pvx, TOP, pvpW, 0x7d5cff, () => this.openInfo("pvp"));
-    this.add.text(pvx, TOP, t("hub.chipPvp", { n: cur.pvp }), {
+    this.stoneBox = this.add.container(pvx, TOP).setDepth(21);
+    this.stoneIcon = this.textures.exists("item-stone") ? this.add.image(0, 0, "item-stone").setDisplaySize(28, 28) : null;
+    this.stoneText = this.add.text(0, 0, t("hub.chipPvp", { n: cur.pvp }), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(21);
+    }).setOrigin(0, 0.5);
+    if (this.stoneIcon) this.stoneBox.add(this.stoneIcon);
+    this.stoneBox.add(this.stoneText);
 
     const heroId = save.showcaseId || save.starterId || "ignis";
     const heroKey = texSelect(this, heroId, SaveSystem.skinOf(heroId));
@@ -183,6 +191,8 @@ export class HubScene extends Phaser.Scene {
     });
 
     this.paintEther();
+    this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
+    this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
     Friends.sync();
@@ -227,6 +237,19 @@ export class HubScene extends Phaser.Scene {
   shutdown() {
     ChatSystem.bindHub(null);
     Leaderboard.hide();
+  }
+
+  layoutChip(box, icon, text) {
+    if (!box || !text) return;
+    const gap = 6;
+    const iconW = icon ? 28 : 0;
+    const total = iconW + (iconW ? gap : 0) + text.width;
+    let x = -total / 2;
+    if (icon) {
+      icon.setPosition(x + iconW / 2, 0);
+      x += iconW + gap;
+    }
+    text.setPosition(x, 0);
   }
 
   paintEther() {

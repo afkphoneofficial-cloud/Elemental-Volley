@@ -218,9 +218,29 @@ export const COPY = {
     },
     bag: {
       title: "กระเป๋า",
-      sub: "ของใช้กับตัวละคร เช่น ผลคืนกาย",
+      sub: "ช่องใส่ของ  ·  กดไอเท็มแล้วกดใช้ได้จากที่นี่",
       empty: "ยังไม่มีของในกระเป๋า",
-      emptySub: "ผลคืนกายจะมาใช้ที่นี่ภายหลัง เมื่อมีไอเท็มแล้วจะกดใช้จากหน้านี้"
+      emptySub: "ของใช้จะโชว์เป็นช่องเหมือนเกมมือถือ",
+      slotEmpty: "ช่องว่าง",
+      held: "มี {n} ชิ้น",
+      materialHint: "ใช้ที่ร้านค้าหรือมุมขวาบน ไม่กดใช้จากกระเป๋า",
+      pickFighter: "เลือกตัวที่จะใช้ผลคืนกาย",
+      use: "ใช้",
+      used: "ใช้แล้ว",
+      usedFruit: "คืนแต้มเลเวลของ {name} แล้ว",
+      err: {
+        no: "ใช้ชิ้นนี้ไม่ได้",
+        none: "ของไม่พอ",
+        full: "เอเธอร์เต็มแล้ว",
+        char: "เลือกตัวละครก่อน",
+        free: "ตัวนี้ยังรีเซ็ตเลเวลฟรีได้อยู่ ใช้ปุ่มในหน้าธาตุกายก่อน"
+      }
+    },
+    item: {
+      stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า" },
+      shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า" },
+      ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ถ้าหลอดเต็มจะเก็บในกระเป๋าก่อน" },
+      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล" }
     },
     growth: {
       title: "ธาตุกาย",
@@ -242,6 +262,7 @@ export const COPY = {
       respecStart: "คืนแต้มเริ่มต้น 50 แต้ม (ไม่จำกัดครั้ง)",
       respecLevel: "คืนแต้มจากการอัพเลเวล (ฟรี 1ครั้ง)",
       useFruit: "ใช้ผลคืนกาย",
+      needFruit: "ต้องใช้ผลคืนกายจากกระเป๋า",
       confirm: "ยืนยันการอัพ",
       cancelDraft: "ยกเลิกการทดลอง",
       draftNote: "กำลังทดลองอัพ ยังไม่บันทึก  ·  กดยืนยันเมื่อพร้อม",
@@ -352,6 +373,8 @@ export const COPY = {
       lootXp: "{name}  +{n} XP  ·  เลเวล {lv}",
       lootOpen: "ดูของรางวัล",
       lootToVerdict: "ดูคำตัดสิน",
+      lootEther: "เอเธอร์  +{n}",
+      lootVial: "เอเธอร์เข้ากระเป๋า  +{n}",
       again: "เล่นอีกครั้ง",
       shop: "ร้านค้าปลดล็อก",
       hub: "กลับล็อบบี้",
@@ -743,9 +766,29 @@ export const COPY = {
     },
     bag: {
       title: "Bag",
-      sub: "Items for your fighter, such as Bodyfruit",
+      sub: "Inventory slots  ·  Tap an item, then use it here",
       empty: "The bag is empty",
-      emptySub: "Bodyfruit will be used here later. When items exist, this is where you spend them."
+      emptySub: "Usable items show up as slots, like a mobile RPG bag",
+      slotEmpty: "Empty slot",
+      held: "x{n}",
+      materialHint: "Spend these in the shop or the lobby chips, not from the bag",
+      pickFighter: "Pick a fighter for Bodyfruit",
+      use: "Use",
+      used: "Used",
+      usedFruit: "Reset {name}'s level-up points",
+      err: {
+        no: "Cannot use this",
+        none: "Not enough",
+        full: "Ether is already full",
+        char: "Pick a fighter first",
+        free: "This fighter still has a free level reset. Use the Element Body button first."
+      }
+    },
+    item: {
+      stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop." },
+      shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop." },
+      ether_vial: { name: "Ether", body: "Use to restore 1 court charge. Extra drops go to the bag when the bar is full." },
+      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points." }
     },
     growth: {
       title: "Element Body",
@@ -767,6 +810,7 @@ export const COPY = {
       respecStart: "Reset starter 50 points (unlimited)",
       respecLevel: "Reset level-up points (1 free use)",
       useFruit: "Use Bodyfruit",
+      needFruit: "You need Bodyfruit from the bag",
       confirm: "Confirm upgrades",
       cancelDraft: "Discard trial",
       draftNote: "Trial only — not saved until you confirm",
@@ -877,6 +921,8 @@ export const COPY = {
       lootXp: "{name}  +{n} XP  ·  level {lv}",
       lootOpen: "See rewards",
       lootToVerdict: "See the ruling",
+      lootEther: "Ether  +{n}",
+      lootVial: "Ether in bag  +{n}",
       again: "Play again",
       shop: "Unlock shop",
       hub: "Back to lobby",

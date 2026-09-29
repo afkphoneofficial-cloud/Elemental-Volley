@@ -11,6 +11,7 @@ import {
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
+import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -35,6 +36,7 @@ const empty = () => ({
   matchLog: [],
   ether: ECONOMY.etherMax,
   etherAt: 0,
+  inventory: {},
   avatarId: "av01",
   unlockedAvatars: [],
   cosmetics: { owned: [], equipped: {} },
@@ -58,6 +60,12 @@ function finish(data) {
   if (!Array.isArray(data.matchLog)) data.matchLog = [];
   if (data.ether == null) data.ether = ECONOMY.etherMax;
   if (!data.etherAt) data.etherAt = Date.now();
+  if (!data.inventory || typeof data.inventory !== "object" || Array.isArray(data.inventory)) data.inventory = {};
+  Object.keys(data.inventory).forEach((id) => {
+    const n = data.inventory[id] | 0;
+    if (n > 0) data.inventory[id] = n;
+    else delete data.inventory[id];
+  });
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
   migrateCosmetics(data);
@@ -157,6 +165,70 @@ export const SaveSystem = {
   addTokens(amount) {
     this.data.currencies.tokens += amount;
     this.persist();
+  },
+
+  itemCount(id) {
+    if (!this.data.inventory) this.data.inventory = {};
+    return this.data.inventory[id] | 0;
+  },
+
+  addItem(id, amount) {
+    if (!ITEMS[id]) return 0;
+    if (!this.data.inventory) this.data.inventory = {};
+    const n = this.itemCount(id) + (amount | 0);
+    if (n <= 0) delete this.data.inventory[id];
+    else this.data.inventory[id] = n;
+    this.persist();
+    return this.itemCount(id);
+  },
+
+  consumeItem(id, amount) {
+    const need = Math.max(1, amount | 0);
+    if (this.itemCount(id) < need) return false;
+    this.addItem(id, -need);
+    return true;
+  },
+
+  grantEther(amount) {
+    const add = Math.max(0, amount | 0);
+    if (!add) return { bar: 0, vial: 0 };
+    const max = ECONOMY.etherMax;
+    const status = tickEther(this.data, Date.now());
+    const room = Math.max(0, max - (status.n | 0));
+    const bar = Math.min(room, add);
+    if (bar) this.data.ether = status.n + bar;
+    const vial = add - bar;
+    if (vial) {
+      if (!this.data.inventory) this.data.inventory = {};
+      this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + vial;
+    }
+    this.persist();
+    return { bar, vial };
+  },
+
+  useItem(id, ctx) {
+    const row = ITEMS[id];
+    if (!row || row.kind !== "use") return { ok: false, reason: "no" };
+    if (row.effect === "ether1") {
+      const status = tickEther(this.data, Date.now());
+      if (status.full) return { ok: false, reason: "full" };
+      if (!this.consumeItem(id, 1)) return { ok: false, reason: "none" };
+      this.data.ether = Math.min(ECONOMY.etherMax, (status.n | 0) + 1);
+      this.persist();
+      return { ok: true, effect: "ether1" };
+    }
+    if (row.effect === "respecLevel") {
+      const charId = ctx && ctx.charId;
+      if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };
+      const g = clampGrowth(this.data.growth[charId]);
+      if (g.freeLevelRespec) return { ok: false, reason: "free" };
+      if (!this.consumeItem(id, 1)) return { ok: false, reason: "none" };
+      g.spentLevel = { spike: 0, touch: 0, aim: 0, spring: 0 };
+      this.data.growth[charId] = normalizeRow(charId, g);
+      this.persist();
+      return { ok: true, effect: "respecLevel", charId };
+    }
+    return { ok: false, reason: "no" };
   },
 
   exchangePvpToTokens(tokenCount) {
@@ -360,14 +432,16 @@ export const SaveSystem = {
   },
 
   respecLevelGrowth(id) {
-    if (!this.isUnlocked(id)) return false;
+    if (!this.isUnlocked(id)) return { ok: false };
     const row = clampGrowth(this.data.growth[id]);
-    if (!row.freeLevelRespec) return { ok: false, needFruit: true };
-    row.spentLevel = { spike: 0, touch: 0, aim: 0, spring: 0 };
-    row.freeLevelRespec = false;
-    this.data.growth[id] = normalizeRow(id, row);
-    this.persist();
-    return { ok: true };
+    if (row.freeLevelRespec) {
+      row.spentLevel = { spike: 0, touch: 0, aim: 0, spring: 0 };
+      row.freeLevelRespec = false;
+      this.data.growth[id] = normalizeRow(id, row);
+      this.persist();
+      return { ok: true };
+    }
+    return this.useItem("bodyfruit", { charId: id });
   },
 
   equipAvatar(id) {

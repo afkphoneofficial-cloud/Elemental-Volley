@@ -57,16 +57,23 @@ export class ResultScene extends Phaser.Scene {
     this.pvpGain = pay.stones;
     this.shardGain = pay.shards;
     this.xpGain = pay.xp;
+    this.etherBar = 0;
+    this.etherVial = 0;
     this.bonus = 0;
     if (pay.stones) SaveSystem.addPvp(pay.stones);
     if (pay.firstWinEligible) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
     if (pay.shards) SaveSystem.addTokens(pay.shards);
+    if (pay.ether) {
+      const got = SaveSystem.grantEther(pay.ether);
+      this.etherBar = got.bar | 0;
+      this.etherVial = got.vial | 0;
+    }
     this.xpLevel = 0;
     if (pay.xp) {
       const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, pay.xp);
       this.xpLevel = sheet.level;
     }
-    this.hasLoot = hasMatchLoot(pay) || this.bonus > 0;
+    this.hasLoot = hasMatchLoot(pay) || this.bonus > 0 || this.etherBar > 0 || this.etherVial > 0;
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
     Session.netHost = false;
@@ -193,7 +200,10 @@ export class ResultScene extends Phaser.Scene {
     this.lootXp = this.keep(g, this.add.text(W / 2, 368, "", {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a48"
     }).setOrigin(0.5).setDepth(8));
-    this.lootBag = this.keep(g, this.add.text(W / 2, 430, "", {
+    this.lootEther = this.keep(g, this.add.text(W / 2, 418, "", {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a98"
+    }).setOrigin(0.5).setDepth(8));
+    this.lootBag = this.keep(g, this.add.text(W / 2, 460, "", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#8a5a38", align: "center", wordWrap: { width: 600 }
     }).setOrigin(0.5).setDepth(8));
     this.lootBackBtn = makeButton(this, W / 2, 548, 300, 50, t("result.lootToVerdict"), () => this.showPage("verdict"), 0xff6a22);
@@ -260,6 +270,7 @@ export class ResultScene extends Phaser.Scene {
       if (this.lootStone) this.lootStone.setVisible(this.pvpGain > 0);
       if (this.lootShard) this.lootShard.setVisible(this.shardGain > 0);
       if (this.lootXp) this.lootXp.setVisible(this.xpGain > 0);
+      if (this.lootEther) this.lootEther.setVisible(this.etherBar > 0 || this.etherVial > 0);
     }
     const showNav = true;
     if (this.againBtn && this.againBtn.bg) {
@@ -325,20 +336,23 @@ export class ResultScene extends Phaser.Scene {
         lv: this.xpLevel
       }) : "");
     }
+    if (this.lootEther) {
+      const bits = [];
+      if (this.etherBar) bits.push(t("result.lootEther", { n: this.etherBar }));
+      if (this.etherVial) bits.push(t("result.lootVial", { n: this.etherVial }));
+      this.lootEther.setText(bits.join("   ·   "));
+    }
     if (this.page === "loot") {
-      let y = 268;
-      if (this.lootStone) {
-        this.lootStone.setVisible(this.pvpGain > 0);
-        if (this.pvpGain > 0) { this.lootStone.setY(y); y += 52; }
-      }
-      if (this.lootShard) {
-        this.lootShard.setVisible(this.shardGain > 0);
-        if (this.shardGain > 0) { this.lootShard.setY(y); y += 52; }
-      }
-      if (this.lootXp) {
-        this.lootXp.setVisible(this.xpGain > 0);
-        if (this.xpGain > 0) this.lootXp.setY(y);
-      }
+      let y = 250;
+      const put = (node, on) => {
+        if (!node) return;
+        node.setVisible(on);
+        if (on) { node.setY(y); y += 46; }
+      };
+      put(this.lootStone, this.pvpGain > 0);
+      put(this.lootShard, this.shardGain > 0);
+      put(this.lootXp, this.xpGain > 0);
+      put(this.lootEther, this.etherBar > 0 || this.etherVial > 0);
     }
     if (this.lootBag) this.lootBag.setText(t("result.total", {
       pvp: SaveSystem.data.currencies.pvp,
