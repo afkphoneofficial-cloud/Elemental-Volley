@@ -24,10 +24,37 @@ function squareBtn(scene, x, y, label, onClick, depth) {
   return [gfx, text, zone];
 }
 
+function dropQtyInput(scene) {
+  if (scene._shopQtyPlace) {
+    window.removeEventListener("resize", scene._shopQtyPlace);
+    if (window.visualViewport) window.visualViewport.removeEventListener("resize", scene._shopQtyPlace);
+    if (scene.scale && scene.scale.off) scene.scale.off("resize", scene._shopQtyPlace);
+    scene._shopQtyPlace = null;
+  }
+  if (scene._shopQtyInput) {
+    scene._shopQtyInput.remove();
+    scene._shopQtyInput = null;
+  }
+}
+
 export function closeShopBuy(scene) {
+  dropQtyInput(scene);
   if (!scene._shopBuy) return;
   scene._shopBuy.destroy(true);
   scene._shopBuy = null;
+}
+
+function placeQtyInput(scene, el, gx, gy, gw, gh) {
+  const canvas = scene.game && scene.game.canvas;
+  if (!canvas || !el) return;
+  const r = canvas.getBoundingClientRect();
+  const sx = r.width / scene.scale.width;
+  const sy = r.height / scene.scale.height;
+  el.style.left = (r.left + gx * sx) + "px";
+  el.style.top = (r.top + gy * sy) + "px";
+  el.style.width = (gw * sx) + "px";
+  el.style.height = (gh * sy) + "px";
+  el.style.fontSize = Math.max(14, Math.round(22 * sy)) + "px";
 }
 
 export function openShopBuy(scene, spec) {
@@ -92,10 +119,21 @@ export function openShopBuy(scene, spec) {
   const qtyLabel = scene.add.text(cx - 168, qtyY, t("shop.buyQty"), {
     fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
   }).setOrigin(0.5).setDepth(D);
-  const qtyNum = scene.add.text(cx + 8, qtyY, "1", {
+  bits.push(qtyLabel);
+  const fieldW = 78;
+  const fieldH = 44;
+  const fieldX = cx + 8;
+  const field = scene.add.graphics().setDepth(D);
+  field.fillStyle(0xfff6ea, 1);
+  field.fillRoundedRect(fieldX - fieldW / 2, qtyY - fieldH / 2, fieldW, fieldH, 10);
+  field.lineStyle(2, 0xe8c8a8, 0.95);
+  field.strokeRoundedRect(fieldX - fieldW / 2, qtyY - fieldH / 2, fieldW, fieldH, 10);
+  bits.push(field);
+  const qtyNum = scene.add.text(fieldX, qtyY, "1", {
     fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
   }).setOrigin(0.5).setDepth(D);
-  bits.push(qtyLabel, qtyNum);
+  qtyNum.setVisible(!stack);
+  bits.push(qtyNum);
 
   const payY = qtyY + 52;
   bits.push(scene.add.text(cx - 168, payY, t("shop.buyPay"), {
@@ -110,11 +148,30 @@ export function openShopBuy(scene, spec) {
   }).setOrigin(0, 0.5).setDepth(D);
   bits.push(payNum);
 
-  const paintQty = () => {
+  const paintQty = (fromInput) => {
     qtyNum.setText(String(qty));
+    if (scene._shopQtyInput && !fromInput) scene._shopQtyInput.value = String(qty);
     const total = unit * qty;
     payNum.setText(String(total));
     payNum.setColor(have >= total ? "#3a2418" : "#c43a3a");
+  };
+
+  const applyTyped = (raw, clampEmpty) => {
+    const digits = String(raw || "").replace(/\D/g, "");
+    if (!digits) {
+      if (clampEmpty) {
+        qty = 1;
+        paintQty();
+      } else {
+        payNum.setText("—");
+        payNum.setColor("#c43a3a");
+      }
+      return digits;
+    }
+    qty = Math.max(1, Math.min(maxQty, parseInt(digits, 10) || 1));
+    paintQty(true);
+    if (scene._shopQtyInput && String(qty) !== digits) scene._shopQtyInput.value = String(qty);
+    return String(qty);
   };
 
   if (stack) {
@@ -133,13 +190,46 @@ export function openShopBuy(scene, spec) {
       paintQty();
       AudioSystem.ui();
     }, D));
+    const input = document.createElement("input");
+    input.id = "shop-qty-input";
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.autocomplete = "off";
+    input.maxLength = 3;
+    input.value = "1";
+    input.setAttribute("aria-label", t("shop.buyQty"));
+    document.body.appendChild(input);
+    scene._shopQtyInput = input;
+    const place = () => placeQtyInput(scene, input, fieldX - fieldW / 2, qtyY - fieldH / 2, fieldW, fieldH);
+    scene._shopQtyPlace = place;
+    place();
+    window.addEventListener("resize", place);
+    scene.scale.on("resize", place);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", place);
+    input.addEventListener("pointerdown", (e) => e.stopPropagation());
+    input.addEventListener("mousedown", (e) => e.stopPropagation());
+    input.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+    input.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyTyped(input.value, true);
+        okZone();
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeShopBuy(scene);
+      }
+    });
+    input.addEventListener("input", () => {
+      input.value = applyTyped(input.value, false);
+    });
+    input.addEventListener("blur", () => applyTyped(input.value, true));
+    setTimeout(() => input.select(), 0);
   }
 
-  const cancel = makeButton(scene, cx - 110, cy + ph / 2 - 40, 180, 48, t("shop.buyCancel"), () => {
-    AudioSystem.ui();
-    closeShopBuy(scene);
-  }, 0xff8a3a, D + 4);
-  const ok = makeButton(scene, cx + 110, cy + ph / 2 - 40, 180, 48, t("shop.buyOk"), () => {
+  const finishBuy = () => {
+    applyTyped(scene._shopQtyInput ? scene._shopQtyInput.value : String(qty), true);
     const res = spec.onConfirm(qty);
     if (res && res.ok === false) {
       AudioSystem.error();
@@ -152,7 +242,13 @@ export function openShopBuy(scene, spec) {
     AudioSystem.ui();
     closeShopBuy(scene);
     if (spec.after) spec.after();
-  }, 0x4aa6e8, D + 4);
+  };
+  const okZone = finishBuy;
+  const cancel = makeButton(scene, cx - 110, cy + ph / 2 - 40, 180, 48, t("shop.buyCancel"), () => {
+    AudioSystem.ui();
+    closeShopBuy(scene);
+  }, 0xff8a3a, D + 4);
+  const ok = makeButton(scene, cx + 110, cy + ph / 2 - 40, 180, 48, t("shop.buyOk"), finishBuy, 0x4aa6e8, D + 4);
   bits.push(cancel.gfx, cancel.text, cancel.bg, ok.gfx, ok.text, ok.bg);
   root.add(bits);
   paintQty();

@@ -282,9 +282,20 @@ body {
   border-radius: 0;
 }
 
-#game canvas {
-  display: block;
-  touch-action: none;
+#shop-qty-input {
+  position: fixed;
+  z-index: 120;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3a2418;
+  font-family: Kanit, Segoe UI, sans-serif;
+  font-weight: 900;
+  text-align: center;
+  outline: none;
+  box-sizing: border-box;
+  caret-color: #c45a16;
 }
 
 html[data-control="pc"] #game {

@@ -11,7 +11,7 @@ import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
-import { openShopBuy } from "../ui/shopBuyPopup.js";
+import { openShopBuy, closeShopBuy } from "../ui/shopBuyPopup.js";
 
 const CARD_W = 196;
 const CARD_H = 236;
@@ -51,6 +51,8 @@ export class ShopScene extends Phaser.Scene {
     else if (this.tab === "cosmetics") this.paintCosmetics();
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();
+
+    this.events.once("shutdown", () => closeShopBuy(this));
 
     this.add.text(W / 2, 688, t("shop.foot"), {
       fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38",
