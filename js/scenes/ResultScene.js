@@ -58,6 +58,7 @@ export class ResultScene extends Phaser.Scene {
     });
     this.pvpGain = pay.stones;
     this.shardGain = pay.shards;
+    this.coinGain = pay.coins | 0;
     this.xpGain = pay.xp;
     this.etherBar = 0;
     this.etherVial = 0;
@@ -65,6 +66,7 @@ export class ResultScene extends Phaser.Scene {
     if (pay.stones) SaveSystem.addPvp(pay.stones);
     if (pay.firstWinEligible) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
     if (pay.shards) SaveSystem.addTokens(pay.shards);
+    if (pay.coins) SaveSystem.addCoins(pay.coins);
     if (pay.ether) {
       const got = SaveSystem.grantEther(pay.ether);
       this.etherBar = got.bar | 0;
@@ -75,7 +77,7 @@ export class ResultScene extends Phaser.Scene {
       const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, pay.xp);
       this.xpLevel = sheet.level;
     }
-    this.hasLoot = hasMatchLoot(pay) || this.bonus > 0 || this.etherBar > 0 || this.etherVial > 0;
+    this.hasLoot = hasMatchLoot(pay) || this.bonus > 0 || this.etherBar > 0 || this.etherVial > 0 || this.coinGain > 0;
     if (this.botMode && this.win && Session.trainStage) SaveSystem.clearTrainStage(Session.trainStage);
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
@@ -221,6 +223,9 @@ export class ResultScene extends Phaser.Scene {
     this.lootShard = this.keep(g, this.add.text(W / 2, 318, "", {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#c45a16"
     }).setOrigin(0.5).setDepth(8));
+    this.lootCoin = this.keep(g, this.add.text(W / 2, 348, "", {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(8));
     this.lootXp = this.keep(g, this.add.text(W / 2, 368, "", {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a48"
     }).setOrigin(0.5).setDepth(8));
@@ -293,6 +298,7 @@ export class ResultScene extends Phaser.Scene {
     if (page === "loot") {
       if (this.lootStone) this.lootStone.setVisible(this.pvpGain > 0);
       if (this.lootShard) this.lootShard.setVisible(this.shardGain > 0);
+      if (this.lootCoin) this.lootCoin.setVisible(this.coinGain > 0);
       if (this.lootXp) this.lootXp.setVisible(this.xpGain > 0);
       if (this.lootEther) this.lootEther.setVisible(this.etherBar > 0 || this.etherVial > 0);
     }
@@ -334,7 +340,8 @@ export class ResultScene extends Phaser.Scene {
       else if (!this.hasLoot) bits.push(t("result.lootNone"));
       else bits.push(t("result.total", {
         pvp: SaveSystem.data.currencies.pvp,
-        tokens: SaveSystem.data.currencies.tokens
+        tokens: SaveSystem.data.currencies.tokens,
+        coins: SaveSystem.data.currencies.coins | 0
       }));
       if (this.pvpMode && this.rankAfter) {
         const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
@@ -353,6 +360,7 @@ export class ResultScene extends Phaser.Scene {
       this.lootStone.setText(this.pvpGain ? t("result.lootStone", { n: this.pvpGain }) + (this.bonus ? t("result.firstWin", { n: this.bonus }) : "") : "");
     }
     if (this.lootShard) this.lootShard.setText(this.shardGain ? t("result.lootShard", { n: this.shardGain }) : "");
+    if (this.lootCoin) this.lootCoin.setText(this.coinGain ? t("result.lootCoin", { n: this.coinGain }) : "");
     if (this.lootXp) {
       this.lootXp.setText(this.xpGain ? t("result.lootXp", {
         name: charName(youId),
@@ -367,20 +375,23 @@ export class ResultScene extends Phaser.Scene {
       this.lootEther.setText(bits.join("   ·   "));
     }
     if (this.page === "loot") {
-      let y = 250;
+      let y = 236;
       const put = (node, on) => {
         if (!node) return;
         node.setVisible(on);
-        if (on) { node.setY(y); y += 46; }
+        if (on) { node.setY(y); y += 38; }
       };
       put(this.lootStone, this.pvpGain > 0);
       put(this.lootShard, this.shardGain > 0);
+      put(this.lootCoin, this.coinGain > 0);
       put(this.lootXp, this.xpGain > 0);
       put(this.lootEther, this.etherBar > 0 || this.etherVial > 0);
+      if (this.lootBag) this.lootBag.setY(Math.min(y + 8, 478));
     }
     if (this.lootBag) this.lootBag.setText(t("result.total", {
       pvp: SaveSystem.data.currencies.pvp,
-      tokens: SaveSystem.data.currencies.tokens
+      tokens: SaveSystem.data.currencies.tokens,
+      coins: SaveSystem.data.currencies.coins | 0
     }));
     if (this.lootBtn && this.lootBtn.text) this.lootBtn.text.setText(t("result.lootOpen"));
     if (this.lootBackBtn && this.lootBackBtn.text) this.lootBackBtn.text.setText(t("result.lootToVerdict"));

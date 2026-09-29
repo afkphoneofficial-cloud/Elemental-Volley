@@ -1,3 +1,5 @@
+import { matchCoins } from "./shopCatalog.js";
+
 /** Match payouts from score + mode. Hits are ignored on purpose. */
 
 export function matchRewards(opts) {
@@ -6,8 +8,9 @@ export function matchRewards(opts) {
   const you = Math.max(0, (opts && opts.youScore) | 0);
   const foe = Math.max(0, (opts && opts.foeScore) | 0);
   const margin = Math.max(0, you - foe);
-  const out = { stones: 0, shards: 0, xp: 0, ether: 0, firstWinEligible: false };
+  const out = { stones: 0, shards: 0, xp: 0, ether: 0, coins: 0, firstWinEligible: false };
   if (mode === "exhibit") return out;
+  out.coins = matchCoins(mode, win, you, foe);
   const scored = you >= 3;
   if (mode === "bot") {
     const diff = opts && opts.difficulty === "easy" ? "easy" : opts && opts.difficulty === "hard" ? "hard" : "normal";
@@ -52,5 +55,5 @@ export function hasMatchLoot(row) {
   return ((row && row.stones) | 0) > 0
     || ((row && row.shards) | 0) > 0
     || ((row && row.xp) | 0) > 0
-    || ((row && row.ether) | 0) > 0;
+    || ((row && row.coins) | 0) > 0;
 }

@@ -4,6 +4,7 @@ export const TextureFactory = {
     this.ball(scene);
     this.weatherBits(scene);
     this.jumpForms(scene);
+    this.currencyIcons(scene);
     ["ignis", "aqua", "volt", "terra"].forEach((id) => this.fighter(scene, id));
     ["summer", "rain", "spring", "winter"].forEach((s) => this.refFallback(scene, s));
   },
@@ -428,5 +429,32 @@ export const TextureFactory = {
     water.fillCircle(18, 16, 5);
     water.generateTexture("jump-water", 48, 48);
     water.destroy();
+  },
+
+  currencyIcons(scene) {
+    if (!scene.textures.exists("item-coin")) {
+      const g = scene.make.graphics({ add: false });
+      g.fillStyle(0xffd24a, 1);
+      g.fillCircle(24, 24, 20);
+      g.lineStyle(3, 0xc45a16, 1);
+      g.strokeCircle(24, 24, 20);
+      g.fillStyle(0xfff6ea, 1);
+      g.fillCircle(24, 24, 7);
+      g.generateTexture("item-coin", 48, 48);
+      g.destroy();
+    }
+    if (!scene.textures.exists("item-powder")) {
+      const g = scene.make.graphics({ add: false });
+      g.fillStyle(0x7d5cff, 1);
+      g.fillCircle(24, 26, 15);
+      g.fillStyle(0x3ad6ff, 0.92);
+      g.fillCircle(16, 18, 8);
+      g.fillStyle(0xffe08a, 0.95);
+      g.fillCircle(32, 16, 7);
+      g.fillStyle(0xffffff, 0.85);
+      g.fillCircle(24, 12, 4);
+      g.generateTexture("item-powder", 48, 48);
+      g.destroy();
+    }
   }
 };

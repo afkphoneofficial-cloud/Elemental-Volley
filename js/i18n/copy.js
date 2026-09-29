@@ -64,7 +64,8 @@ export const COPY = {
       dropWhen: {
         stone: "ชนะแมตช์",
         shard: "ชนะแมตช์",
-        ether_vial: "โอกาส 15% ทุกแมตช์"
+        ether_vial: "โอกาส 15% ทุกแมตช์",
+        coin: "ได้ทุกแมตช์ ชนะได้มากกว่า ยกเว้นกระชับมิตร"
       },
       serverTag: "เซิร์ฟไทย",
       serverClock: "เซิร์ฟไทย  {time}",
@@ -277,14 +278,16 @@ export const COPY = {
         none: "ของไม่พอ",
         full: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม",
         char: "เลือกตัวละครก่อน",
-        free: "ตัวนี้ยังรีเซ็ตเลเวลฟรีได้อยู่ ใช้ปุ่มในหน้าธาตุกายก่อน"
+        free: "ตัวนี้ยังรีเซ็ตเลเวลฟรีได้อยู่ ใช้ปุ่มในหน้าธาตุกายก่อน",
+        coins: "เหรียญเกาะไม่พอ"
       }
     },
     item: {
       stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า", how: "ชนะโหมดฝึกฝน ตามสกอร์และความยาก แพ้ไม่ได้ก้อน", use: "สะสมแล้วนำไปแลกเศษธาตุที่ร้านค้า อัตรา 1:1" },
       shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกจากหินประหลาดที่ร้าน", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
       ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ใช้ได้เฉพาะตอนหลอดยังไม่เต็ม", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลัง 1 ก้อนเมื่อหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้" },
-      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ยังไม่ดรอปจากแมตช์ จะมาจากร้านหรือกิจกรรมภายหลัง", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" },
+      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ซื้อด้วยเหรียญเกาะที่ร้าน หรือรางวัลท็อป 10 ของแรงก์ธาตุ", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" },
+      coin: { name: "เหรียญเกาะ", body: "เงินในเกม ใช้ซื้อไอเท็มใช้งานที่ร้าน", how: "ดรอปทุกโหมดยกเว้นกระชับมิตร ชนะได้มากกว่าแพ้", use: "ใช้ที่ร้านค้า แทบไอเท็มใช้งาน" },
       champSkin: { name: "ธีมฉลอง {name} ชุด {n}", body: "ชุดแชมป์ซีซั่นของตัวละครธาตุนี้ ของหายาก ใช้แล้วอยู่ถาวร", how: "ได้จากรางวัลอันดับ 1 ของสัปดาห์ธาตุนั้น วนทุก 3 เดือน", use: "กดใช้จากกระเป๋า เพื่อใส่หรือถอดชุดแชมป์บนตัวละครธาตุนั้น โชว์ที่ล็อบบี้" }
     },
     growth: {
@@ -393,20 +396,35 @@ export const COPY = {
     },
     shop: {
       title: "ร้านค้า",
-      wallet: "เศษธาตุ {tokens}   ·   หินประหลาด {pvp}   ·   Premium {premium}   ·   ปลดล็อกตัวละครละ {cost} เศษธาตุ",
+      tab: { fighters: "ตัวละคร", cosmetics: "คอสตูม", items: "ไอเท็มใช้งาน", trade: "แลกเปลี่ยน" },
+      sub: {
+        fighters: "ปลดล็อกตัวละครธาตุด้วยเศษธาตุ ตัวละ 100",
+        cosmetics: "ธีมฉลองแต้มและของโชว์ ใช้ผงอีเธเรียจากหน้าเติมเงิน",
+        items: "ไอเท็มใช้แล้วหมด ซื้อด้วยเหรียญเกาะจากแมตช์",
+        trade: "แลกหินประหลาดเป็นเศษธาตุ และซื้อเศษธาตุด้วยผงอีเธเรีย"
+      },
       owned: "เป็นเจ้าของแล้ว",
       unlock: "ปลดล็อก 100 เศษธาตุ",
-      cheerHead: "ธีมฉลองแต้ม  ·  ใช้ตอนได้คะแนน",
       soon: "เร็วๆ นี้",
       using: "กำลังใช้",
       wear: "สวมใส่",
-      buyPrem: "ซื้อ {price} Premium",
+      buy: "ซื้อ",
+      buyPowder: "ซื้อ {price} ผงอีเธเรีย",
+      priceCoins: "{n} เหรียญเกาะ",
       exchange: "แลกหินประหลาดเป็นเศษธาตุ  (1:1)",
-      goodsHead: "ไอเท็ม",
       tradeStone: "แลก 1 ชิ้น",
-      topup: "เติม Premium (จำลอง) +100",
-      buyTokens: "ซื้อเศษธาตุ 100 ด้วย Premium",
-      foot: "ฝึกฝนได้หินประหลาด แลกเป็นเศษธาตุที่ร้าน  ·  ธีมฉลองแต้มซื้อด้วย Premium ได้เลย"
+      buyTokens: "เศษธาตุ 100 ก้อน ด้วยผงอีเธเรีย 100",
+      foot: "มุมขวาบนคือของที่มีอยู่  ·  แตะผงอีเธเรียเพื่อเปิดหน้ารายละเอียดการเติม  ·  กระชับมิตรไม่มีเหรียญเกาะ"
+    },
+    topup: {
+      title: "เติมผงอีเธเรีย",
+      sub: "ผงอีเธเรียได้จากการเติมเงินเท่านั้น ไม่ดรอปจากแมตช์ ใช้ซื้อคอสตูมและแพ็กเศษธาตุ",
+      rate: "เรทตั้งต้นประมาณ 2 ผงต่อ 1 บาท แพ็กใหญ่มีโบนัส  ·  ยังไม่เปิดชำระจริง หน้านี้โชว์เรทและรายละเอียดไว้ก่อน",
+      powder: "{n} ผง",
+      bonus: "รวมโบนัส +{n}",
+      noBonus: "ไม่มีโบนัส",
+      thb: "฿{n}",
+      foot: "เมื่อเปิดชำระ จะซื้อผ่านหน้านี้อย่างเดียว ไม่มีปุ่มเสกผงในร้าน"
     },
     result: {
       pvp: "หินประหลาด +{pvp}{bonus}",
@@ -414,13 +432,14 @@ export const COPY = {
       calLeft: "วัดระดับเหลืออีก {n} เกม",
       firstWin: "   ·   โบนัสชนะแรก +{n}",
       xpGain: "ธาตุกาย +{n} XP  ·  เลเวล {lv}",
-      total: "รวมตอนนี้  หินประหลาด {pvp}   ·   เศษธาตุ {tokens}",
+      total: "รวมตอนนี้  หินประหลาด {pvp}   ·   เศษธาตุ {tokens}   ·   เหรียญเกาะ {coins}",
       lootTitle: "ยินดีด้วย",
       lootSub: "คุณได้รับไอเท็มจากการแข่งขันครั้งนี้",
       lootFun: "กระชับมิตรไม่มีของรางวัล เล่นสนุกก็พอ",
       lootNone: "แมตช์นี้ไม่มีของรางวัลเพิ่ม",
       lootStone: "หินประหลาด  +{n}",
       lootShard: "เศษธาตุ  +{n}",
+      lootCoin: "เหรียญเกาะ  +{n}",
       lootXp: "{name}  +{n} XP  ·  เลเวล {lv}",
       lootOpen: "ดูของรางวัล",
       lootToVerdict: "ดูคำตัดสิน",
@@ -723,7 +742,8 @@ export const COPY = {
       dropWhen: {
         stone: "Win the match",
         shard: "Win the match",
-        ether_vial: "15% every match"
+        ether_vial: "15% every match",
+        coin: "Every match except Exhibition. Wins pay more."
       },
       serverTag: "TH SERVER",
       serverClock: "Thai server  {time}",
@@ -936,14 +956,16 @@ export const COPY = {
         none: "Not enough",
         full: "Can't use. Ether is full or this would overflow — only when the pool isn't full.",
         char: "Pick a fighter first",
-        free: "This fighter still has a free level reset. Use the Element Body button first."
+        free: "This fighter still has a free level reset. Use the Element Body button first.",
+        coins: "Not enough Isle Coins"
       }
     },
     item: {
       stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop.", how: "Win training matches. Amount follows score and difficulty. Losses drop none.", use: "Trade 1:1 for Element Shards in the shop." },
       shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade Odd Stones in the shop.", use: "Unlock elemental fighters in the shop. 100 shards each." },
       ether_vial: { name: "Ether", body: "Use to restore 1 court charge, only when the pool is not full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the pool is full or this would overflow, the button does nothing." },
-      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Not dropped from matches yet. Shop and events come later.", use: "Use from the bag on a fighter to reclaim spent level-up points." },
+      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Buy with Isle Coins in the shop, or Element Rank top 10.", use: "Use from the bag on a fighter to reclaim spent level-up points." },
+      coin: { name: "Isle Coins", body: "The in-match currency. Spend it on usable shop items.", how: "Drops in every mode except Exhibition. Wins pay more than losses.", use: "Spend in the shop Usables tab." },
       champSkin: { name: "{name} celebration set {n}", body: "A rare champion season outfit for this element. Permanent once used.", how: "Place 1 reward on that element's week. The 3-month loop repeats the same sets.", use: "Use from the bag to wear or remove the champion outfit. It shows in the lobby." }
     },
     growth: {
@@ -1052,20 +1074,35 @@ export const COPY = {
     },
     shop: {
       title: "Shop",
-      wallet: "Shards {tokens}   ·   Odd Stones {pvp}   ·   Premium {premium}   ·   Unlock cost {cost} shards",
+      tab: { fighters: "Fighters", cosmetics: "Costumes", items: "Usables", trade: "Trade" },
+      sub: {
+        fighters: "Unlock elemental fighters with 100 Element Shards each",
+        cosmetics: "Cheer themes and show-off items. Paid with Etheria Powder from the top-up page",
+        items: "Consumables. Buy with Isle Coins from matches",
+        trade: "Trade Odd Stones for Shards, or buy Shards with Etheria Powder"
+      },
       owned: "Owned",
       unlock: "Unlock for 100 Element Shards",
-      cheerHead: "Cheer themes  ·  Played when you score",
       soon: "Coming soon",
       using: "Equipped",
       wear: "Equip",
-      buyPrem: "Buy {price} Premium",
+      buy: "Buy",
+      buyPowder: "Buy {price} Etheria Powder",
+      priceCoins: "{n} Isle Coins",
       exchange: "Trade Odd Stones for Element Shards  (1:1)",
-      goodsHead: "Items",
       tradeStone: "Trade 1",
-      topup: "Add Premium (mock) +100",
-      buyTokens: "Buy 100 Element Shards with Premium",
-      foot: "Train to earn Odd Stones, then trade them for Element Shards. Cheer themes cost Premium."
+      buyTokens: "100 Element Shards for 100 Etheria Powder",
+      foot: "Top right is what you own  ·  Tap Etheria Powder for the top-up rates  ·  Exhibition drops no Isle Coins"
+    },
+    topup: {
+      title: "Etheria Powder",
+      sub: "Etheria Powder comes from real-money packs only. It does not drop from matches. Spend it on costumes and shard packs.",
+      rate: "Base rate is about 2 powder per 1 THB, with bonuses on larger packs.  Payment is not live yet. This page is the rate sheet.",
+      powder: "{n} powder",
+      bonus: "Includes +{n} bonus",
+      noBonus: "No bonus",
+      thb: "฿{n}",
+      foot: "When checkout opens, packs are bought here only. The shop has no mock grant button."
     },
     result: {
       pvp: "Odd Stones +{pvp}{bonus}",
@@ -1073,13 +1110,14 @@ export const COPY = {
       calLeft: "Calibration {n} matches left",
       firstWin: "   ·   First win bonus +{n}",
       xpGain: "Element Body +{n} XP  ·  level {lv}",
-      total: "Now  Odd Stones {pvp}   ·   Shards {tokens}",
+      total: "Now  Odd Stones {pvp}   ·   Shards {tokens}   ·   Isle Coins {coins}",
       lootTitle: "Nice!",
       lootSub: "You received items from this match",
       lootFun: "Exhibition has no drops. Just play with friends.",
       lootNone: "No extra items this match",
       lootStone: "Odd Stones  +{n}",
       lootShard: "Element Shards  +{n}",
+      lootCoin: "Isle Coins  +{n}",
       lootXp: "{name}  +{n} XP  ·  level {lv}",
       lootOpen: "See rewards",
       lootToVerdict: "See the ruling",

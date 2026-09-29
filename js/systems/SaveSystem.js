@@ -23,7 +23,7 @@ const BASE_KEY = "elemental-volley-save-v1";
 const empty = () => ({
   starterId: null,
   unlocked: [],
-  currencies: { pvp: 0, premium: 0, tokens: 0 },
+  currencies: { pvp: 0, premium: 0, tokens: 0, coins: 0 },
   firstWinDate: null,
   settings: {
     lang: "th",
@@ -68,6 +68,11 @@ function finish(data) {
   if (!data.equippedCheer) data.equippedCheer = "classic";
   if (!Array.isArray(data.unlocked)) data.unlocked = [];
   if (!data.currencies) data.currencies = empty().currencies;
+  data.currencies = { pvp: 0, premium: 0, tokens: 0, coins: 0, ...data.currencies };
+  data.currencies.pvp = data.currencies.pvp | 0;
+  data.currencies.premium = data.currencies.premium | 0;
+  data.currencies.tokens = data.currencies.tokens | 0;
+  data.currencies.coins = data.currencies.coins | 0;
   data.career = { ...emptyCareer(), ...(data.career || {}) };
   if (!Array.isArray(data.matchLog)) data.matchLog = [];
   if (data.ether == null) data.ether = ECONOMY.etherMax;
@@ -199,6 +204,22 @@ export const SaveSystem = {
   addTokens(amount) {
     this.data.currencies.tokens += amount;
     this.persist();
+  },
+
+  addCoins(amount) {
+    const n = amount | 0;
+    if (!n) return;
+    this.data.currencies.coins = (this.data.currencies.coins | 0) + n;
+    this.persist();
+  },
+
+  buyWithCoins(id, price) {
+    const cost = Math.max(1, price | 0);
+    if ((this.data.currencies.coins | 0) < cost) return { ok: false, reason: "coins" };
+    if (!ITEMS[id] || ITEMS[id].kind !== "use") return { ok: false, reason: "no" };
+    this.data.currencies.coins -= cost;
+    this.addItem(id, 1);
+    return { ok: true };
   },
 
   itemCount(id) {

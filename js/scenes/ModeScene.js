@@ -179,7 +179,9 @@ export class ModeScene extends Phaser.Scene {
   }
 
   dropName(id) {
-    return id === "xp" ? t("hub.dropXpName") : t("item." + id + ".name");
+    if (id === "xp") return t("hub.dropXpName");
+    if (id === "coin") return t("item.coin.name");
+    return t("item." + id + ".name");
   }
 
   dropWhen(id) {
@@ -240,7 +242,9 @@ export class ModeScene extends Phaser.Scene {
             fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#c45a16"
           }).setOrigin(0.5).setDepth(73));
         } else {
-          const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+          const ik = id === "coin"
+            ? (this.textures.exists("item-coin") ? "item-coin" : "item-stone")
+            : (this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone");
           bits.push(this.add.image(tx, ty, ik).setDisplaySize(72, 72).setDepth(73));
         }
         bits.push(this.add.zone(tx, ty, 104, 104).setInteractive({ useHandCursor: true }).setDepth(74)
@@ -276,7 +280,9 @@ export class ModeScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "32px", fontStyle: "900", color: "#c45a16"
       }).setOrigin(0.5).setDepth(73));
     } else {
-      const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+      const ik = id === "coin"
+        ? (this.textures.exists("item-coin") ? "item-coin" : "item-stone")
+        : (this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone");
       keep(this.add.image(dx, H / 2 - 118, ik).setDisplaySize(96, 96).setDepth(73));
     }
     const nameTx = keep(this.add.text(dx, H / 2 - 48, this.dropName(id), {
