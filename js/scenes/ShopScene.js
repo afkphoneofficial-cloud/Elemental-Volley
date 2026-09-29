@@ -10,7 +10,7 @@ import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
-import { openShopBuy, closeShopBuy } from "../ui/shopBuyPopup.js";
+import { openShopBuy, closeShopBuy, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
@@ -26,6 +26,7 @@ export class ShopScene extends Phaser.Scene {
     this.tab = (data && data.tab) || "fighters";
     this.costumeTier = (data && data.costumeTier) || "mist";
     this.costumePage = Math.max(0, (data && data.costumePage) | 0);
+    this.note = (data && data.note) || "";
   }
 
   create() {
@@ -51,14 +52,25 @@ export class ShopScene extends Phaser.Scene {
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();
 
+    if (this.note) shopNote(this, this.note, true);
+
     this.events.once("shutdown", () => {
       closeShopBuy(this);
       closeLookPreview(this);
     });
   }
 
-  refresh() {
-    this.scene.start("shop", { tab: this.tab, costumeTier: this.costumeTier, costumePage: this.costumePage });
+  refresh(note) {
+    this.scene.start("shop", {
+      tab: this.tab,
+      costumeTier: this.costumeTier,
+      costumePage: this.costumePage,
+      note: note || ""
+    });
+  }
+
+  bought(name, n) {
+    this.refresh(t("shop.bought", { name, n: Math.max(1, n | 0) }));
   }
 
   slots(n, padLeft, cols) {
@@ -192,14 +204,23 @@ export class ShopScene extends Phaser.Scene {
     const cells = this.slots(slice.length, 176, 4);
     slice.forEach((look, i) => {
       const owned = SaveSystem.ownedShopLook(look.id);
-      const worn = SaveSystem.wornShopLook(look.charId) === look.id;
+      const hasChar = SaveSystem.isUnlocked(look.charId);
+      const worn = hasChar && SaveSystem.wornShopLook(look.charId) === look.id;
       const icon = this.textures.exists(shopLookVis(look.id, "select")) ? shopLookVis(look.id, "select") : "vis_select_" + look.charId;
       let stamp = null;
       let priceIcon = null;
       let price = null;
       let priceMark = null;
       let onClick = null;
-      if (worn) stamp = t("shop.using");
+      let dim = false;
+      if (!hasChar) {
+        dim = true;
+        stamp = t("shop.needCharStamp");
+        onClick = () => {
+          AudioSystem.ui();
+          shopNote(this, t("shop.needChar", { name: I18n.charName(look.charId) }), false);
+        };
+      } else if (worn) stamp = t("shop.using");
       else if (owned) {
         priceMark = "▶";
         onClick = () => {
@@ -222,7 +243,7 @@ export class ShopScene extends Phaser.Scene {
             have: this.bag().premium | 0,
             stack: false,
             onConfirm: () => SaveSystem.buyShopLook(look.id),
-            after: () => this.refresh()
+            after: () => this.bought(shopLookLabel(look, I18n.lang), 1)
           });
         };
       }
@@ -237,6 +258,7 @@ export class ShopScene extends Phaser.Scene {
         priceIcon,
         price,
         priceMark,
+        dim,
         onClick,
         zoom: () => {
           AudioSystem.ui();
@@ -298,7 +320,7 @@ export class ShopScene extends Phaser.Scene {
             have: this.bag().tokens | 0,
             stack: false,
             onConfirm: () => SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost),
-            after: () => this.refresh()
+            after: () => this.bought(I18n.charName(id), 1)
           });
         }
       });
@@ -328,7 +350,7 @@ export class ShopScene extends Phaser.Scene {
             have: this.bag().coins | 0,
             maxQty: 99,
             onConfirm: (qty) => SaveSystem.buyWithCoins(good.id, good.price, qty),
-            after: () => this.refresh()
+            after: (qty) => this.bought(t("item." + good.id + ".name"), qty)
           });
         }
       });
@@ -365,7 +387,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().pvp | 0,
               maxQty: 99,
               onConfirm: (qty) => ({ ok: SaveSystem.exchangePvpToTokens(qty) }),
-              after: () => this.refresh()
+              after: (qty) => this.bought(t("item.shard.name"), qty)
             });
           }
         });
@@ -391,7 +413,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().premium | 0,
               maxQty: 99,
               onConfirm: (qty) => SaveSystem.buyWithPremium(id, good.price, qty),
-              after: () => this.refresh()
+              after: (qty) => this.bought(t("item." + id + ".name"), qty)
             });
           }
         });
@@ -414,7 +436,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().premium | 0,
               maxQty: 99,
               onConfirm: (qty) => ({ ok: SaveSystem.buyTokensWithPremium(good.shards * qty) }),
-              after: () => this.refresh()
+              after: (qty) => this.bought(t("item.shard.name"), (good.shards | 0) * qty)
             });
           }
         });

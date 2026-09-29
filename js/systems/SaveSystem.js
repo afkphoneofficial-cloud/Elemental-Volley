@@ -499,6 +499,7 @@ export const SaveSystem = {
     const row = lookRow(id);
     if (!row || !row.open) return { ok: false, reason: "no" };
     if (this.ownedShopLook(id)) return { ok: false, reason: "owned" };
+    if (!this.isUnlocked(row.charId)) return { ok: false, reason: "char" };
     const cost = Math.max(1, row.price | 0);
     if ((this.data.currencies.premium | 0) < cost) return { ok: false, reason: "premium" };
     this.data.currencies.premium -= cost;
@@ -510,6 +511,7 @@ export const SaveSystem = {
   wearShopLook(id) {
     const row = lookRow(id);
     if (!row || !this.ownedShopLook(id)) return { ok: false, reason: "no" };
+    if (!this.isUnlocked(row.charId)) return { ok: false, reason: "char" };
     if (!this.data.champEquipped) this.data.champEquipped = {};
     this.data.champEquipped[row.charId] = 0;
     this.data.shopLooks.worn[row.charId] = id;

@@ -241,7 +241,7 @@ export function openShopBuy(scene, spec) {
     }
     AudioSystem.ui();
     closeShopBuy(scene);
-    if (spec.after) spec.after();
+    if (spec.after) spec.after(qty, res);
   };
   const okZone = finishBuy;
   const cancel = makeButton(scene, cx - 110, cy + ph / 2 - 40, 180, 48, t("shop.buyCancel"), () => {
@@ -252,4 +252,21 @@ export function openShopBuy(scene, spec) {
   bits.push(cancel.gfx, cancel.text, cancel.bg, ok.gfx, ok.text, ok.bg);
   root.add(bits);
   paintQty();
+}
+
+export function shopNote(scene, text, ok) {
+  if (!scene || !text) return;
+  const W = scene.scale.width;
+  const H = scene.scale.height;
+  const msg = scene.add.text(W / 2, H - 56, text, {
+    fontFamily: UI_FONT,
+    fontSize: "18px",
+    fontStyle: "800",
+    color: ok === false ? "#c45a16" : "#1a7a48",
+    backgroundColor: "#fff6ea",
+    padding: { x: 18, y: 10 },
+    align: "center",
+    wordWrap: { width: Math.min(920, W - 80) }
+  }).setOrigin(0.5).setDepth(80);
+  scene.time.delayedCall(2200, () => { if (msg && msg.destroy) msg.destroy(); });
 }
