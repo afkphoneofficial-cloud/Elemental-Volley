@@ -57,11 +57,14 @@ export class HubScene extends Phaser.Scene {
     const GAP = 14;
     const pw = 228;
     const fx = PAD + pw + GAP + 59;
-    const mx = W - PAD - 54;
-    const pvx = mx - 54 - GAP - 59;
-    const tx = pvx - 59 - GAP - 62;
-    const ex = tx - 62 - GAP - 82;
-    this.hubMail = { x: mx, y: TOP, w: 108, h: CH };
+    const mailW = 108;
+    const pvpW = 196;
+    const tokW = 168;
+    const mx = W - PAD - mailW / 2;
+    const pvx = mx - mailW / 2 - GAP - pvpW / 2;
+    const tx = pvx - pvpW / 2 - GAP - tokW / 2;
+    const ex = tx - tokW / 2 - GAP - 82;
+    this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
 
     const avId = save.avatarId;
     const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
@@ -116,12 +119,12 @@ export class HubScene extends Phaser.Scene {
     if (this.etherIcon) this.etherBox.add(this.etherIcon);
     this.etherBox.add([this.etherText, this.etherHint]);
 
-    chip(this, tx, TOP, 124, 0xffb14a, () => this.openInfo("tokens"));
+    chip(this, tx, TOP, tokW, 0xffb14a, () => this.openInfo("tokens"));
     this.add.text(tx, TOP, "", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21).setText(t("hub.chipToken", { n: cur.tokens }));
 
-    chip(this, pvx, TOP, 118, 0x7d5cff, () => this.openInfo("pvp"));
+    chip(this, pvx, TOP, pvpW, 0x7d5cff, () => this.openInfo("pvp"));
     this.add.text(pvx, TOP, t("hub.chipPvp", { n: cur.pvp }), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5).setDepth(21);

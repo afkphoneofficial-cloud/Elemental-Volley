@@ -1,4 +1,4 @@
-/** Unlock is always 100 character tokens. Tokens come from PVP exchange or premium. */
+/** Unlock costs 100 Element Shards. Shards come from Odd Stone exchange or premium. */
 export const ECONOMY = {
   unlockTokenCost: 100,
   pvpPerToken: 1,
