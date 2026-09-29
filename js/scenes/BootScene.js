@@ -3,7 +3,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
 import { FREE_AVATARS } from "../data/avatars.js";
-import { RANK_TIERS, badgeKey } from "../data/ranks.js";
+import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -42,6 +42,7 @@ export class BootScene extends Phaser.Scene {
     RANK_TIERS.forEach((row) => {
       this.load.image(badgeKey(row.id), "assets/sprites/ranks/" + row.id + ".png");
     });
+    this.load.image(badgeKey(RANK_CAL_ID), "assets/sprites/ranks/" + RANK_CAL_ID + ".png");
   }
 
   create() {
@@ -54,6 +55,9 @@ export class BootScene extends Phaser.Scene {
           TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);
         }
       });
+      if (!this.textures.exists(badgeKey(RANK_CAL_ID))) {
+        TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
+      }
       TextureFactory.applyBall(this, "ball-art", "ball");
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
@@ -106,6 +110,9 @@ export class BootScene extends Phaser.Scene {
           TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);
         }
       });
+      if (!this.textures.exists(badgeKey(RANK_CAL_ID))) {
+        TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
+      }
     }
     AuthSystem.init().then(() => {
       I18n.load();

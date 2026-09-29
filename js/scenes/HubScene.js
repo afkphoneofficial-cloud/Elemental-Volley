@@ -6,7 +6,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
-import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
+import { isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texSelect } from "../data/skins.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
@@ -83,9 +83,9 @@ export class HubScene extends Phaser.Scene {
     nm.setPosition(avX + av / 2 + gap, 0);
     profileBox.add([face, nm]);
     const rk = SaveSystem.data.rank;
-    const medal = medalFromMmr(rk.mmr);
-    if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      profileBox.add(this.add.image(avX + 14, 14, badgeKey(medal.id)).setDisplaySize(22, 22));
+    const shown = displayBadgeId(rk);
+    if (this.textures.exists(badgeKey(shown))) {
+      profileBox.add(this.add.image(avX + 14, 14, badgeKey(shown)).setDisplaySize(22, 22));
     }
     this.add.zone(profileX, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
       .on("pointerdown", () => {

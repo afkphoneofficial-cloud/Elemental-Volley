@@ -5,7 +5,7 @@ import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
-import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
+import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { clampSkin } from "../data/skins.js";
@@ -52,6 +52,10 @@ export class QueueScene extends Phaser.Scene {
     const youKey = this.textures.exists(avatarKey(SaveSystem.data.avatarId))
       ? avatarKey(SaveSystem.data.avatarId) : avatarKey("av01");
     this.add.image(W / 2, 268, youKey).setDisplaySize(120, 120);
+    const shown = displayBadgeId(rank);
+    if (this.textures.exists(badgeKey(shown))) {
+      this.add.image(W / 2 + 52, 318, badgeKey(shown)).setDisplaySize(48, 48);
+    }
     const youMedal = isCalibrating(rank) ? null : medalFromMmr(rank.mmr);
     this.add.text(W / 2, 390, isCalibrating(rank)
       ? t("rank.calShort", { n: rank.games, max: RANK_CAL_GAMES })

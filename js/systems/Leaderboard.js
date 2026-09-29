@@ -43,9 +43,8 @@ function rowHtml(row, youId) {
   const place = row.place | 0;
   const podium = place === 1 ? "gold" : place === 2 ? "silver" : place === 3 ? "bronze" : "";
   const mine = youId && row.id === youId ? " mine" : "";
-  const badge = cal
-    ? ""
-    : `<img class="board-badge" alt="" src="${badgeSrc(medal.id)}" width="36" height="36" />`;
+  const badgeId = cal ? "calibrating" : medal.id;
+  const badge = `<img class="board-badge" alt="" src="${badgeSrc(badgeId)}" width="36" height="36" />`;
   return `<article class="board-row ${podium}${mine}" data-place="${place}">
     <span class="board-place">${place}</span>
     <img class="board-av" alt="" src="${avSrc(row.avatar_id)}" width="44" height="44" />

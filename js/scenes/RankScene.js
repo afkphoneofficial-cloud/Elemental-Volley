@@ -3,7 +3,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
-import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
+import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 
 export class RankScene extends Phaser.Scene {
   constructor() { super("rankinfo"); }
@@ -28,8 +28,9 @@ export class RankScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     roundPanel(this, W / 2, 148, 720, 96, 0x7d5cff, 0xfff6ea);
-    if (this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(W / 2 - 280, 148, badgeKey(medal.id)).setDisplaySize(84, 84).setDepth(8);
+    const shown = displayBadgeId(rank);
+    if (this.textures.exists(badgeKey(shown))) {
+      this.add.image(W / 2 - 280, 148, badgeKey(shown)).setDisplaySize(84, 84).setDepth(8);
     }
     this.add.text(W / 2 - 230, 132, cal
       ? t("rank.calNow", { n: rank.games, max: RANK_CAL_GAMES })

@@ -6,7 +6,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
-import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES } from "../data/ranks.js";
+import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 
 export class CareerScene extends Phaser.Scene {
@@ -43,8 +43,9 @@ export class CareerScene extends Phaser.Scene {
     this.add.text(W / 2 - 120, 178, rankLab, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0, 0.5).setDepth(8);
-    if (!isCalibrating(rk) && this.textures.exists(badgeKey(medal.id))) {
-      this.add.image(W / 2 - 148, 178, badgeKey(medal.id)).setDisplaySize(28, 28).setDepth(8);
+    const shown = displayBadgeId(rk);
+    if (this.textures.exists(badgeKey(shown))) {
+      this.add.image(W / 2 - 148, 178, badgeKey(shown)).setDisplaySize(28, 28).setDepth(8);
     }
     makeButton(this, W / 2 + 170, 168, 220, 40, t("career.change"), () => {
       AudioSystem.ui();
