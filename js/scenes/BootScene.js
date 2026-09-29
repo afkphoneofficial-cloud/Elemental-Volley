@@ -18,6 +18,10 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id + "-left", "assets/sprites/" + id + "-left.png");
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
+      [1, 2, 3, 4, 5].forEach((n) => {
+        this.load.image("dive-" + id + "-t" + n + "-l", "assets/sprites/skins/" + id + "-t" + n + "-dive-left.png");
+        this.load.image("dive-" + id + "-t" + n + "-r", "assets/sprites/skins/" + id + "-t" + n + "-dive-right.png");
+      });
       [2, 3, 4, 5].forEach((n) => {
         this.load.image("select-" + id + "-t" + n, "assets/sprites/skins/select-" + id + "-t" + n + ".png");
         this.load.image("skin-" + id + "-t" + n + "-l", "assets/sprites/skins/" + id + "-t" + n + "-left.png");
@@ -58,6 +62,14 @@ export class BootScene extends Phaser.Scene {
         TextureFactory.applyChibi(this, "chibi-" + id + "-left", "vis_" + id + "_l");
         TextureFactory.applyChibi(this, "chibi-" + id + "-right", "vis_" + id + "_r");
         TextureFactory.applyChibi(this, "select-" + id, "vis_select_" + id);
+        TextureFactory.applyChibi(this, "dive-" + id + "-t1-l", "vis_" + id + "_dive_l");
+        TextureFactory.applyChibi(this, "dive-" + id + "-t1-r", "vis_" + id + "_dive_r");
+        if (!this.textures.exists("vis_" + id + "_dive_r") && this.textures.exists("vis_" + id + "_dive_l")) {
+          TextureFactory.mirror(this, "vis_" + id + "_dive_l", "vis_" + id + "_dive_r", true);
+        }
+        if (!this.textures.exists("vis_" + id + "_dive_l") && this.textures.exists("vis_" + id + "_dive_r")) {
+          TextureFactory.mirror(this, "vis_" + id + "_dive_r", "vis_" + id + "_dive_l", true);
+        }
         if (!this.textures.exists("vis_" + id + "_r") && this.textures.exists("vis_" + id + "_l")) {
           TextureFactory.mirror(this, "vis_" + id + "_l", "vis_" + id + "_r", true);
         }
@@ -68,11 +80,19 @@ export class BootScene extends Phaser.Scene {
           TextureFactory.applyChibi(this, "select-" + id + "-t" + n, "vis_select_" + id + "_" + n);
           TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_l");
           TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_r");
+          TextureFactory.applyChibi(this, "dive-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_dive_l");
+          TextureFactory.applyChibi(this, "dive-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_dive_r");
           if (!this.textures.exists("vis_" + id + "_" + n + "_r") && this.textures.exists("vis_" + id + "_" + n + "_l")) {
             TextureFactory.mirror(this, "vis_" + id + "_" + n + "_l", "vis_" + id + "_" + n + "_r", true);
           }
           if (!this.textures.exists("vis_" + id + "_" + n + "_l") && this.textures.exists("vis_" + id + "_" + n + "_r")) {
             TextureFactory.mirror(this, "vis_" + id + "_" + n + "_r", "vis_" + id + "_" + n + "_l", true);
+          }
+          if (!this.textures.exists("vis_" + id + "_" + n + "_dive_r") && this.textures.exists("vis_" + id + "_" + n + "_dive_l")) {
+            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_dive_l", "vis_" + id + "_" + n + "_dive_r", true);
+          }
+          if (!this.textures.exists("vis_" + id + "_" + n + "_dive_l") && this.textures.exists("vis_" + id + "_" + n + "_dive_r")) {
+            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_dive_r", "vis_" + id + "_" + n + "_dive_l", true);
           }
         });
       });

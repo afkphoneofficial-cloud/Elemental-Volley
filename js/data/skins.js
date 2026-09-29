@@ -66,6 +66,19 @@ export function texSelect(scene, id, tier) {
   return "vis_ignis";
 }
 
+export function diveKey(id, courtSide, tier) {
+  const t = clampSkin(tier);
+  const side = courtSide === 1 ? "_r" : "_l";
+  if (t <= 1) return "vis_" + id + "_dive" + side;
+  return "vis_" + id + "_" + t + "_dive" + side;
+}
+
+export function texDive(scene, id, courtSide, tier) {
+  const k = diveKey(id, courtSide, tier);
+  if (scene.textures.exists(k)) return k;
+  return texFace(scene, id, courtSide, tier);
+}
+
 export function texFace(scene, id, courtSide, tier) {
   const k = faceKey(id, courtSide, tier);
   if (scene.textures.exists(k)) return k;

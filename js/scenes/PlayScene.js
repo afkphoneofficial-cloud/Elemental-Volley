@@ -28,7 +28,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
-import { texFace, clampSkin } from "../data/skins.js";
+import { texFace, texDive, clampSkin } from "../data/skins.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -43,8 +43,6 @@ import {
 
 const SIZE = WORLD.playerLen * SCALE;
 const CHAR = SIZE * 1.15 * 0.75;
-const CHAR_DIVE_W = SIZE * 1.25 * 0.75;
-const CHAR_DIVE_H = SIZE * 0.9 * 0.75;
 const BALL = WORLD.ballR * 2 * SCALE;
 
 export class PlayScene extends Phaser.Scene {
@@ -211,6 +209,14 @@ export class PlayScene extends Phaser.Scene {
 
   faceKey(id, courtSide) {
     return texFace(this, id, courtSide, this.skinForSide(courtSide));
+  }
+
+  poseKey(id, courtSide, player) {
+    const diving = player.state === 3 || player.state === 4;
+    if (!diving) return this.faceKey(id, courtSide);
+    const dir = player.divingDirection | 0;
+    const side = dir === 1 ? 1 : dir === -1 ? 2 : courtSide;
+    return texDive(this, id, side, this.skinForSide(courtSide));
   }
 
   buildCourt() {
@@ -944,12 +950,10 @@ export class PlayScene extends Phaser.Scene {
     this.drawBolt(a.ball);
     this.drawFlame(a.ball);
     this.tickStatusFx(a);
-    const dive1 = a.player1.state === 3;
-    const dive2 = a.player2.state === 3;
-    this.p1.setDisplaySize(dive1 ? CHAR_DIVE_W : CHAR, dive1 ? CHAR_DIVE_H : CHAR);
-    this.p2.setDisplaySize(dive2 ? CHAR_DIVE_W : CHAR, dive2 ? CHAR_DIVE_H : CHAR);
-    this.p1.setTexture(this.faceKey(this.leftData.id, 1));
-    this.p2.setTexture(this.faceKey(this.rightData.id, 2));
+    this.p1.setDisplaySize(CHAR, CHAR);
+    this.p2.setDisplaySize(CHAR, CHAR);
+    this.p1.setTexture(this.poseKey(this.leftData.id, 1, a.player1));
+    this.p2.setTexture(this.poseKey(this.rightData.id, 2, a.player2));
     this.p1.setFlipX(false);
     this.p2.setFlipX(false);
     syncJumpForm(this, this.jslot1, a.player1, this.p1, this.jform1, this.jfx1, this.leftData.id, this.time.now, CHAR, this.jspark1);
