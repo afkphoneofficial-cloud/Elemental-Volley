@@ -6,6 +6,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { SELECT_PLATE, drawOrbit, paintHopFx } from "../fx/SelectHover.js";
+import { paintSkinAura } from "../fx/SkinAura.js";
 
 export class DressScene extends Phaser.Scene {
   constructor() { super("dress"); }
@@ -42,6 +43,7 @@ export class DressScene extends Phaser.Scene {
     this.plate = this.add.circle(W / 2, 318, 132, SELECT_PLATE.ignis, 1)
       .setStrokeStyle(4, 0xfff6ea, 0.95).setDepth(5);
     this.orbit = this.add.graphics().setDepth(8);
+    this.auraGfx = this.add.graphics().setDepth(7);
     this.hopGfx = this.add.graphics().setDepth(9);
     this.hero = this.add.image(W / 2, 326, "vis_select_ignis").setDisplaySize(236, 236).setDepth(10);
     this.sideL = this.add.image(W / 2 - 268, 318, "vis_ignis_l").setDisplaySize(118, 118).setDepth(10).setInteractive({ useHandCursor: true });
@@ -185,5 +187,6 @@ export class DressScene extends Phaser.Scene {
     if (!this.orbit) return;
     this.orbit.clear();
     drawOrbit(this.orbit, this.hero.x, 318, 118, now, this.charId);
+    paintSkinAura(this.auraGfx, this.hero.x, this.hero.y, this.charId, this.tier, now, 108);
   }
 }

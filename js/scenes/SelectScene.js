@@ -7,6 +7,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { SELECT_PLATE, drawOrbit, drawLock, paintHopFx } from "../fx/SelectHover.js";
 import { texSelect } from "../data/skins.js";
+import { paintSkinAura } from "../fx/SkinAura.js";
 
 const PLATE_R = 118;
 
@@ -57,6 +58,7 @@ export class SelectScene extends Phaser.Scene {
         .setStrokeStyle(3, 0xfff6ea, 0.95)
         .setDepth(5);
       const orbit = this.add.graphics().setDepth(8);
+      const aura = this.add.graphics().setDepth(7);
       const hopGfx = this.add.graphics().setDepth(9);
       const sprite = this.add.image(x, y + 8, key)
         .setDisplaySize(148, 148)
@@ -77,7 +79,7 @@ export class SelectScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       const card = {
-        id, x, y, unlocked, plate, sprite, form, orbit, hopGfx, lockGfx,
+        id, x, y, unlocked, plate, sprite, form, orbit, aura, hopGfx, lockGfx,
         hopping: false, landY: y + 8, main: data.colors.main
       };
       this.cards.push(card);
@@ -199,6 +201,10 @@ export class SelectScene extends Phaser.Scene {
 
   update(_t, now) {
     this.cards.forEach((card) => {
+      if (card.aura) {
+        if (card.unlocked) paintSkinAura(card.aura, card.x, card.sprite.y, card.id, SaveSystem.skinOf(card.id), now, 78);
+        else card.aura.clear();
+      }
       if (!this.isActiveCard(card)) return;
       card.orbit.clear();
       drawOrbit(card.orbit, card.x, card.y, PLATE_R + 6, now, card.id);

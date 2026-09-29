@@ -16,6 +16,7 @@ import {
 } from "../gameplay/ArcadeEngine.js";
 import { HitFx, ELEMENT_FX } from "../fx/HitFx.js";
 import { syncJumpForm } from "../fx/JumpForm.js";
+import { paintSkinAura } from "../fx/SkinAura.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
 import { UltCutIn } from "../fx/UltCutIn.js";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
@@ -102,6 +103,8 @@ export class PlayScene extends Phaser.Scene {
     const shadow = (x) => this.add.ellipse(x, 0, CHAR * 0.62, 14, 0x000000, 0.28).setDepth(4);
     this.sh1 = shadow(200);
     this.sh2 = shadow(900);
+    this.aura1 = this.add.graphics().setDepth(5);
+    this.aura2 = this.add.graphics().setDepth(5);
     this.p1 = this.add.image(200, 400, this.faceKey(this.leftData.id, 1)).setDisplaySize(CHAR, CHAR).setDepth(6);
     this.p2 = this.add.image(900, 400, this.faceKey(this.rightData.id, 2)).setDisplaySize(CHAR, CHAR).setDepth(6);
     this.jform1 = this.add.image(200, 400, "jump-fire").setDepth(6).setVisible(false);
@@ -927,6 +930,8 @@ export class PlayScene extends Phaser.Scene {
     const a = this.physicsPack;
     this.p1.setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y));
     this.p2.setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y));
+    paintSkinAura(this.aura1, this.p1.x, this.p1.y, this.leftData.id, this.skinForSide(1), this.time.now, CHAR * 0.52);
+    paintSkinAura(this.aura2, this.p2.x, this.p2.y, this.rightData.id, this.skinForSide(2), this.time.now, CHAR * 0.52);
     this.sh1.setPosition(toScreenX(a.player1.x), toScreenY(WORLD.playerGroundY + 28));
     this.sh2.setPosition(toScreenX(a.player2.x), toScreenY(WORLD.playerGroundY + 28));
     this.ball.setPosition(toScreenX(a.ball.x), toScreenY(a.ball.y));

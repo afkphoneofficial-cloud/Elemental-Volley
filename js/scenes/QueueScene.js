@@ -90,10 +90,15 @@ export class QueueScene extends Phaser.Scene {
 
   onNet(msg) {
     if (!this.sys || !this.sys.isActive()) return;
-    if (msg.t === "searching") this.status.setText(t("queue.searching"));
+    if (msg.t === "searching") {
+      this.clearOffer();
+      this.found = false;
+      this.status.setText(t("queue.searching"));
+    }
     if (msg.t === "cooldown") {
       this.clearOffer();
-      this.status.setText(t("queue.cooldown", { n: 5 }));
+      const mins = Math.max(1, Math.ceil((msg.ms || 120000) / 60000));
+      this.status.setText(t("queue.cooldown", { n: mins }));
     }
     if (msg.t === "offline") this.status.setText(t("queue.offline"));
     if (msg.t === "busy") this.status.setText(t("queue.busy"));
@@ -136,7 +141,7 @@ export class QueueScene extends Phaser.Scene {
     Session.botId = (msg.rival && msg.rival.fighter) || Session.botId;
     Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
     Session.foeSkin = clampSkin((msg.rival && msg.rival.skin) || 1);
-    this.scene.start("luck");
+    this.scene.start("luck", msg);
   }
 
   clearOffer() {
@@ -144,6 +149,8 @@ export class QueueScene extends Phaser.Scene {
       try { o.destroy(); } catch (e) {}
     });
     this.bits = [];
+    this.offerUntil = 0;
+    this.offerClock = null;
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(true);
     if (this.cancelBtn && this.cancelBtn.text) this.cancelBtn.text.setVisible(true);
     if (this.cancelBtn && this.cancelBtn.gfx) this.cancelBtn.gfx.setVisible(true);
@@ -219,12 +226,20 @@ export class QueueScene extends Phaser.Scene {
       this.clearOffer();
       this.status.setText(t("queue.cooldown", { n: 5 }));
     });
+    this.offerUntil = msg.deadline || (Date.now() + 30000);
+    this.offerClock = this.add.text(W / 2, H / 2 + 198, t("queue.offerSec", { n: 30 }), {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(34);
     [yes.gfx, yes.text, yes.bg, yes.mark, no.gfx, no.text, no.bg, no.mark].forEach((o) => o.setDepth(34));
-    this.bits = [veil, panel, head, img, name, rankLine, wins, used, yes.gfx, yes.text, yes.bg, yes.mark, no.gfx, no.text, no.bg, no.mark];
+    this.bits = [veil, panel, head, img, name, rankLine, wins, used, yes.gfx, yes.text, yes.bg, yes.mark, no.gfx, no.text, no.bg, no.mark, this.offerClock];
     if (badge) this.bits.push(badge);
   }
 
   update() {
+    if (this.offerClock && this.offerUntil) {
+      const left = Math.max(0, Math.ceil((this.offerUntil - Date.now()) / 1000));
+      this.offerClock.setText(t("queue.offerSec", { n: left }));
+    }
     if (this.found) return;
     const elapsed = this.time.now - this.started;
     const win = searchWindow(elapsed);

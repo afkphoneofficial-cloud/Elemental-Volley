@@ -19,7 +19,8 @@ try {
 const PORT = Number(process.env.PORT || 8787);
 const MAX_LIVE = Math.max(1, Number(process.env.MAX_LIVE_MATCHES || 12));
 const COOLDOWN_MS = Number(process.env.DECLINE_COOLDOWN_MS || 5 * 60 * 1000);
-const OFFER_MS = Number(process.env.OFFER_MS || 15000);
+const OFFER_MS = Number(process.env.OFFER_MS || 30000);
+const SKIP_COOLDOWN_MS = Number(process.env.SKIP_COOLDOWN_MS || 2 * 60 * 1000);
 const TICK_MS = 40;
 const FORFEIT_MS = Number(process.env.FORFEIT_MS || 30000);
 const HOST_YIELD_MS = 900;
@@ -130,11 +131,13 @@ function requeue(p, silent) {
   if (!silent) send(p.ws, { t: "searching" });
 }
 
-function applyCooldown(p) {
-  cooldownUntil.set(p.id, Date.now() + COOLDOWN_MS);
+function applyCooldown(p, ms) {
+  const wait = ms > 0 ? ms : COOLDOWN_MS;
+  cooldownUntil.set(p.id, Date.now() + wait);
   p.state = "idle";
+  p.offerId = null;
   dropFromQueue(p.id);
-  send(p.ws, { t: "cooldown", ms: COOLDOWN_MS });
+  send(p.ws, { t: "cooldown", ms: wait });
 }
 
 function pairKey(aId, bId) {
@@ -263,14 +266,12 @@ function expireOffer(id) {
   const of = offers.get(id);
   if (!of) return;
   clearOffer(id);
-  const va = of.votes[of.a.id];
-  const vb = of.votes[of.b.id];
-  if (va === true && vb !== true) requeue(of.a, false);
-  else if (vb === true && va !== true) requeue(of.b, false);
-  else {
-    requeue(of.a, false);
-    requeue(of.b, false);
-  }
+  const settle = (p) => {
+    if (of.votes[p.id] === true) requeue(p, false);
+    else applyCooldown(p, SKIP_COOLDOWN_MS);
+  };
+  settle(of.a);
+  settle(of.b);
 }
 
 function voteOffer(p, offerId, accept) {

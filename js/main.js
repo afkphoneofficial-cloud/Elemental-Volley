@@ -71,7 +71,7 @@ NetPlay.on((msg) => {
     Session.net = true;
     Session.netHost = msg.host === true;
     if (Session.mode !== "pvp") Session.mode = "exhibit";
-    live.scene.start("luck");
+    live.scene.start("luck", msg);
   }
   if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") live.scene.start("play");
   if (msg.t === "end" && key !== "play" && key !== "result") {

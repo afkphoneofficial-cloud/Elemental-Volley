@@ -9,6 +9,10 @@ import { NetPlay } from "../systems/NetPlay.js";
 export class LuckScene extends Phaser.Scene {
   constructor() { super("luck"); }
 
+  init(data) {
+    this.bootLuck = data && data.youRoll != null ? data : null;
+  }
+
   create() {
     if (!AuthSystem.guard(this)) return;
     this.input.setTopOnly(false);
@@ -78,13 +82,22 @@ export class LuckScene extends Phaser.Scene {
     });
 
     this.net = Session.net === true;
+    this.luckId = null;
     this.off = this.net ? NetPlay.on((msg) => {
       if (msg.t === "luck") this.playNetLuck(msg);
       if (msg.t === "go") this.scene.start("play");
     }) : null;
-    this.events.once("shutdown", () => { if (this.off) this.off(); });
-    if (this.net) this.playNetLuck(NetPlay.lastLuck);
-    else this.rollUntilWinner();
+    this.events.once("shutdown", () => {
+      if (this.off) this.off();
+      this.clearRollTimers();
+    });
+    if (this.net) {
+      this._boot = window.setTimeout(() => {
+        this.playNetLuck(this.bootLuck || NetPlay.lastLuck);
+      }, 40);
+    } else {
+      this.rollUntilWinner();
+    }
     makeButton(this, 120, 40, 140, 40, t("nav.back"), () => {
       if (this.net) NetPlay.quit();
       this.scene.start("select");
@@ -95,13 +108,29 @@ export class LuckScene extends Phaser.Scene {
     this.pickBits.forEach((o) => o.setVisible(true));
   }
 
+  clearRollTimers() {
+    (this._rollTimers || []).forEach((id) => window.clearTimeout(id));
+    this._rollTimers = [];
+    if (this._boot) window.clearTimeout(this._boot);
+    this._boot = null;
+    if (this._retry) window.clearTimeout(this._retry);
+    this._retry = null;
+  }
+
   playNetLuck(msg) {
-    if (!msg) {
+    if (!msg || msg.youRoll == null) {
       this.status.setText(t("luck.rolling"));
+      if (!this._retry) {
+        this._retry = window.setTimeout(() => {
+          this._retry = null;
+          if (this.sys && this.sys.isActive()) this.playNetLuck(NetPlay.lastLuck);
+        }, 220);
+      }
       return;
     }
-    if (this.shownLuck) return;
-    this.shownLuck = true;
+    const id = msg.roomId || (msg.youRoll + ":" + msg.foeRoll);
+    if (this.luckId === id) return;
+    this.luckId = id;
     Session.netHost = msg.host === true;
     if (msg.youSide) Session.youSide = msg.youSide === 2 ? 2 : 1;
     if (msg.rival) {
@@ -115,12 +144,15 @@ export class LuckScene extends Phaser.Scene {
         avatarId: msg.rival.avatarId || "av01",
         wins: msg.rival.wins | 0,
         mostUsed: msg.rival.mostUsed,
-        difficulty: "normal"
+        difficulty: "normal",
+        skin: msg.rival.skin | 0 || 1
       };
       Session.botId = msg.rival.fighter || Session.botId;
+      if (msg.rival.skin) Session.foeSkin = msg.rival.skin | 0;
     }
     this.status.setText(t("luck.rolling"));
     this.rollTween(0, () => {
+      if (!this.sys || !this.sys.isActive()) return;
       this.youRoll.setText(String(msg.youRoll | 0).padStart(2, "0"));
       this.botRoll.setText(String(msg.foeRoll | 0).padStart(2, "0"));
       AudioSystem.ui();
@@ -150,7 +182,10 @@ export class LuckScene extends Phaser.Scene {
       } else {
         const pick = Phaser.Utils.Array.GetRandom(COURTS);
         this.status.setText(t("luck.botWin", { court: I18n.courtName(pick.id) }));
-        this.time.delayedCall(1100, () => this.chooseCourt(pick.id));
+        this._rollTimers = this._rollTimers || [];
+        this._rollTimers.push(window.setTimeout(() => {
+          if (this.sys && this.sys.isActive()) this.chooseCourt(pick.id);
+        }, 1100));
       }
     });
   }
@@ -162,7 +197,11 @@ export class LuckScene extends Phaser.Scene {
     }
     this.youRoll.setText(String(Phaser.Math.Between(1, 99)).padStart(2, "0"));
     this.botRoll.setText(String(Phaser.Math.Between(1, 99)).padStart(2, "0"));
-    this.time.delayedCall(40, () => this.rollTween(step + 1, done));
+    this._rollTimers = this._rollTimers || [];
+    this._rollTimers.push(window.setTimeout(() => {
+      if (!this.sys || !this.sys.isActive()) return;
+      this.rollTween(step + 1, done);
+    }, 40));
   }
 
   chooseCourt(id) {

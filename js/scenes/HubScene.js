@@ -9,6 +9,7 @@ import { avatarKey } from "../data/avatars.js";
 import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texSelect } from "../data/skins.js";
+import { paintSkinAura } from "../fx/SkinAura.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
@@ -129,6 +130,10 @@ export class HubScene extends Phaser.Scene {
     const heroY = 292;
     this.add.circle(W / 2, heroY, 136, 0xffffff, 0.32).setDepth(5);
     this.add.circle(W / 2, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
+    this.heroAura = this.add.graphics().setDepth(5);
+    this.heroId = heroId;
+    this.heroSkin = SaveSystem.skinOf(heroId);
+    this.heroY = heroY;
     this.heroImg = this.add.image(W / 2, heroY - 6, heroKey).setDisplaySize(252, 252).setDepth(6);
     this.heroName = this.add.text(W / 2, 424, charName(heroId), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
@@ -191,6 +196,13 @@ export class HubScene extends Phaser.Scene {
     const key = texSelect(this, next, SaveSystem.skinOf(next));
     if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(252, 252);
     if (this.heroName) this.heroName.setText(charName(next));
+    this.heroId = next;
+    this.heroSkin = SaveSystem.skinOf(next);
+  }
+
+  update(now) {
+    if (!this.heroAura || !this.heroImg) return;
+    paintSkinAura(this.heroAura, this.heroImg.x, this.heroY, this.heroId, this.heroSkin, now, 118);
   }
 
   paintEther() {
