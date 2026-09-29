@@ -5,8 +5,6 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { I18n, t, charName } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
-import { avatarKey } from "../data/avatars.js";
-import { isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
@@ -18,7 +16,8 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
-import { wantFx, settings } from "../systems/GameSettings.js";
+import { mountHubMenu } from "../ui/hubMenu.js";
+import { settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 
 function chip(scene, x, y, w, color, onClick) {
@@ -56,67 +55,15 @@ export class HubScene extends Phaser.Scene {
 
     const PAD = 28;
     const TOP = 48;
-    const CH = 48;
     const GAP = 12;
-    const av = 36;
-    const nameGap = 6;
-    const name = (AuthSystem.displayName() || "—").slice(0, 12);
-    const nm = this.add.text(0, 0, name, {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5);
-    const pw = Math.max(156, av + nameGap + Math.ceil(nm.width) + 22);
-    const bagW = 124;
-    const mailW = 124;
     const pvpW = 108;
     const tokW = 96;
     const etherW = 108;
     const coinW = 108;
-    const profileX = PAD + pw / 2;
-    const fx = PAD + pw + GAP + bagW / 2;
-    const mx = PAD + pw + GAP + bagW + GAP + mailW / 2;
     const pvx = W - PAD - pvpW / 2;
     const tx = pvx - pvpW / 2 - GAP - tokW / 2;
     const ex = tx - tokW / 2 - GAP - etherW / 2;
     const cxn = ex - etherW / 2 - GAP - coinW / 2;
-    this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
-
-    const avId = save.avatarId;
-    const avKey = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
-    const pg = this.add.graphics().setDepth(19);
-    pg.fillStyle(0xfff6ea, 0.96);
-    pg.fillRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
-    pg.lineStyle(2, 0xff6a22, 0.75);
-    pg.strokeRoundedRect(PAD, TOP - CH / 2, pw, CH, 24);
-    const profileBox = this.add.container(profileX, TOP).setDepth(21);
-    const inner = av + nameGap + nm.width;
-    const avX = -inner / 2 + av / 2;
-    const face = this.add.image(avX, 0, avKey).setDisplaySize(av, av);
-    nm.setPosition(avX + av / 2 + nameGap, 0);
-    profileBox.add([face, nm]);
-    const rk = SaveSystem.data.rank;
-    const shown = displayBadgeId(rk);
-    if (this.textures.exists(badgeKey(shown))) {
-      profileBox.add(this.add.image(avX + 14, 14, badgeKey(shown)).setDisplaySize(22, 22));
-    }
-    this.add.zone(profileX, TOP, pw, CH).setInteractive({ useHandCursor: true }).setDepth(23)
-      .on("pointerdown", () => {
-        AudioSystem.ui();
-        this.scene.start("career");
-      });
-    chip(this, fx, TOP, bagW, 0xffb14a, () => {
-      AudioSystem.ui();
-      this.scene.start("bag");
-    });
-    this.bagChip = this.add.container(fx, TOP).setDepth(21);
-    this.bagIcon = this.textures.exists("item-bag")
-      ? this.add.image(0, 0, "item-bag").setDisplaySize(28, 28)
-      : null;
-    this.bagText = this.add.text(0, 0, t("hub.navBag"), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5);
-    if (this.bagIcon) this.bagChip.add(this.bagIcon);
-    this.bagChip.add(this.bagText);
-    this.layoutChip(this.bagChip, this.bagIcon, this.bagText);
 
     const etherKey = this.textures.exists("item-ether") ? "item-ether" : (this.textures.exists("vis_ether") ? "vis_ether" : "ether-art");
     chip(this, cxn, TOP, coinW, 0xffd24a, () => this.openInfo("coins"));
@@ -160,38 +107,25 @@ export class HubScene extends Phaser.Scene {
 
     const heroId = save.showcaseId || save.starterId || "ignis";
     const heroKey = texHeroSelect(this, heroId);
+    const heroX = W / 2 + 140;
     const heroY = 292;
-    this.add.circle(W / 2, heroY, 136, 0xffffff, 0.32).setDepth(5);
-    this.add.circle(W / 2, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
+    this.add.circle(heroX, heroY, 136, 0xffffff, 0.32).setDepth(5);
+    this.add.circle(heroX, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
     this.heroAura = this.add.graphics().setDepth(5);
     this.heroId = heroId;
     this.heroSkin = SaveSystem.skinOf(heroId);
     this.heroY = heroY;
-    this.heroImg = this.add.image(W / 2, heroY - 6, heroKey).setDisplaySize(252, 252).setDepth(6);
-    this.heroName = this.add.text(W / 2, 424, charName(heroId), {
+    this.heroImg = this.add.image(heroX, heroY - 6, heroKey).setDisplaySize(252, 252).setDepth(6);
+    this.heroName = this.add.text(heroX, 424, charName(heroId), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 448, t("hub.showcaseHint"), {
+    this.add.text(heroX, 448, t("hub.showcaseHint"), {
       fontFamily: UI_FONT, fontSize: "12px", color: "#8a5a38"
     }).setOrigin(0.5);
-    this.add.zone(W / 2, heroY, 268, 268).setInteractive({ useHandCursor: true }).setDepth(7)
+    this.add.zone(heroX, heroY, 268, 268).setInteractive({ useHandCursor: true }).setDepth(7)
       .on("pointerdown", () => this.cycleShowcase(1));
-    makeButton(this, W / 2 - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
-    makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
-
-    this.mountPlay(W);
-    makeButton(this, W / 2 - 210, 586, 168, 42, t("hub.navNews"), () => {
-      AudioSystem.ui();
-      this.scene.start("news");
-    }, 0x3ad6ff);
-    makeButton(this, W / 2, 586, 168, 42, t("hub.navFighter"), () => {
-      AudioSystem.ui();
-      this.scene.start("dress");
-    }, 0xff8ab8);
-    makeButton(this, W / 2 + 210, 586, 168, 42, t("hub.navBoard"), () => {
-      AudioSystem.ui();
-      this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
-    }, 0xffb14a);
+    makeButton(this, heroX - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
+    makeButton(this, heroX + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
     const navY = H - HUB_NAV.y;
     const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
@@ -218,62 +152,11 @@ export class HubScene extends Phaser.Scene {
     this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
     this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
     this.mountClock(W);
+    mountHubMenu(this);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
     Friends.sync();
     AudioSystem.playMenu();
-  }
-
-  mountPlay(W) {
-    const x = W / 2;
-    const y = 512;
-    const bw = 220;
-    const bh = 56;
-    const r = 22;
-    this.playGlow = this.add.graphics().setDepth(8);
-    const drawGlow = (pulse) => {
-      this.playGlow.clear();
-      this.playGlow.fillStyle(0xffe08a, 0.22 + pulse * 0.16);
-      this.playGlow.fillRoundedRect(x - bw / 2 - 14, y - bh / 2 - 10, bw + 28, bh + 20, r + 8);
-    };
-    drawGlow(0);
-    this._playPulse = 0;
-    this.playDraw = drawGlow;
-    const go = () => {
-      AudioSystem.ui();
-      this.scene.start("mode");
-    };
-    const gfx = this.add.graphics().setDepth(40);
-    const drawBtn = (hot) => {
-      gfx.clear();
-      gfx.fillStyle(hot ? 0xff8a3a : 0xff6a22, 1);
-      gfx.fillRoundedRect(x - bw / 2, y - bh / 2, bw, bh, r);
-      gfx.lineStyle(3, 0xffe08a, hot ? 1 : 0.95);
-      gfx.strokeRoundedRect(x - bw / 2, y - bh / 2, bw, bh, r);
-    };
-    drawBtn(false);
-    this.add.text(x, y, t("hub.play"), {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#fff6ea"
-    }).setOrigin(0.5).setDepth(41);
-    const zone = this.add.zone(x, y, bw, bh).setInteractive({ useHandCursor: true }).setDepth(42);
-    zone.on("pointerover", () => drawBtn(true));
-    zone.on("pointerout", () => drawBtn(false));
-    zone.on("pointerdown", go);
-    if (wantFx() && this.textures.exists("dot")) {
-      try {
-        this.playBurst = this.add.particles(x, y, "dot", {
-          lifespan: { min: 500, max: 1100 },
-          speed: { min: 20, max: 90 },
-          scale: { start: 0.7, end: 0 },
-          alpha: { start: 0.7, end: 0 },
-          tint: [0xff6a22, 0xffe08a, 0xffffff, 0xff8ab8],
-          blendMode: "ADD",
-          frequency: 70,
-          quantity: 1,
-          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 232, 64), quantity: 16 }
-        }).setDepth(7);
-      } catch (e) { this.playBurst = null; }
-    }
   }
 
   mountClock(W) {

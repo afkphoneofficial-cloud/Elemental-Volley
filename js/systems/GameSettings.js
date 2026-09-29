@@ -29,7 +29,8 @@ export function defaultSettings() {
     reducedFx: false,
     cameraShake: true,
     lobbyMotion: true,
-    timeZone: "Bangkok"
+    timeZone: "Bangkok",
+    hubMenuOpen: true
   };
 }
 

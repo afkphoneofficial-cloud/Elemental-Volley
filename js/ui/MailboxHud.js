@@ -35,30 +35,32 @@ export function paintMailbox(scene) {
   const w = anchor.w || 108;
   const h = anchor.h || 48;
   const unread = Mailbox.unread | 0;
-  const g = keep(scene, scene.add.graphics().setDepth(24));
-  const hot = scene.mailOpen;
-  g.fillStyle(hot ? 0xffe8c8 : 0xfff6ea, 0.97);
-  g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 24);
-  g.lineStyle(2, 0xff8ab8, hot ? 1 : 0.78);
-  g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 24);
-  keep(scene, scene.add.text(x - 26, y, "✉", {
-    fontFamily: UI_FONT, fontSize: "18px", color: "#c45a16"
-  }).setOrigin(0.5).setDepth(25));
-  keep(scene, scene.add.text(x + 12, y, t("mail.title"), {
-    fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-  }).setOrigin(0.5).setDepth(25));
-  if (unread > 0) {
-    keep(scene, scene.add.circle(x + w / 2 - 10, y - h / 2 + 8, 9, 0xff4a6a, 1).setDepth(26));
-    keep(scene, scene.add.text(x + w / 2 - 10, y - h / 2 + 8, unread > 9 ? "9+" : String(unread), {
-      fontFamily: UI_FONT, fontSize: "10px", fontStyle: "900", color: "#fff6ea"
-    }).setOrigin(0.5).setDepth(27));
+  if (!scene.hubMailSkipChip) {
+    const g = keep(scene, scene.add.graphics().setDepth(24));
+    const hot = scene.mailOpen;
+    g.fillStyle(hot ? 0xffe8c8 : 0xfff6ea, 0.97);
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 24);
+    g.lineStyle(2, 0xff8ab8, hot ? 1 : 0.78);
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 24);
+    keep(scene, scene.add.text(x - 26, y, "✉", {
+      fontFamily: UI_FONT, fontSize: "18px", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(25));
+    keep(scene, scene.add.text(x + 12, y, t("mail.title"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(25));
+    if (unread > 0) {
+      keep(scene, scene.add.circle(x + w / 2 - 10, y - h / 2 + 8, 9, 0xff4a6a, 1).setDepth(26));
+      keep(scene, scene.add.text(x + w / 2 - 10, y - h / 2 + 8, unread > 9 ? "9+" : String(unread), {
+        fontFamily: UI_FONT, fontSize: "10px", fontStyle: "900", color: "#fff6ea"
+      }).setOrigin(0.5).setDepth(27));
+    }
+    const zone = keep(scene, scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(28));
+    zone.on("pointerdown", () => {
+      AudioSystem.ui();
+      scene.mailOpen = !scene.mailOpen;
+      paintMailbox(scene);
+    });
   }
-  const zone = keep(scene, scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(28));
-  zone.on("pointerdown", () => {
-    AudioSystem.ui();
-    scene.mailOpen = !scene.mailOpen;
-    paintMailbox(scene);
-  });
 
   if (!scene.mailOpen) return;
 
