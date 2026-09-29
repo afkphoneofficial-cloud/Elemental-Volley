@@ -738,11 +738,11 @@ html[data-control="pc"] #game {
 
 .board-row {
   display: grid;
-  grid-template-columns: 44px 48px minmax(0, 1fr) auto;
+  grid-template-columns: 40px 48px 48px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 8px 12px;
   margin: 0 0 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 18px;
   background: rgba(255, 244, 232, 0.9);
   border: 2px solid rgba(255, 177, 74, 0.45);
@@ -783,18 +783,16 @@ html[data-control="pc"] #game {
 
 .board-rank {
   margin: 2px 0 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: 12px;
   font-weight: 800;
   color: #c45a16;
 }
 
 .board-badge {
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
+  filter: drop-shadow(0 2px 0 rgba(58, 36, 24, 0.14));
 }
 
 .board-stats {
@@ -833,6 +831,18 @@ html[data-control="pc"] #game {
   color: #3a2418;
 }
 
+.board-you-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.board-you-badge {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .board-you-kicker {
   width: 100%;
   font-weight: 800;
@@ -848,11 +858,12 @@ html[data-control="pc"] #game {
   }
   .board-head h2 { font-size: 18px; }
   .board-row {
-    grid-template-columns: 36px 42px minmax(0, 1fr);
+    grid-template-columns: 32px 42px 42px minmax(0, 1fr);
     grid-template-rows: auto auto;
+    gap: 6px 10px;
   }
   .board-stats {
-    grid-column: 3;
+    grid-column: 4;
     text-align: left;
   }
   .board-stats strong { font-size: 16px; }

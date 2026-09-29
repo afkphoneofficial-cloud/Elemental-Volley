@@ -1,6 +1,6 @@
 import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
-import { medalFromMmr, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
+import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { AudioSystem } from "./AudioSystem.js";
 
@@ -38,19 +38,18 @@ function rankLabel(mmr, games) {
 }
 
 function rowHtml(row, youId) {
-  const medal = medalFromMmr(row.mmr | 0);
-  const cal = isCalibrating({ mmr: row.mmr, games: row.games });
   const place = row.place | 0;
   const podium = place === 1 ? "gold" : place === 2 ? "silver" : place === 3 ? "bronze" : "";
   const mine = youId && row.id === youId ? " mine" : "";
-  const badgeId = cal ? "calibrating" : medal.id;
-  const badge = `<img class="board-badge" alt="" src="${badgeSrc(badgeId)}" width="36" height="36" />`;
+  const badgeId = displayBadgeId({ mmr: row.mmr, games: row.games });
+  const badge = `<img class="board-badge" alt="" src="${badgeSrc(badgeId)}" width="44" height="44" />`;
   return `<article class="board-row ${podium}${mine}" data-place="${place}">
     <span class="board-place">${place}</span>
     <img class="board-av" alt="" src="${avSrc(row.avatar_id)}" width="44" height="44" />
+    ${badge}
     <div class="board-meta">
       <p class="board-name">${escapeHtml(row.display_name || "—")}</p>
-      <p class="board-rank">${badge}<span>${rankLabel(row.mmr, row.games)}</span></p>
+      <p class="board-rank">${rankLabel(row.mmr, row.games)}</p>
     </div>
     <div class="board-stats">
       <strong>${row.mmr | 0}</strong>
@@ -170,8 +169,12 @@ export const Leaderboard = {
         ? t("board.youPlace", { n: place })
         : t("board.youOut", { n: place });
     }
+    const badgeId = displayBadgeId({ mmr, games });
     ui.you.innerHTML = `<span class="board-you-kicker">${status}</span>
-      <strong>${escapeHtml(name)}</strong>
+      <span class="board-you-id">
+        <img class="board-you-badge" alt="" src="${badgeSrc(badgeId)}" width="28" height="28" />
+        <strong>${escapeHtml(name)}</strong>
+      </span>
       <span>${rankLabel(mmr, games)}</span>
       <span>${mmr} · ${t("board.wl", { w: wins, l: losses })}</span>`;
   }
