@@ -111,10 +111,10 @@ export class GrowthScene extends Phaser.Scene {
         spent: sheet.spent[row.stat],
         gift: row.stat === sheet.giftStat ? sheet.gift : 0,
         total: sheet.totals[row.stat],
-        cap: sheet.cap
+        cap: sheet.caps[row.stat]
       }));
     });
-    this.respecBtn.text.setText(sheet.freeRespec ? t("growth.respec") : t("growth.respecUsed"));
+    this.respecBtn.text.setText(t("growth.respec"));
   }
 
   toggleHint() {

@@ -717,8 +717,13 @@ function processCollisionBetweenBallAndPlayer(
  ball.xVelocity = (rand() % 3) - 1;
  }
  const jitter = GROWTH_FX.aimJitter[player.isPlayer2 ? 1 : 0];
- if (jitter < 0.99 && ball.xVelocity !== 0 && playerState !== 2) {
+ if (playerState !== 2 && ball.xVelocity !== 0) {
+ if (jitter < 0.99) {
  ball.xVelocity = Math.round(ball.xVelocity * jitter) || (ball.xVelocity > 0 ? 1 : -1);
+ } else if (jitter > 1.02 && (rand() % 100) < (((jitter - 1) * 90) | 0)) {
+ ball.xVelocity += (rand() % 5) - 2;
+ if (ball.xVelocity === 0) ball.xVelocity = (rand() % 2) * 2 - 1;
+ }
  }
 
  const ballAbsYVelocity = Math.abs(ball.yVelocity);

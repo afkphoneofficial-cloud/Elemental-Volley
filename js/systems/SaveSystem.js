@@ -10,7 +10,7 @@ import {
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin } from "../data/skins.js";
-import { emptyGrowth, clampGrowth, sheetFromRow } from "../data/growth.js";
+import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent } from "../data/growth.js";
 import { ROSTER_IDS } from "../data/roster.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -55,7 +55,12 @@ function finish(data) {
   data.skins = { ...emptySkins(), ...(data.skins || {}) };
   Object.keys(data.skins).forEach((id) => { data.skins[id] = clampSkin(data.skins[id]); });
   const g = { ...emptyGrowth(), ...(data.growth || {}) };
-  ROSTER_IDS.forEach((id) => { g[id] = clampGrowth(g[id]); });
+  ROSTER_IDS.forEach((id) => {
+    let row = clampGrowth(g[id]);
+    const spentSum = (row.spent.spike + row.spent.touch + row.spent.aim + row.spent.spring) | 0;
+    if (!row.xp && spentSum === 0) row.spent = defaultSpent();
+    g[id] = normalizeRow(id, row);
+  });
   data.growth = g;
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
   if (!Array.isArray(data.friends)) data.friends = [];
@@ -302,15 +307,19 @@ export const SaveSystem = {
   },
 
   growthOf(id) {
-    const pack = this.data.growth || emptyGrowth();
-    return sheetFromRow(id, pack[id]);
+    if (!this.data.growth) this.data.growth = emptyGrowth();
+    const before = JSON.stringify(clampGrowth(this.data.growth[id]).spent);
+    const row = normalizeRow(id, this.data.growth[id]);
+    this.data.growth[id] = row;
+    if (JSON.stringify(row.spent) !== before) this.persist();
+    return sheetFromRow(id, row);
   },
 
   addGrowthXp(id, amount) {
     if (!this.data.growth) this.data.growth = emptyGrowth();
     const row = clampGrowth(this.data.growth[id]);
     row.xp += Math.max(0, amount | 0);
-    this.data.growth[id] = row;
+    this.data.growth[id] = normalizeRow(id, row);
     this.persist();
     return this.growthOf(id);
   },
@@ -319,22 +328,19 @@ export const SaveSystem = {
     if (!this.isUnlocked(id)) return false;
     const sheet = this.growthOf(id);
     if (sheet.unspent < 1) return false;
-    if ((sheet.spent[stat] | 0) >= sheet.cap) return false;
+    if ((sheet.spent[stat] | 0) >= (sheet.caps[stat] | 0)) return false;
     const row = clampGrowth(this.data.growth[id]);
     row.spent[stat] = (row.spent[stat] | 0) + 1;
-    this.data.growth[id] = row;
+    this.data.growth[id] = normalizeRow(id, row);
     this.persist();
     return true;
   },
 
   respecGrowth(id) {
     if (!this.isUnlocked(id)) return false;
-    const sheet = this.growthOf(id);
-    if (!sheet.freeRespec) return false;
     const row = clampGrowth(this.data.growth[id]);
     row.spent = { spike: 0, touch: 0, aim: 0, spring: 0 };
-    row.freeRespec = false;
-    this.data.growth[id] = row;
+    this.data.growth[id] = normalizeRow(id, row);
     this.persist();
     return true;
   },
