@@ -608,9 +608,9 @@ export class PlayScene extends Phaser.Scene {
       if (down) {
         this.enterHold += 1;
         if (this.enterHold >= HOLD_FRAMES) this.ultArmed = true;
-        input.powerHit = this.ultArmed ? 1 : 0;
+        input.powerHit = 1;
       } else {
-        input.powerHit = !this.ultArmed && this.enterWasDown && this.enterHold > 0 && this.enterHold < HOLD_FRAMES ? 1 : 0;
+        input.powerHit = 0;
         this.enterHold = 0;
       }
     } else {
