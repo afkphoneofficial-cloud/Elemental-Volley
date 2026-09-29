@@ -50,6 +50,7 @@ window.game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    autoRound: true,
     parent: "game",
     width: GAME.width,
     height: GAME.height

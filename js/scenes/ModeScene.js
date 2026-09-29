@@ -15,8 +15,9 @@ export class ModeScene extends Phaser.Scene {
     if (!AuthSystem.guard(this)) return;
     drawGrid(this);
     const W = this.scale.width;
+    this.cameras.main.roundPixels = true;
     this.ruleBits = [];
-    this.fxRing = this.add.graphics().setDepth(7);
+    this.fxRing = this.add.graphics().setDepth(2);
 
     this.add.text(W / 2, 40, t("hub.modeTitle"), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
@@ -78,15 +79,21 @@ export class ModeScene extends Phaser.Scene {
   }
 
   paintCopy(x, y, w, title, body, titleColor, bodyColor, seasonKind, epic) {
-    this.add.text(x, y - 96, title, {
+    x = Math.round(x);
+    y = Math.round(y);
+    const titleStyle = {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: titleColor,
-      align: "center", wordWrap: { width: w - 36 },
-      stroke: epic ? "#3a1870" : "#fff6ea", strokeThickness: epic ? 6 : 0
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, seasonKind ? y - 38 : y - 8, body, {
-      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: bodyColor,
-      align: "center", wordWrap: { width: w - 48 }, lineSpacing: 4
-    }).setOrigin(0.5).setDepth(8);
+      align: "center", wordWrap: { width: w - 36 }
+    };
+    if (epic) {
+      titleStyle.stroke = "#2a1048";
+      titleStyle.strokeThickness = 2;
+    }
+    this.add.text(x, y - 96, title, titleStyle).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
+    this.add.text(x, seasonKind ? y - 36 : y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: bodyColor,
+      align: "center", wordWrap: { width: w - 48 }, lineSpacing: 5
+    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
     if (!seasonKind) return false;
     const win = rankWindow(seasonKind);
     const lang = I18n.lang;
@@ -97,15 +104,15 @@ export class ModeScene extends Phaser.Scene {
       end: formatYmdShort(win.week.end, lang)
     });
     this.add.text(x, y + 18, t("hub.modeSeason"), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: epic ? "#ffe08a" : "#c45a16"
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 40, days, {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: bodyColor
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y + 62, status + "  ·  " + week, {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800",
-      color: win.open ? (epic ? "#c8ff3a" : "#1a7a48") : (epic ? "#ff8ab8" : "#c45a16")
-    }).setOrigin(0.5).setDepth(8);
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: epic ? "#ffe08a" : "#c45a16"
+    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
+    this.add.text(x, y + 42, days, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "800", color: bodyColor
+    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
+    this.add.text(x, y + 64, status + "  ·  " + week, {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800",
+      color: win.open ? (epic ? "#d8ff6a" : "#146038") : (epic ? "#ff8ab8" : "#c45a16")
+    }).setOrigin(0.5).setDepth(8).setPadding(4, 2, 4, 2);
     return !win.open;
   }
 
@@ -162,7 +169,7 @@ export class ModeScene extends Phaser.Scene {
 
   card(x, y, w, h, color, title, body, onClick) {
     roundPanel(this, x, y, w, h, color, 0xfff6ea);
-    this.paintCopy(x, y, w, title, body, "#3a2418", "#5a3828", null, false);
+    this.paintCopy(x, y, w, title, body, "#3a2418", "#3a2418", null, false);
     makeButton(this, x, y + 108, 220, 44, title, () => onClick(), color);
   }
 
@@ -187,7 +194,7 @@ export class ModeScene extends Phaser.Scene {
     panel.lineStyle(1.5, 0xc8b8ff, 0.55);
     panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
 
-    const locked = this.paintCopy(x, y, w, title, body, "#3a2418", "#5a3828", kind, false);
+    const locked = this.paintCopy(x, y, w, title, body, "#3a2418", "#3a2418", kind, false);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x12080e, 0.22);
@@ -213,7 +220,7 @@ export class ModeScene extends Phaser.Scene {
             quantity: 16
           }
         });
-        spark.setDepth(6);
+        spark.setDepth(3);
       } catch (e) {}
     }
   }
@@ -242,7 +249,7 @@ export class ModeScene extends Phaser.Scene {
     panel.fillStyle(0xffffff, 0.08);
     panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 14, w - 36, 36, 12);
 
-    const locked = this.paintCopy(x, y, w, title, body, "#ffe08a", "#e8dcff", kind, true);
+    const locked = this.paintCopy(x, y, w, title, body, "#ffe08a", "#fff6ea", kind, true);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x000000, 0.28);
@@ -268,7 +275,7 @@ export class ModeScene extends Phaser.Scene {
             quantity: 28
           }
         });
-        spark.setDepth(6);
+        spark.setDepth(3);
       } catch (e) {}
     }
   }
