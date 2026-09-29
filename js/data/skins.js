@@ -46,8 +46,14 @@ export function faceKey(id, courtSide, tier) {
   return "vis_" + id + "_" + t + side;
 }
 
-export function artSrc(id, tier) {
+export function artSrc(id, tier, facing) {
   const t = clampSkin(tier);
+  if (facing === "l") {
+    return t <= 1 ? "assets/sprites/" + id + "-left.png" : "assets/sprites/skins/" + id + "-t" + t + "-left.png";
+  }
+  if (facing === "r") {
+    return t <= 1 ? "assets/sprites/" + id + "-right.png" : "assets/sprites/skins/" + id + "-t" + t + "-right.png";
+  }
   if (t <= 1) return "assets/sprites/select-" + id + ".png";
   return "assets/sprites/skins/select-" + id + "-t" + t + ".png";
 }

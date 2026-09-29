@@ -189,7 +189,10 @@ export const COPY = {
       using: "กำลังใส่ชุดนี้",
       locked: "ปลดล็อกตัวละครก่อน",
       tier: "ชุด {n}",
-      tierLine: "ชุด {n}  ·  {name}"
+      tierLine: "ชุด {n}  ·  {name}",
+      viewL: "ซ้าย",
+      viewF: "หน้าตรง",
+      viewR: "ขวา"
     },
     career: {
       title: "โปรไฟล์",
@@ -598,7 +601,10 @@ export const COPY = {
       using: "Wearing this set",
       locked: "Unlock this fighter first",
       tier: "Set {n}",
-      tierLine: "Set {n}  ·  {name}"
+      tierLine: "Set {n}  ·  {name}",
+      viewL: "Left",
+      viewF: "Front",
+      viewR: "Right"
     },
     career: {
       title: "Profile",

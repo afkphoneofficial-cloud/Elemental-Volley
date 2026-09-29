@@ -1,6 +1,6 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { SKIN_TIERS, SKIN_PIECES, selectKey, skinTier } from "../data/skins.js";
+import { SKIN_TIERS, SKIN_PIECES, skinTier, texSelect, texFace } from "../data/skins.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -17,6 +17,7 @@ export class DressScene extends Phaser.Scene {
     this.charId = SaveSystem.data.showcaseId || SaveSystem.data.starterId || "ignis";
     this.tier = SaveSystem.skinOf(this.charId);
     this.hopping = false;
+    this.view = "f";
 
     this.add.text(W / 2, 36, t("dress.title"), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
@@ -32,6 +33,7 @@ export class DressScene extends Phaser.Scene {
       makeButton(this, x, 118, 140, 40, charName(id), () => {
         this.charId = id;
         this.tier = SaveSystem.skinOf(id);
+        this.view = "f";
         this.refresh();
         AudioSystem.ui();
       }, SaveSystem.isUnlocked(id) ? 0xffb14a : 0xc8bdd8);
@@ -42,6 +44,19 @@ export class DressScene extends Phaser.Scene {
     this.orbit = this.add.graphics().setDepth(8);
     this.hopGfx = this.add.graphics().setDepth(9);
     this.hero = this.add.image(W / 2, 326, "vis_select_ignis").setDisplaySize(236, 236).setDepth(10);
+    this.sideL = this.add.image(W / 2 - 268, 318, "vis_ignis_l").setDisplaySize(118, 118).setDepth(10).setInteractive({ useHandCursor: true });
+    this.sideR = this.add.image(W / 2 + 268, 318, "vis_ignis_r").setDisplaySize(118, 118).setDepth(10).setInteractive({ useHandCursor: true });
+    this.sideL.on("pointerdown", () => { this.view = "l"; this.refresh(); this.hop(); AudioSystem.ui(); });
+    this.sideR.on("pointerdown", () => { this.view = "r"; this.refresh(); this.hop(); AudioSystem.ui(); });
+    this.add.text(W / 2 - 268, 392, t("dress.viewL"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
+    this.add.text(W / 2, 448, t("dress.viewF"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
+    this.add.text(W / 2 + 268, 392, t("dress.viewR"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
     this.form = this.add.image(W / 2, 318, "jump-fire").setDepth(11).setVisible(false);
     try {
       this.hopSpark = this.add.particles(0, 0, "dot", {
@@ -58,10 +73,10 @@ export class DressScene extends Phaser.Scene {
       this.hopSpark = null;
     }
 
-    this.nameLab = this.add.text(W / 2, 468, "", {
+    this.nameLab = this.add.text(W / 2, 478, "", {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.tierLab = this.add.text(W / 2, 496, "", {
+    this.tierLab = this.add.text(W / 2, 504, "", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
 
@@ -80,6 +95,7 @@ export class DressScene extends Phaser.Scene {
       const x = 140 + i * 250;
       return makeButton(this, x, 628, 220, 44, "", () => {
         this.tier = row.id;
+        this.view = "f";
         this.refresh();
         AudioSystem.ui();
       }, 0xffe08a);
@@ -93,7 +109,11 @@ export class DressScene extends Phaser.Scene {
     }, 0xff6a22);
 
     this.hero.setInteractive({ useHandCursor: true });
-    this.hero.on("pointerdown", () => this.hop());
+    this.hero.on("pointerdown", () => {
+      this.view = "f";
+      this.refresh();
+      this.hop();
+    });
     this.time.addEvent({ delay: 2200, loop: true, callback: () => this.hop() });
 
     this.refresh();
@@ -124,12 +144,18 @@ export class DressScene extends Phaser.Scene {
     });
   }
 
+  previewKey() {
+    if (this.view === "l") return texFace(this, this.charId, 2, this.tier);
+    if (this.view === "r") return texFace(this, this.charId, 1, this.tier);
+    return texSelect(this, this.charId, this.tier);
+  }
+
   refresh() {
     const id = this.charId;
     const row = skinTier(this.tier);
-    const key = selectKey(id, this.tier);
-    const tex = this.textures.exists(key) ? key : (this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id);
-    this.hero.setTexture(tex).setDisplaySize(236, 236);
+    this.hero.setTexture(this.previewKey()).setDisplaySize(236, 236);
+    if (this.sideL) this.sideL.setTexture(texFace(this, id, 2, this.tier)).setDisplaySize(118, 118);
+    if (this.sideR) this.sideR.setTexture(texFace(this, id, 1, this.tier)).setDisplaySize(118, 118);
     this.plate.setFillStyle(SELECT_PLATE[id] || 0xffb14a, 1);
     this.nameLab.setText(charName(id));
     this.tierLab.setText(t("dress.tierLine", { n: this.tier, name: I18n.lang === "en" ? row.en : row.th }));

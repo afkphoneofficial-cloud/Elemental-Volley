@@ -8,6 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { clampSkin } from "../data/skins.js";
 
 function rivalLabel(rival) {
   if (!rival) return "";
@@ -133,6 +134,8 @@ export class QueueScene extends Phaser.Scene {
     }
     Session.youSide = msg.youSide === 2 ? 2 : 1;
     Session.botId = (msg.rival && msg.rival.fighter) || Session.botId;
+    Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
+    Session.foeSkin = clampSkin((msg.rival && msg.rival.skin) || 1);
     this.scene.start("luck");
   }
 
@@ -164,6 +167,8 @@ export class QueueScene extends Phaser.Scene {
       difficulty: "normal",
       skin: rival.skin | 0 || 1
     };
+    Session.foeSkin = clampSkin(Session.rival.skin);
+    Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
     this.status.setText(t("queue.foundLive"));
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(false);
     if (this.cancelBtn && this.cancelBtn.text) this.cancelBtn.text.setVisible(false);

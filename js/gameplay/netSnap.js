@@ -58,7 +58,8 @@ export function packMatchSnap(scene) {
       hb: MATCH_FX.hideBall ? 1 : 0,
       v: MATCH_FX.volt ? 1 : 0,
       f: MATCH_FX.fire ? 1 : 0
-    }
+    },
+    skins: [scene.skinForSide(1), scene.skinForSide(2)]
   };
 }
 
@@ -91,6 +92,17 @@ export function applyMatchSnap(scene, snap) {
   MATCH_FX.hideBall = fx.hb === 1;
   MATCH_FX.volt = fx.v === 1;
   MATCH_FX.fire = fx.f === 1;
+  if (Array.isArray(snap.skins) && snap.skins.length >= 2 && typeof scene.skinForSide === "function") {
+    const leftS = Math.max(1, Math.min(5, snap.skins[0] | 0));
+    const rightS = Math.max(1, Math.min(5, snap.skins[1] | 0));
+    if (scene.youSide === 1) {
+      scene.youSkin = leftS;
+      scene.foeSkin = rightS;
+    } else {
+      scene.youSkin = rightS;
+      scene.foeSkin = leftS;
+    }
+  }
   return {
     scoreChanged: prev0 !== scene.score[0] || prev1 !== scene.score[1],
     justOver: scene.matchOver && !wasOver

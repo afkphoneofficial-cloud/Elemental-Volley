@@ -20,6 +20,8 @@ export class BootScene extends Phaser.Scene {
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
       [2, 3, 4, 5].forEach((n) => {
         this.load.image("select-" + id + "-t" + n, "assets/sprites/skins/select-" + id + "-t" + n + ".png");
+        this.load.image("skin-" + id + "-t" + n + "-l", "assets/sprites/skins/" + id + "-t" + n + "-left.png");
+        this.load.image("skin-" + id + "-t" + n + "-r", "assets/sprites/skins/" + id + "-t" + n + "-right.png");
       });
     });
     this.load.image("ether-art", "assets/sprites/ether.png");
@@ -63,12 +65,14 @@ export class BootScene extends Phaser.Scene {
           TextureFactory.mirror(this, "vis_" + id + "_r", "vis_" + id + "_l", true);
         }
         [2, 3, 4, 5].forEach((n) => {
-          const src = "select-" + id + "-t" + n;
-          TextureFactory.applyChibi(this, src, "vis_select_" + id + "_" + n);
-          TextureFactory.applyChibi(this, src, "vis_" + id + "_" + n);
-          if (this.textures.exists("vis_" + id + "_" + n)) {
-            TextureFactory.copyCanvas(this, "vis_" + id + "_" + n, "vis_" + id + "_" + n + "_r");
-            TextureFactory.mirror(this, "vis_" + id + "_" + n, "vis_" + id + "_" + n + "_l", true);
+          TextureFactory.applyChibi(this, "select-" + id + "-t" + n, "vis_select_" + id + "_" + n);
+          TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_l");
+          TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_r");
+          if (!this.textures.exists("vis_" + id + "_" + n + "_r") && this.textures.exists("vis_" + id + "_" + n + "_l")) {
+            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_l", "vis_" + id + "_" + n + "_r", true);
+          }
+          if (!this.textures.exists("vis_" + id + "_" + n + "_l") && this.textures.exists("vis_" + id + "_" + n + "_r")) {
+            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_r", "vis_" + id + "_" + n + "_l", true);
           }
         });
       });
