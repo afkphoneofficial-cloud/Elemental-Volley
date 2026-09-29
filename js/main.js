@@ -125,6 +125,8 @@ const layoutShell = () => {
 };
 window.addEventListener("resize", layoutShell);
 window.addEventListener("orientationchange", () => setTimeout(layoutShell, 200));
+document.addEventListener("fullscreenchange", layoutShell);
+document.addEventListener("webkitfullscreenchange", layoutShell);
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", layoutShell);
   window.visualViewport.addEventListener("scroll", layoutShell);

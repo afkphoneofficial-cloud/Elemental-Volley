@@ -6,6 +6,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
+import { SHOP_GOODS, itemIconKey } from "../data/items.js";
 
 export class ShopScene extends Phaser.Scene {
   constructor() { super("shop"); }
@@ -89,11 +90,21 @@ export class ShopScene extends Phaser.Scene {
       }
     });
 
-    makeButton(this, 320, 620, 300, 44, t("shop.exchange"), () => {
-      const n = Math.min(100, SaveSystem.data.currencies.pvp);
-      n > 0 && SaveSystem.exchangePvpToTokens(n) ? AudioSystem.ui() : AudioSystem.error();
-      refresh();
-    }, 0xc8ff3a);
+    SHOP_GOODS.forEach((good) => {
+      const x = 250;
+      const y = 620;
+      this.add.rectangle(x, y, 340, 56, 0x161022, 0.94).setStrokeStyle(2, 0x7d5cff, 0.75);
+      const ik = itemIconKey(good.itemId);
+      if (this.textures.exists(ik)) this.add.image(x - 138, y, ik).setDisplaySize(42, 42);
+      this.add.text(x - 110, y, t("item." + good.itemId + ".name"), {
+        fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "16px", fontStyle: "800", color: "#fff4e8"
+      }).setOrigin(0, 0.5);
+      makeButton(this, x + 110, y, 140, 40, t("shop.tradeStone"), () => {
+        const res = SaveSystem.useItem(good.itemId);
+        res.ok ? AudioSystem.ui() : AudioSystem.error();
+        refresh();
+      }, 0xc8ff3a);
+    });
 
     makeButton(this, 640, 620, 300, 44, t("shop.topup"), () => {
       SaveSystem.addPremium(ECONOMY.premiumTopup);

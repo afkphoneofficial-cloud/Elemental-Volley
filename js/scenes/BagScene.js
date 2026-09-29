@@ -11,7 +11,7 @@ function slotList() {
   const rows = [];
   const stones = cur.pvp | 0;
   const shards = cur.tokens | 0;
-  if (stones > 0) rows.push({ id: "stone", n: stones, material: true });
+  if (stones > 0) rows.push({ id: "stone", n: stones, material: false });
   if (shards > 0) rows.push({ id: "shard", n: shards, material: true });
   Object.keys(SaveSystem.data.inventory || {}).forEach((id) => {
     const n = SaveSystem.itemCount(id);
@@ -34,11 +34,8 @@ export class BagScene extends Phaser.Scene {
       this.scene.start("hub");
     }, 0x7d5cff);
 
-    this.add.text(W / 2, 88, t("bag.title"), {
+    this.add.text(W / 2, 100, t("bag.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
-    }).setOrigin(0.5);
-    this.add.text(W / 2, 122, t("bag.sub"), {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 880 }
     }).setOrigin(0.5);
 
     this.pick = 0;
@@ -147,6 +144,7 @@ export class BagScene extends Phaser.Scene {
     this.note = res.ok
       ? t("bag.used")
       : t("bag.err." + (res.reason || "no"));
+    if (res.ok && id === "stone") this.note = t("bag.usedStone");
     if (res.ok && res.charId) this.note = t("bag.usedFruit", { name: charName(res.charId) });
     this.paintGrid();
     const W = this.scale.width;

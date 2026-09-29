@@ -161,14 +161,36 @@ export function shakeCam(cam, dur, pow) {
   cam.shake(dur, pow);
 }
 
+function fullscreenNode() {
+  return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+}
+
 export async function toggleFullscreen() {
-  const root = document.getElementById("game") || document.documentElement;
+  const root = document.getElementById("wrap") || document.documentElement;
   try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else if (root.requestFullscreen) await root.requestFullscreen();
-  } catch (e) {}
+    if (fullscreenNode()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exit) await Promise.resolve(exit.call(document));
+      return;
+    }
+    if (root.requestFullscreen) {
+      await root.requestFullscreen({ navigationUI: "hide" });
+      return;
+    }
+    if (root.webkitRequestFullscreen) {
+      root.webkitRequestFullscreen();
+      return;
+    }
+    if (root.msRequestFullscreen) root.msRequestFullscreen();
+  } catch (e) {
+    try {
+      const html = document.documentElement;
+      if (html.requestFullscreen) await html.requestFullscreen({ navigationUI: "hide" });
+      else if (html.webkitRequestFullscreen) html.webkitRequestFullscreen();
+    } catch (e2) {}
+  }
 }
 
 export function isFullscreen() {
-  return Boolean(document.fullscreenElement);
+  return Boolean(fullscreenNode());
 }

@@ -219,7 +219,7 @@ export const COPY = {
     },
     bag: {
       title: "กระเป๋า",
-      sub: "ช่องใส่ของ  ·  กดไอเท็มแล้วกดใช้ได้จากที่นี่",
+      sub: "ช่องใส่ของ",
       empty: "ยังไม่มีของในกระเป๋า",
       emptySub: "ของใช้จะโชว์เป็นช่องเหมือนเกมมือถือ",
       slotEmpty: "ช่องว่าง",
@@ -228,6 +228,7 @@ export const COPY = {
       pickFighter: "เลือกตัวที่จะใช้ผลคืนกาย",
       use: "ใช้",
       used: "ใช้แล้ว",
+      usedStone: "แลกเป็นเศษธาตุ 1 ชิ้นแล้ว",
       usedFruit: "คืนแต้มเลเวลของ {name} แล้ว",
       err: {
         no: "ใช้ชิ้นนี้ไม่ได้",
@@ -354,6 +355,8 @@ export const COPY = {
       wear: "สวมใส่",
       buyPrem: "ซื้อ {price} Premium",
       exchange: "แลกหินประหลาดเป็นเศษธาตุ  (1:1)",
+      goodsHead: "ไอเท็ม",
+      tradeStone: "แลก 1 ชิ้น",
       topup: "เติม Premium (จำลอง) +100",
       buyTokens: "ซื้อเศษธาตุ 100 ด้วย Premium",
       foot: "ฝึกฝนได้หินประหลาด แลกเป็นเศษธาตุที่ร้าน  ·  ธีมฉลองแต้มซื้อด้วย Premium ได้เลย"
@@ -773,7 +776,7 @@ export const COPY = {
     },
     bag: {
       title: "Bag",
-      sub: "Inventory slots  ·  Tap an item, then use it here",
+      sub: "Inventory slots",
       empty: "The bag is empty",
       emptySub: "Usable items show up as slots, like a mobile RPG bag",
       slotEmpty: "Empty slot",
@@ -782,6 +785,7 @@ export const COPY = {
       pickFighter: "Pick a fighter for Bodyfruit",
       use: "Use",
       used: "Used",
+      usedStone: "Traded for 1 Element Shard",
       usedFruit: "Reset {name}'s level-up points",
       err: {
         no: "Cannot use this",
@@ -908,6 +912,8 @@ export const COPY = {
       wear: "Equip",
       buyPrem: "Buy {price} Premium",
       exchange: "Trade Odd Stones for Element Shards  (1:1)",
+      goodsHead: "Items",
+      tradeStone: "Trade 1",
       topup: "Add Premium (mock) +100",
       buyTokens: "Buy 100 Element Shards with Premium",
       foot: "Train to earn Odd Stones, then trade them for Element Shards. Cheer themes cost Premium."

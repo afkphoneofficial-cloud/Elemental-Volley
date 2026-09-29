@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local76" />
+  <link rel="stylesheet" href="css/styles.css?v=local77" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -129,19 +129,19 @@
   </div>
   <div id="wrap">
     <div id="game"></div>
-  </div>
-  <div id="touch-pad" hidden>
-    <div id="stick-base" aria-label="move">
-      <div id="stick-knob"></div>
-      <span class="pad-lab" data-i18n="touch.move">เดิน</span>
+    <div id="touch-pad" hidden>
+      <div id="stick-base" aria-label="move">
+        <div id="stick-knob"></div>
+        <span class="pad-lab" data-i18n="touch.move">เดิน</span>
+      </div>
+      <button type="button" id="hit-pad" aria-label="hit">
+        <span class="hit-core"></span>
+        <span class="pad-lab" data-i18n="touch.hit">ตบ</span>
+      </button>
     </div>
-    <button type="button" id="hit-pad" aria-label="hit">
-      <span class="hit-core"></span>
-      <span class="pad-lab" data-i18n="touch.hit">ตบ</span>
-    </button>
-  </div>
-  <div id="rotate-hint" hidden>
-    <p data-i18n="touch.rotate">หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด</p>
+    <div id="rotate-hint" hidden>
+      <p data-i18n="touch.rotate">หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด</p>
+    </div>
   </div>
   <footer id="site-foot">
     <span class="foot-copy">© 2026</span>
@@ -152,6 +152,6 @@
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="js/main.js?v=local102"></script>
+  <script type="module" src="js/main.js?v=local103"></script>
 </body>
 </html>

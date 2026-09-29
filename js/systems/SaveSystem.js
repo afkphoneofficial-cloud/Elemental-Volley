@@ -207,6 +207,10 @@ export const SaveSystem = {
   },
 
   useItem(id, ctx) {
+    if (id === "stone") {
+      if (!this.exchangePvpToTokens(1)) return { ok: false, reason: "none" };
+      return { ok: true, effect: "toShard" };
+    }
     const row = ITEMS[id];
     if (!row || row.kind !== "use") return { ok: false, reason: "no" };
     if (row.effect === "ether1") {

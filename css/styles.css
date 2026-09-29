@@ -273,6 +273,7 @@ body {
   justify-content: center;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 #game {
@@ -457,7 +458,7 @@ html[data-control="pc"] #game {
 }
 
 #touch-pad {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 25;
   pointer-events: none;
@@ -548,7 +549,7 @@ html[data-control="pc"] #game {
 }
 
 #rotate-hint {
-  position: fixed;
+  position: absolute;
   left: 50%;
   top: max(58px, env(safe-area-inset-top));
   transform: translateX(-50%);

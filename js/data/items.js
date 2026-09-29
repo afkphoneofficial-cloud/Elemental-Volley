@@ -31,6 +31,10 @@ export const BAG_COLS = 5;
 export const BAG_ROWS = 4;
 export const BAG_SLOTS = BAG_COLS * BAG_ROWS;
 
+export const SHOP_GOODS = [
+  { id: "stone", itemId: "stone", action: "exchangeShard" }
+];
+
 export function itemOf(id) {
   return ITEMS[id] || null;
 }

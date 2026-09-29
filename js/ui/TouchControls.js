@@ -14,9 +14,11 @@ export function preferTouch() {
   if (mode === "mobile") return true;
   if (mode === "pc") return false;
   const coarse = window.matchMedia("(pointer: coarse)").matches;
-  const narrow = window.matchMedia("(max-width: 900px)").matches;
-  const short = window.matchMedia("(max-height: 500px)").matches;
-  return coarse || (narrow && (navigator.maxTouchPoints > 0 || short));
+  const hoverNone = window.matchMedia("(hover: none)").matches;
+  const touchPts = (navigator.maxTouchPoints || 0) > 0;
+  const narrow = window.matchMedia("(max-width: 1100px)").matches;
+  const short = window.matchMedia("(max-height: 560px)").matches;
+  return coarse || hoverNone || (touchPts && (narrow || short));
 }
 
 export const TouchControls = {
@@ -38,6 +40,8 @@ export const TouchControls = {
     this.bindPad(this.hitEl, false);
     window.addEventListener("resize", () => this.sync());
     window.addEventListener("orientationchange", () => setTimeout(() => this.sync(), 180));
+    document.addEventListener("fullscreenchange", () => this.sync());
+    document.addEventListener("webkitfullscreenchange", () => this.sync());
     if (this.rotate) {
       this.rotate.addEventListener("click", () => {
         this.rotate.hidden = true;
