@@ -122,6 +122,7 @@ export const COPY = {
     queue: {
       title: "กำลังหาคู่แข่ง",
       searching: "กำลังหาคู่ในวงแต้มใกล้เคียง…",
+      waitTime: "รอมาแล้ว {t}",
       window: "วงค้น ±{n} แต้ม",
       foundLive: "เจอคู่แล้ว  ตัดสินใจสู้หรือยัง",
       foundIsle: "พบคู่แข่งเกาะ  ·  แต้มสนามใกล้กัน",
@@ -536,6 +537,7 @@ export const COPY = {
     queue: {
       title: "Finding a rival",
       searching: "Searching nearby court scores…",
+      waitTime: "In queue {t}",
       window: "Search window ±{n}",
       foundLive: "Rival found  ·  accept or decline",
       foundIsle: "Found an island rival  ·  nearby court score",

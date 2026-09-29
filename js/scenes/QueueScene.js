@@ -10,6 +10,13 @@ import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { clampSkin } from "../data/skins.js";
 
+function formatWait(ms) {
+  const sec = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ":" + String(s).padStart(2, "0");
+}
+
 function rivalLabel(rival) {
   if (!rival) return "";
   return I18n.lang === "en" ? rival.nameEn : rival.nameTh;
@@ -24,6 +31,7 @@ export class QueueScene extends Phaser.Scene {
     const W = this.scale.width;
     const rank = SaveSystem.data.rank;
     this.started = this.time.now;
+    this.waitAt = Date.now();
     this.found = false;
     this.bits = [];
 
@@ -33,7 +41,10 @@ export class QueueScene extends Phaser.Scene {
     this.status = this.add.text(W / 2, 96, t("queue.searching"), {
       fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30"
     }).setOrigin(0.5);
-    this.windowText = this.add.text(W / 2, 128, "", {
+    this.waitClock = this.add.text(W / 2, 128, t("queue.waitTime", { t: "0:00" }), {
+      fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#c45a16"
+    }).setOrigin(0.5);
+    this.windowText = this.add.text(W / 2, 164, "", {
       fontFamily: UI_FONT, fontSize: "14px", color: "#8a5a38"
     }).setOrigin(0.5);
 
@@ -69,25 +80,31 @@ export class QueueScene extends Phaser.Scene {
     NetPlay.ensure();
     if (!NetPlay.configured()) {
       this.status.setText(t("queue.noServer"));
+      this.stopWaitClock();
       return;
     }
     if (NetPlay.cooldownUntil > Date.now() && !Session.exhibitIncoming) {
       this.status.setText(t("queue.cooldown", { n: Math.ceil((NetPlay.cooldownUntil - Date.now()) / 60000) }));
+      this.stopWaitClock();
       return;
     }
     if (Session.exhibitIncoming) {
       Session.exhibitIncoming = false;
       this.status.setText(t("queue.searching"));
+      this.beginWait();
     } else if (Session.mode === "exhibit" && Session.exhibitFriendId) {
       NetPlay.exhibit(Session.exhibitFriendId);
+      this.beginWait();
     } else {
       const st = SaveSystem.etherNow();
       if ((st.n | 0) < ECONOMY.etherCostPvp) {
         this.status.setText(t("queue.noEther"));
+        this.stopWaitClock();
         this.time.delayedCall(900, () => this.scene.start("hub"));
         return;
       }
       NetPlay.queueRanked();
+      this.beginWait();
     }
   }
 
@@ -97,16 +114,30 @@ export class QueueScene extends Phaser.Scene {
       this.clearOffer();
       if (this.found) return;
       this.status.setText(t("queue.searching"));
+      this.beginWait();
     }
     if (msg.t === "cooldown") {
       this.clearOffer();
       const mins = Math.max(1, Math.ceil((msg.ms || 120000) / 60000));
       this.status.setText(t("queue.cooldown", { n: mins }));
+      this.stopWaitClock();
     }
-    if (msg.t === "offline") this.status.setText(t("queue.offline"));
-    if (msg.t === "busy") this.status.setText(t("queue.busy"));
-    if (msg.t === "declined") this.status.setText(t("queue.declined"));
-    if (msg.t === "authFail" || msg.t === "closed") this.status.setText(t("queue.noServer"));
+    if (msg.t === "offline") {
+      this.status.setText(t("queue.offline"));
+      this.stopWaitClock();
+    }
+    if (msg.t === "busy") {
+      this.status.setText(t("queue.busy"));
+      this.stopWaitClock();
+    }
+    if (msg.t === "declined") {
+      this.status.setText(t("queue.declined"));
+      this.stopWaitClock();
+    }
+    if (msg.t === "authFail" || msg.t === "closed") {
+      this.status.setText(t("queue.noServer"));
+      this.stopWaitClock();
+    }
     if (msg.t === "offer") this.showOffer(msg);
     if (msg.t === "luck") this.enterLuck(msg);
   }
@@ -122,6 +153,7 @@ export class QueueScene extends Phaser.Scene {
       }
     }
     this.found = true;
+    this.stopWaitClock();
     Session.net = true;
     Session.netHost = msg.host === true;
     Session.mode = Session.mode === "exhibit" ? "exhibit" : "pvp";
@@ -154,6 +186,7 @@ export class QueueScene extends Phaser.Scene {
     this.bits = [];
     this.offerUntil = 0;
     this.offerClock = null;
+    if (this.waitAt) this.setWaitVisible(true);
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(true);
     if (this.cancelBtn && this.cancelBtn.text) this.cancelBtn.text.setVisible(true);
     if (this.cancelBtn && this.cancelBtn.gfx) this.cancelBtn.gfx.setVisible(true);
@@ -180,6 +213,7 @@ export class QueueScene extends Phaser.Scene {
     Session.foeSkin = clampSkin(Session.rival.skin);
     Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
     this.status.setText(t("queue.foundLive"));
+    this.setWaitVisible(false);
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(false);
     if (this.cancelBtn && this.cancelBtn.text) this.cancelBtn.text.setVisible(false);
     if (this.cancelBtn && this.cancelBtn.gfx) this.cancelBtn.gfx.setVisible(false);
@@ -238,17 +272,39 @@ export class QueueScene extends Phaser.Scene {
     if (badge) this.bits.push(badge);
   }
 
+  beginWait() {
+    this.waitAt = Date.now();
+    this.started = this.time.now;
+    this.setWaitVisible(true);
+    this.paintWait();
+  }
+
+  stopWaitClock() {
+    this.waitAt = 0;
+    this.setWaitVisible(false);
+  }
+
+  setWaitVisible(on) {
+    if (this.waitClock) this.waitClock.setVisible(on);
+  }
+
+  paintWait() {
+    if (!this.waitClock || !this.waitAt) return;
+    this.waitClock.setText(t("queue.waitTime", { t: formatWait(Date.now() - this.waitAt) }));
+  }
+
   update() {
     if (this.offerClock && this.offerUntil) {
       const left = Math.max(0, Math.ceil((this.offerUntil - Date.now()) / 1000));
       this.offerClock.setText(t("queue.offerSec", { n: left }));
     }
+    if (this.waitAt && !this.offerClock) this.paintWait();
     if (this.found) return;
     const elapsed = this.time.now - this.started;
     const win = searchWindow(elapsed);
     this.ring.clear();
     this.ring.lineStyle(3, 0x7d5cff, 0.45 + 0.25 * Math.sin(elapsed / 180));
     this.ring.strokeCircle(this.scale.width / 2, 280, 90 + 8 * Math.sin(elapsed / 220));
-    this.windowText.setText(t("queue.window", { n: win }));
+    this.windowText.setText(Session.mode === "exhibit" ? "" : t("queue.window", { n: win }));
   }
 }
