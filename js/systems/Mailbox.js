@@ -1,7 +1,17 @@
 import { AuthSystem } from "./AuthSystem.js";
+import { SaveSystem } from "./SaveSystem.js";
 import { I18n } from "../i18n/I18n.js";
 
-export const MAIL_KINDS = ["friend_invite", "friend_accept", "news", "server", "dev"];
+export const MAIL_KINDS = ["friend_invite", "friend_accept", "news", "server", "dev", "season"];
+
+function localMails() {
+  return (SaveSystem.data.seasonInbox || []).map((row) => ({
+    ...row,
+    id: String(row.id || "").startsWith("local:") ? row.id : "local:" + row.id,
+    kind: "season",
+    unread: row.unread !== false
+  }));
+}
 
 export const Mailbox = {
   items: [],
@@ -19,10 +29,12 @@ export const Mailbox = {
   },
 
   async refresh() {
+    SaveSystem.settleSeasonMails();
+    const local = localMails();
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) {
-      this.items = [];
-      this.unread = 0;
+      this.items = local;
+      this.unread = this.items.filter((m) => m.unread).length;
       return { ok: false, reason: "cloud" };
     }
     const { data, error } = await sb.from("mail")
@@ -31,11 +43,11 @@ export const Mailbox = {
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) {
-      this.items = [];
-      this.unread = 0;
+      this.items = local;
+      this.unread = this.items.filter((m) => m.unread).length;
       return { ok: false, reason: "cloud", detail: error.message };
     }
-    this.items = data || [];
+    this.items = local.concat(data || []);
     this.unread = this.items.filter((m) => m.unread).length;
     return { ok: true };
   },
@@ -54,6 +66,11 @@ export const Mailbox = {
   },
 
   async archive(id) {
+    if (String(id).startsWith("local:")) {
+      const res = SaveSystem.claimSeasonMail(id);
+      await this.refresh();
+      return res;
+    }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) return { ok: false, reason: "cloud" };
     const { data, error } = await sb.rpc("archive_mail", { p_mail_id: id });

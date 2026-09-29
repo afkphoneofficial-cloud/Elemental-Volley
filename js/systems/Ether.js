@@ -40,7 +40,15 @@ export function tickEther(data, now) {
   data.ether = n;
   data.etherAt = at;
   const nextMs = n >= max ? 0 : Math.max(0, step - (t - at));
-  return { n, nextMs, full: n >= max };
+  return { n, nextMs, full: n >= max, room: Math.max(0, max - n) };
+}
+
+export function canTakeEther(data, amount, now) {
+  const add = Math.max(0, amount | 0);
+  if (!add) return true;
+  const status = tickEther(data, now || Date.now());
+  if (status.full) return false;
+  return (status.n | 0) + add <= ECONOMY.etherMax;
 }
 
 export function formatEtherWait(nextMs) {

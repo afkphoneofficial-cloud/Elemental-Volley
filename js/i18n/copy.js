@@ -99,7 +99,9 @@ export const COPY = {
       empty: "ยังไม่มีจดหมาย",
       accept: "ยอมรับ",
       decline: "ปฏิเสธ",
-      ok: "อ่านแล้ว"
+      ok: "อ่านแล้ว",
+      claim: "รับของ",
+      etherHint: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น — ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม"
     },
     chat: {
       title: "แชท",
@@ -146,6 +148,9 @@ export const COPY = {
       body3: "ชนะคู่ที่แต้มสูงกว่าได้แต้มมาก แพ้คู่ที่แต้มต่ำกว่าเสียมาก คิดจากโอกาสชนะคาดหวังตามช่องว่างแต้มสนาม",
       body4: "คิวขยายวงแต้มทุก 1.8 วินาที หาคนในคิวที่แต้มใกล้กันก่อน ถ้าเกาะยังว่างจะจับคู่แข่งเกาะในวงเดียวกัน เพื่อวัดอันดับได้เลย",
       body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  กระดานเซิร์ฟโชว์ 100 อันดับแรกจากแต้มสนามที่บันทึกจริง",
+      body6: "ซีซั่นอันดับนับจันทร์–อาทิตย์ตามกรุงเทพ Rank Mode กับ Elements Rank คนละกระดาน คนละรางวัล จบสัปดาห์ส่งเข้าจดหมาย",
+      body7: "อันดับ 1 ได้ป้าย+เชียร์+เศษธาตุ  ·  2–3 ป้าย+เศษ  ·  4–10 ป้าย+เศษ  ·  11–50 เศษธาตุ  ·  51–100 ได้เอเธอร์ 30 ก้อน  ·  แข่งครบ 3 แมตช์ได้เอเธอร์ 10 ก้อนแม้ไม่ติดร้อย  Elements Rank ท็อป 10 มีผลคืนกาย",
+      body8: "เอเธอร์จากซีซั่นอยู่ในขวดในกระเป๋า ใช้ทีละ 1 ก้อนได้เฉพาะตอนหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้",
       tier: {
         sandling: "ลูกทราย",
         netling: "เฝ้าตาข่าย",
@@ -255,7 +260,7 @@ export const COPY = {
       err: {
         no: "ใช้ชิ้นนี้ไม่ได้",
         none: "ของไม่พอ",
-        full: "เอเธอร์เต็มแล้ว",
+        full: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม",
         char: "เลือกตัวละครก่อน",
         free: "ตัวนี้ยังรีเซ็ตเลเวลฟรีได้อยู่ ใช้ปุ่มในหน้าธาตุกายก่อน"
       }
@@ -263,7 +268,7 @@ export const COPY = {
     item: {
       stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า", how: "ชนะโหมดฝึกฝน ตามสกอร์และความยาก แพ้ไม่ได้ก้อน", use: "สะสมแล้วนำไปแลกเศษธาตุที่ร้านค้า อัตรา 1:1" },
       shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกจากหินประหลาดที่ร้าน", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
-      ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ถ้าหลอดเต็มจะเก็บในกระเป๋าก่อน", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลังลงสนาม 1 ก้อนจากหลอดมุมบน หรือกดใช้จากกระเป๋าถ้าหลอดเต็มตอนดรอป" },
+      ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ใช้ได้เฉพาะตอนหลอดยังไม่เต็ม", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลัง 1 ก้อนเมื่อหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้" },
       bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ยังไม่ดรอปจากแมตช์ จะมาจากร้านหรือกิจกรรมภายหลัง", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" }
     },
     growth: {
@@ -736,7 +741,9 @@ export const COPY = {
       empty: "No letters yet",
       accept: "Accept",
       decline: "Decline",
-      ok: "Got it"
+      ok: "Got it",
+      claim: "Claim",
+      etherHint: "Can't claim — the Ether pool is full or this would overflow. Use it only when the pool isn't full."
     },
     chat: {
       title: "Chat",
@@ -783,6 +790,9 @@ export const COPY = {
       body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. The swing follows expected win chance from the court-score gap.",
       body4: "The queue widens every 1.8s. It prefers a live player in range. If the island is quiet, you get a court-matched island rival so rank still moves.",
       body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. The server board shows the top 100 from saved court scores.",
+      body6: "A ranking season is Monday–Sunday Bangkok time. Rank Mode and Elements Rank are separate boards with separate prizes. Rewards land in mail when the week closes.",
+      body7: "Place 1: plate + cheer + shards. 2–3: plate + shards. 4–10: plate + shards. 11–50: shards. 51–100: 30 Ether. Play 3 matches: 10 Ether even off the board. Elements Rank top 10 also get Bodyfruit.",
+      body8: "Season Ether arrives as bag vials. Use one at a time only when the pool isn't full. If it's full or the grant would overflow, the button does nothing.",
       tier: {
         sandling: "Sandling",
         netling: "Netling",
@@ -892,7 +902,7 @@ export const COPY = {
       err: {
         no: "Cannot use this",
         none: "Not enough",
-        full: "Ether is already full",
+        full: "Can't use. Ether is full or this would overflow — only when the pool isn't full.",
         char: "Pick a fighter first",
         free: "This fighter still has a free level reset. Use the Element Body button first."
       }
@@ -900,7 +910,7 @@ export const COPY = {
     item: {
       stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop.", how: "Win training matches. Amount follows score and difficulty. Losses drop none.", use: "Trade 1:1 for Element Shards in the shop." },
       shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade Odd Stones in the shop.", use: "Unlock elemental fighters in the shop. 100 shards each." },
-      ether_vial: { name: "Ether", body: "Use to restore 1 court charge. Extra drops go to the bag when the bar is full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the bar was full when it dropped, use it from the bag." },
+      ether_vial: { name: "Ether", body: "Use to restore 1 court charge, only when the pool is not full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the pool is full or this would overflow, the button does nothing." },
       bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Not dropped from matches yet. Shop and events come later.", use: "Use from the bag on a fighter to reclaim spent level-up points." }
     },
     growth: {

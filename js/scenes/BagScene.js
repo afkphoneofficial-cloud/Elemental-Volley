@@ -149,7 +149,7 @@ export class BagScene extends Phaser.Scene {
     this.paintGrid();
     const W = this.scale.width;
     const msg = this.add.text(W / 2, 660, this.note, {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a7a48"
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: res.ok ? "#1a7a48" : "#c45a16"
     }).setOrigin(0.5).setDepth(20);
     this.time.delayedCall(1600, () => { if (msg && msg.destroy) msg.destroy(); });
   }

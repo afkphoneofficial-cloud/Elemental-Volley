@@ -1,5 +1,5 @@
 import { ECONOMY } from "../data/economy.js";
-import { emptyCareer, tickEther } from "./Ether.js";
+import { emptyCareer, tickEther, canTakeEther } from "./Ether.js";
 import { emptyRank } from "../data/ranks.js";
 import { DEFAULT_AVATAR, ownedAvatar } from "../data/avatars.js";
 import {
@@ -14,7 +14,8 @@ import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STA
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
 import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { rankingWeek } from "../data/rankWindows.js";
+import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
+import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -48,7 +49,11 @@ const empty = () => ({
   friends: [],
   skins: emptySkins(),
   growth: emptyGrowth(),
-  trainCleared: []
+  trainCleared: [],
+  seasonInbox: [],
+  seasonIssued: [],
+  seasonSnap: {},
+  seasonBadges: []
 });
 
 function finish(data) {
@@ -88,6 +93,10 @@ function finish(data) {
   if (!Array.isArray(data.friends)) data.friends = [];
   if (!Array.isArray(data.trainCleared)) data.trainCleared = [];
   else data.trainCleared = data.trainCleared.filter((id) => typeof id === "string");
+  if (!Array.isArray(data.seasonInbox)) data.seasonInbox = [];
+  if (!Array.isArray(data.seasonIssued)) data.seasonIssued = [];
+  if (!data.seasonSnap || typeof data.seasonSnap !== "object" || Array.isArray(data.seasonSnap)) data.seasonSnap = {};
+  if (!Array.isArray(data.seasonBadges)) data.seasonBadges = [];
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
   }
@@ -226,6 +235,20 @@ export const SaveSystem = {
     return { bar, vial };
   },
 
+  canTakeEther(amount) {
+    return canTakeEther(this.data, amount, Date.now());
+  },
+
+  fillEtherBar(amount) {
+    const add = Math.max(0, amount | 0);
+    if (!add) return { ok: true, bar: 0 };
+    if (!canTakeEther(this.data, add, Date.now())) return { ok: false, reason: "full" };
+    const status = tickEther(this.data, Date.now());
+    this.data.ether = (status.n | 0) + add;
+    this.persist();
+    return { ok: true, bar: add };
+  },
+
   useItem(id, ctx) {
     if (id === "stone") {
       if (!this.exchangePvpToTokens(1)) return { ok: false, reason: "none" };
@@ -234,10 +257,10 @@ export const SaveSystem = {
     const row = ITEMS[id];
     if (!row || row.kind !== "use") return { ok: false, reason: "no" };
     if (row.effect === "ether1") {
+      if (!canTakeEther(this.data, 1, Date.now())) return { ok: false, reason: "full" };
       const status = tickEther(this.data, Date.now());
-      if (status.full) return { ok: false, reason: "full" };
       if (!this.consumeItem(id, 1)) return { ok: false, reason: "none" };
-      this.data.ether = Math.min(ECONOMY.etherMax, (status.n | 0) + 1);
+      this.data.ether = (status.n | 0) + 1;
       this.persist();
       return { ok: true, effect: "ether1" };
     }
@@ -385,6 +408,79 @@ export const SaveSystem = {
       this.data.matchLog.length = ECONOMY.matchLogMax;
     }
     this.persist();
+  },
+
+  weekGames(weekId, board) {
+    return (this.data.matchLog || []).filter((m) => m.week === weekId && m.mode === board).length;
+  },
+
+  touchSeasonSnap(board, place) {
+    if (board !== "pvp" && board !== "special") return;
+    const week = rankingWeek().id;
+    const games = this.weekGames(week, board);
+    const snap = this.data.seasonSnap || {};
+    const prev = snap[board] || {};
+    const keep = (place | 0) > 0 ? (place | 0) : (prev.week === week ? (prev.place | 0) : 0);
+    snap[board] = { week, games, place: keep };
+    this.data.seasonSnap = snap;
+    this.persist();
+  },
+
+  settleSeasonMails() {
+    if (!Array.isArray(this.data.seasonIssued)) this.data.seasonIssued = [];
+    if (!Array.isArray(this.data.seasonInbox)) this.data.seasonInbox = [];
+    const last = previousRankingWeek();
+    let dirty = false;
+    ["pvp", "special"].forEach((board) => {
+      const key = last.id + ":" + board;
+      if (this.data.seasonIssued.includes(key)) return;
+      this.data.seasonIssued.push(key);
+      dirty = true;
+      const games = this.weekGames(last.id, board);
+      const snap = (this.data.seasonSnap || {})[board] || {};
+      const place = snap.week === last.id ? (snap.place | 0) : 0;
+      const pay = seasonPayout(board, place, games);
+      if (!pay) return;
+      const mail = buildSeasonMail(last, pay);
+      if (this.data.seasonInbox.some((row) => row.id === mail.id)) return;
+      this.data.seasonInbox.push(mail);
+    });
+    if (this.data.seasonIssued.length > 24) this.data.seasonIssued = this.data.seasonIssued.slice(-24);
+    if (dirty) this.persist();
+  },
+
+  claimSeasonMail(id) {
+    const raw = String(id || "").replace(/^local:/, "");
+    const list = this.data.seasonInbox || [];
+    const i = list.findIndex((row) => row.id === raw || row.id === id);
+    if (i < 0) return { ok: false, reason: "no" };
+    const mail = list[i];
+    const p = mail.payload || {};
+    const bar = p.etherBar | 0;
+    const vials = p.etherVial | 0;
+    if ((bar || vials) && !canTakeEther(this.data, 1, Date.now())) return { ok: false, reason: "full" };
+    if (bar && !canTakeEther(this.data, bar, Date.now())) return { ok: false, reason: "full" };
+    if (bar) {
+      const filled = this.fillEtherBar(bar);
+      if (!filled.ok) return filled;
+    }
+    if (p.etherVial) this.addItem("ether_vial", p.etherVial | 0);
+    if (p.shards) this.addTokens(p.shards | 0);
+    if (p.fruit) this.addItem("bodyfruit", p.fruit | 0);
+    if (p.plate || p.cheer) {
+      if (!Array.isArray(this.data.seasonBadges)) this.data.seasonBadges = [];
+      this.data.seasonBadges.push({
+        week: p.week || "",
+        board: p.board || "",
+        place: p.place | 0,
+        plate: Boolean(p.plate),
+        cheer: Boolean(p.cheer)
+      });
+    }
+    list.splice(i, 1);
+    this.data.seasonInbox = list;
+    this.persist();
+    return { ok: true };
   },
 
   setRank(rank) {

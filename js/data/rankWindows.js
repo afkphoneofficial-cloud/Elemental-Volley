@@ -40,11 +40,19 @@ function mondayOf(wall) {
   return addYmd(wall.y, wall.m, wall.d, -back);
 }
 
-export function rankingWeek(date = new Date()) {
-  const start = mondayOf(bangkokWall(date));
+export function weekFromStart(start) {
   const end = addYmd(start.y, start.m, start.d, 6);
   const id = start.y + "-" + String(start.m).padStart(2, "0") + "-" + String(start.d).padStart(2, "0");
   return { id, start, end };
+}
+
+export function rankingWeek(date = new Date()) {
+  return weekFromStart(mondayOf(bangkokWall(date)));
+}
+
+export function previousRankingWeek(date = new Date()) {
+  const cur = rankingWeek(date);
+  return weekFromStart(addYmd(cur.start.y, cur.start.m, cur.start.d, -7));
 }
 
 export function isRankWindowOpen(kind, date = new Date()) {

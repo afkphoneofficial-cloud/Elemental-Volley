@@ -11,6 +11,7 @@ import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.j
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { Leaderboard } from "../systems/Leaderboard.js";
 
 const SEASON_FX = {
   summer: { burst: [0xffe08a, 0xff6a22, 0xffffff], glow: 0xff8a3a },
@@ -105,6 +106,16 @@ export class ResultScene extends Phaser.Scene {
       mmrDelta: this.rankDelta,
       stats: this.payload.stats || {}
     });
+    if (this.pvpMode || this.specialMode) {
+      const board = this.pvpMode ? "pvp" : "special";
+      SaveSystem.touchSeasonSnap(board, 0);
+      if (this.pvpMode) {
+        Leaderboard.load("pvp").then(() => {
+          const place = Leaderboard.me && Leaderboard.me.place | 0;
+          SaveSystem.touchSeasonSnap("pvp", place);
+        });
+      }
+    }
 
     this.buildVerdict(W, H, pal);
     this.buildStats(W, H, pal);

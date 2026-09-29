@@ -363,7 +363,10 @@ export class RankScene extends Phaser.Scene {
       t("rank.body2", { star: RANK_STAR_MMR }),
       t("rank.body3"),
       t("rank.body4"),
-      t("rank.body5")
+      t("rank.body5"),
+      t("rank.body6"),
+      t("rank.body7"),
+      t("rank.body8")
     ].join("\n");
     const bodyTx = this.add.text(W / 2, 430, body, {
       fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 1000 }, lineSpacing: 8
