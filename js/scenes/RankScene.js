@@ -2,6 +2,7 @@ import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { wantFx } from "../systems/GameSettings.js";
 import { t } from "../i18n/I18n.js";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js";
@@ -33,6 +34,7 @@ export class RankScene extends Phaser.Scene {
       this.scene.start(dest);
     }, 0x7d5cff);
 
+    if (this.tab === "special") this.paintEpicSkin(W, H);
     if (this.tab === "rules") this.paintRules(W, H);
     else this.paintBoard(W, H);
 
@@ -50,6 +52,125 @@ export class RankScene extends Phaser.Scene {
     AudioSystem.playMenu();
   }
 
+  paintEpicSkin(W, H) {
+    const top = 62;
+    const w = W - 36;
+    const h = H - top - 10;
+    const x = W / 2;
+    const y = top + h / 2;
+    this.epicBox = { x, y, w, h };
+
+    const n = 3;
+    const gap = 10;
+    const tabW = Math.min(210, Math.max(100, Math.floor((W - 48) / n) - gap));
+    const total = n * tabW + (n - 1) * gap;
+    const x0 = W / 2 - total / 2 + tabW / 2;
+    this.epicTab = { x: x0 + tabW + gap, y: 36, w: tabW, h: 36 };
+
+    const halo = this.add.graphics().setDepth(1);
+    halo.fillStyle(0x7d5cff, 0.2);
+    halo.fillRoundedRect(x - w / 2 - 16, y - h / 2 - 16, w + 32, h + 32, 28);
+    halo.fillStyle(0xffd24a, 0.12);
+    halo.fillRoundedRect(x - w / 2 - 8, y - h / 2 - 8, w + 16, h + 16, 24);
+    this.tweens.add({
+      targets: halo,
+      alpha: { from: 0.55, to: 1 },
+      duration: 900,
+      yoyo: true,
+      repeat: -1
+    });
+
+    const panel = this.add.graphics().setDepth(2);
+    panel.fillStyle(0x1a1033, 0.94);
+    panel.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    panel.lineStyle(5, 0xffd24a, 1);
+    panel.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    panel.lineStyle(2, 0x3ad6ff, 0.95);
+    panel.strokeRoundedRect(x - w / 2 + 7, y - h / 2 + 7, w - 14, h - 14, 18);
+    panel.fillStyle(0xffffff, 0.08);
+    panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 12, w - 36, 28, 12);
+
+    const tabHalo = this.add.graphics().setDepth(3);
+    const tx = this.epicTab.x;
+    const ty = this.epicTab.y;
+    const tw = this.epicTab.w;
+    const th = this.epicTab.h;
+    tabHalo.fillStyle(0x7d5cff, 0.22);
+    tabHalo.fillRoundedRect(tx - tw / 2 - 10, ty - th / 2 - 10, tw + 20, th + 20, 18);
+    tabHalo.fillStyle(0xffd24a, 0.16);
+    tabHalo.fillRoundedRect(tx - tw / 2 - 4, ty - th / 2 - 4, tw + 8, th + 8, 16);
+    this.tweens.add({
+      targets: tabHalo,
+      alpha: { from: 0.5, to: 1 },
+      duration: 900,
+      yoyo: true,
+      repeat: -1
+    });
+
+    this.fxRing = this.add.graphics().setDepth(4);
+
+    if (wantFx() && this.textures.exists("dot")) {
+      try {
+        const spark = this.add.particles(x, y, "dot", {
+          lifespan: 1600,
+          speed: { min: 8, max: 42 },
+          scale: { start: 0.7, end: 0 },
+          alpha: { start: 0.95, end: 0 },
+          tint: [0xffe08a, 0x7d5cff, 0x3ad6ff, 0xff6a22],
+          blendMode: "ADD",
+          quantity: 1,
+          frequency: 28,
+          emitZone: {
+            type: "edge",
+            source: new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h),
+            quantity: 28
+          }
+        });
+        spark.setDepth(3);
+        const tabSpark = this.add.particles(tx, ty, "dot", {
+          lifespan: 1400,
+          speed: { min: 6, max: 24 },
+          scale: { start: 0.5, end: 0 },
+          alpha: { start: 0.9, end: 0 },
+          tint: [0xffe08a, 0x7d5cff, 0x3ad6ff],
+          blendMode: "ADD",
+          quantity: 1,
+          frequency: 40,
+          emitZone: {
+            type: "edge",
+            source: new Phaser.Geom.Rectangle(-tw / 2, -th / 2, tw, th),
+            quantity: 16
+          }
+        });
+        tabSpark.setDepth(5);
+      } catch (e) {}
+    }
+  }
+
+  update(now) {
+    if (!this.fxRing || !this.epicBox) return;
+    const t = now * 0.001;
+    const g = this.fxRing;
+    g.clear();
+    const boxes = [this.epicBox];
+    if (this.epicTab) boxes.push(this.epicTab);
+    boxes.forEach((box, bi) => {
+      const { x, y, w, h } = box;
+      const n = bi ? 6 : 8;
+      for (let i = 0; i < n; i += 1) {
+        const a = t * (i % 2 === 0 ? 1.4 : -1.1) + i * (6.28 / n);
+        const rx = x + Math.cos(a) * (w * 0.52);
+        const ry = y + Math.sin(a) * (h * 0.52);
+        const r = (bi ? 3.5 : 5) + Math.sin(t * 4 + i) * 2;
+        g.fillStyle(i % 2 ? 0xffd24a : 0x3ad6ff, 0.85);
+        g.fillCircle(rx, ry, r);
+      }
+      const pulse = (bi ? 6 : 10) + Math.sin(t * 3) * (bi ? 3 : 6);
+      g.lineStyle(3, 0xffd24a, 0.35 + Math.sin(t * 2) * 0.15);
+      g.strokeRoundedRect(x - w / 2 - pulse, y - h / 2 - pulse, w + pulse * 2, h + pulse * 2, bi ? 18 : 26);
+    });
+  }
+
   nudgeList(dy) {
     this.listScroll = Phaser.Math.Clamp((this.listScroll || 0) + dy, 0, this.listMax || 0);
     if (this.listBox) this.listBox.y = -this.listScroll;
@@ -58,21 +179,36 @@ export class RankScene extends Phaser.Scene {
   paintBoard(W, H) {
     const special = this.tab === "special";
     this.add.text(W / 2, 82, t(special ? "board.specialTitle" : "board.title"), {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418"
-    }).setOrigin(0.5);
+      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900",
+      color: special ? "#ffe08a" : "#3a2418",
+      stroke: special ? "#3a1870" : undefined,
+      strokeThickness: special ? 5 : 0
+    }).setOrigin(0.5).setDepth(8);
     this.add.text(W / 2, 108, t(special ? "board.specialSub" : "board.sub"), {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
-    }).setOrigin(0.5);
+      fontFamily: UI_FONT, fontSize: "13px", color: special ? "#c8b8ff" : "#7a4a30"
+    }).setOrigin(0.5).setDepth(8);
 
-    roundPanel(this, W / 2, 148, 1040, 52, special ? 0xffd24a : 0x7d5cff, 0xfff6ea);
+    if (special) {
+      const you = this.add.graphics().setDepth(6);
+      you.fillStyle(0x120e1c, 0.88);
+      you.fillRoundedRect(W / 2 - 520, 122, 1040, 52, 16);
+      you.lineStyle(3, 0xffd24a, 0.95);
+      you.strokeRoundedRect(W / 2 - 520, 122, 1040, 52, 16);
+      you.lineStyle(1.5, 0x3ad6ff, 0.7);
+      you.strokeRoundedRect(W / 2 - 514, 128, 1028, 40, 12);
+    } else {
+      roundPanel(this, W / 2, 148, 1040, 52, 0x7d5cff, 0xfff6ea);
+    }
     this.youText = this.add.text(W / 2, 148, t("board.loading"), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800",
+      color: special ? "#fff6ea" : "#3a2418"
     }).setOrigin(0.5).setDepth(8);
 
     this.listTop = 188;
     this.viewH = H - this.listTop - 16;
     this.statusText = this.add.text(W / 2, this.listTop + 80, t("board.loading"), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#7a4a30"
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800",
+      color: special ? "#ffe08a" : "#7a4a30"
     }).setOrigin(0.5).setDepth(8);
 
     Leaderboard.load(this.tab).then(() => {
@@ -107,9 +243,21 @@ export class RankScene extends Phaser.Scene {
     rows.forEach((row, i) => {
       const y = this.listTop + 28 + i * rowH;
       const place = row.place | 0;
-      const stroke = place === 1 ? 0xe8b84a : place === 2 ? 0xb8c0cc : place === 3 ? 0xd08a58 : 0xffb14a;
+      const stroke = place === 1 ? 0xe8b84a : place === 2 ? 0xb8c0cc : place === 3 ? 0xd08a58 : (special ? 0x7d5cff : 0xffb14a);
       const mine = youId && row.id === youId;
-      const panel = roundPanel(this, W / 2, y, 1040, 52, mine ? 0xff6a22 : stroke, 0xfff6ea);
+      let panel;
+      if (special) {
+        panel = this.add.graphics().setDepth(6);
+        panel.fillStyle(0x120e1c, 0.78);
+        panel.fillRoundedRect(W / 2 - 520, y - 26, 1040, 52, 14);
+        panel.lineStyle(2, mine ? 0xff6a22 : stroke, 0.9);
+        panel.strokeRoundedRect(W / 2 - 520, y - 26, 1040, 52, 14);
+      } else {
+        panel = roundPanel(this, W / 2, y, 1040, 52, mine ? 0xff6a22 : stroke, 0xfff6ea);
+      }
+      const ink = special ? "#fff6ea" : "#3a2418";
+      const muted = special ? "#c8b8ff" : "#7a4a30";
+      const gold = special ? "#ffe08a" : "#c45a16";
       const avKey = this.textures.exists(avatarKey(row.avatar_id)) ? avatarKey(row.avatar_id) : avatarKey("av01");
       const av = this.add.image(W / 2 - 460, y, avKey).setDisplaySize(40, 40).setDepth(8);
       const badgeId = displayBadgeId({ mmr: row.mmr, games: row.games });
@@ -118,19 +266,19 @@ export class RankScene extends Phaser.Scene {
         : this.add.text(W / 2 - 410, y, "").setDepth(8);
       const placeTx = this.add.text(W / 2 - 500, y, String(place), {
         fontFamily: UI_FONT, fontSize: place <= 3 ? "22px" : "18px", fontStyle: "900",
-        color: place === 1 ? "#c45a16" : "#3a2418"
+        color: place === 1 ? gold : ink
       }).setOrigin(0.5).setDepth(8);
       const name = this.add.text(W / 2 - 380, y - 10, row.display_name || "—", {
-        fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: "#3a2418"
+        fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: ink
       }).setOrigin(0, 0.5).setDepth(8);
       const chip = this.add.text(W / 2 - 380, y + 12, boardRankLabel(row.mmr, row.games), {
-        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#7a4a30"
+        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: muted
       }).setOrigin(0, 0.5).setDepth(8);
       const mmr = this.add.text(W / 2 + 280, y - 8, String(row.mmr | 0), {
-        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: special ? gold : "#3a2418"
       }).setOrigin(0.5).setDepth(8);
       const wl = this.add.text(W / 2 + 280, y + 14, t("board.wl", { w: row.wins | 0, l: row.losses | 0 }), {
-        fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
+        fontFamily: UI_FONT, fontSize: "13px", color: muted
       }).setOrigin(0.5).setDepth(8);
       this.listBox.add([panel, av, badge, placeTx, name, chip, mmr, wl]);
     });
