@@ -18,8 +18,8 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
-import { wantFx, settings } from "../systems/GameSettings.js";
-import { SERVER_TZ, formatZoneClock, timeZoneOf } from "../data/timeZones.js";
+import { wantFx } from "../systems/GameSettings.js";
+import { SERVER_TZ, formatZoneParts } from "../data/timeZones.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -176,7 +176,6 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
     }, 0xffb14a);
-    this.mountClock(W);
 
     const navY = H - HUB_NAV.y;
     const chatBtn = makeButton(this, hubNavX(0, W), navY, HUB_NAV.w, HUB_NAV.h, t("chat.title"), () => {
@@ -201,6 +200,7 @@ export class HubScene extends Phaser.Scene {
     this.paintEther();
     this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
     this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
+    this.mountClock(W);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
     Friends.sync();
@@ -245,33 +245,55 @@ export class HubScene extends Phaser.Scene {
   }
 
   mountClock(W) {
-    const y = 628;
-    const w = 420;
-    const h = 34;
-    const g = this.add.graphics().setDepth(8);
-    g.fillStyle(0xfff6ea, 0.94);
-    g.fillRoundedRect(W / 2 - w / 2, y - h / 2, w, h, 17);
-    g.lineStyle(2, 0x3ad6ff, 0.55);
-    g.strokeRoundedRect(W / 2 - w / 2, y - h / 2, w, h, 17);
-    this.clockText = this.add.text(W / 2, y, "", {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(9);
-    this.add.zone(W / 2, y, w, h).setInteractive({ useHandCursor: true }).setDepth(10)
-      .on("pointerdown", () => {
-        AudioSystem.ui();
-        this.scene.start("settings", { from: "hub", tab: "general" });
-      });
+    const x = W / 2;
+    const y = 40;
+    const w = 148;
+    const h = 54;
+    this.clockGfx = this.add.graphics().setDepth(24);
+    const draw = (hot) => {
+      const g = this.clockGfx;
+      g.clear();
+      const left = x - w / 2;
+      const top = y - 22;
+      const bodyH = 44;
+      g.fillStyle(hot ? 0x24385a : 0x17243a, 0.97);
+      g.fillRoundedRect(left, top, w, bodyH, 16);
+      g.fillTriangle(x - 11, top + bodyH - 1, x + 11, top + bodyH - 1, x, top + bodyH + 10);
+      g.lineStyle(2.4, 0xffd24a, hot ? 1 : 0.92);
+      g.strokeRoundedRect(left, top, w, bodyH, 16);
+      g.lineStyle(1.4, 0x3ad6ff, 0.75);
+      g.strokeRoundedRect(left + 4, top + 4, w - 8, bodyH - 8, 12);
+    };
+    draw(false);
+    this.clockKicker = this.add.text(x, y - 10, t("hub.serverTag"), {
+      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: "#ffe08a"
+    }).setOrigin(0.5).setDepth(25);
+    this.clockText = this.add.text(x, y + 8, "", {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#fff6ea"
+    }).setOrigin(0.5).setDepth(25);
+    this.clockDot = this.add.circle(x - 58, y - 10, 3.4, 0x3ad6ff).setDepth(26);
+    this.tweens.add({
+      targets: this.clockDot,
+      alpha: { from: 1, to: 0.25 },
+      duration: 900,
+      yoyo: true,
+      repeat: -1
+    });
+    const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(27);
+    zone.on("pointerover", () => draw(true));
+    zone.on("pointerout", () => draw(false));
+    zone.on("pointerdown", () => {
+      AudioSystem.ui();
+      this.scene.start("settings", { from: "hub", tab: "general" });
+    });
     this.paintClock();
   }
 
   paintClock() {
     if (!this.clockText) return;
-    const lang = I18n.lang;
-    const server = formatZoneClock(SERVER_TZ, lang);
-    const zone = timeZoneOf(settings().timeZone);
-    const local = formatZoneClock(zone.tz, lang);
-    if (zone.tz === SERVER_TZ) this.clockText.setText(t("hub.serverClock", { time: server }));
-    else this.clockText.setText(t("hub.serverClockLocal", { server, local }));
+    const parts = formatZoneParts(SERVER_TZ, I18n.lang);
+    this.clockText.setText((parts.weekday + "  " + parts.time).trim());
+    if (this.clockKicker) this.clockKicker.setText(t("hub.serverTag"));
   }
 
   cycleShowcase(dir) {
