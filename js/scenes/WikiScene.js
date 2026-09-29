@@ -36,11 +36,9 @@ export class WikiScene extends Phaser.Scene {
     }, 0x7d5cff);
     paintTabs(this, 52, [
       { id: "map", label: t("wiki.tabMap"), color: 0xffb14a, again: true, go: () => this.closePopup() },
-      { id: "rules", label: t("wiki.tabRules"), color: 0xff8a3a, again: true, go: () => this.openRules() },
       { id: "story", label: t("wiki.tabStory"), color: 0x7d5cff, again: true, go: () => this.openStory() },
       { id: "cast", label: t("wiki.tabCast"), color: 0x3ad6ff, again: true, go: () => this.openCast() },
-      { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() },
-      { id: "explore", label: t("wiki.tabExplore"), color: 0xc8ff3a, again: true, go: () => this.openExplore() }
+      { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() }
     ], "map");
 
     const frame = this.add.graphics().setDepth(4);
@@ -144,19 +142,6 @@ export class WikiScene extends Phaser.Scene {
     });
   }
 
-  openExplore() {
-    AudioSystem.ui();
-    this.buildPopup({
-      chip: "#2a7a38",
-      status: t("wiki.tabExplore"),
-      title: t("wiki.exploreTitle"),
-      region: "",
-      body: t("wiki.exploreBody"),
-      vis: null,
-      wide: true
-    });
-  }
-
   openStory() {
     AudioSystem.ui();
     const pack = I18n.lore();
@@ -200,21 +185,6 @@ export class WikiScene extends Phaser.Scene {
       chip: "#c45a16",
       status: t("wiki.tabSecret"),
       title: t("wiki.tabSecret"),
-      region: "",
-      body,
-      vis: null,
-      wide: true
-    });
-  }
-
-  openRules() {
-    AudioSystem.ui();
-    const pack = I18n.rules();
-    const body = pack.groups.map((g) => g.h + "\n" + g.items.map((n) => "·  " + n).join("\n")).join("\n\n");
-    this.buildPopup({
-      chip: "#c45a16",
-      status: pack.kicker,
-      title: pack.title,
       region: "",
       body,
       vis: null,
