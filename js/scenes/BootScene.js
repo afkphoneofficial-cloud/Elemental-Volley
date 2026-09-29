@@ -35,6 +35,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image("ether-art", "assets/sprites/ether.png");
     this.load.image("item-stone", "assets/sprites/items/item-stone.png");
     this.load.image("item-shard", "assets/sprites/items/item-shard.png");
+    this.load.image("item-coin", "assets/sprites/items/item-coin.png");
+    this.load.image("item-powder", "assets/sprites/items/item-powder.png");
     this.load.image("item-ether", "assets/sprites/items/item-ether.png");
     this.load.image("item-fruit", "assets/sprites/items/item-fruit.png");
     this.load.image("item-bag", "assets/sprites/items/item-bag.png");

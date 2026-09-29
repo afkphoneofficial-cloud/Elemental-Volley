@@ -29,23 +29,6 @@ export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22, 
   return { bg: zone, text, gfx };
 }
 
-export function makeIconCircle(scene, x, y, r, color, onClick, depth = 40) {
-  const gfx = scene.add.graphics().setDepth(depth);
-  const draw = (hover) => {
-    gfx.clear();
-    gfx.fillStyle(hover ? 0xffe0b0 : 0xfff6ea, 0.98);
-    gfx.fillCircle(x, y, r);
-    gfx.lineStyle(3, color, hover ? 1 : 0.82);
-    gfx.strokeCircle(x, y, r);
-  };
-  draw(false);
-  const zone = scene.add.circle(x, y, r, 0xffffff, 0.001).setInteractive({ useHandCursor: true }).setDepth(depth + 3);
-  zone.on("pointerover", () => draw(true));
-  zone.on("pointerout", () => draw(false));
-  if (onClick) zone.on("pointerdown", onClick);
-  return { gfx, zone, x, y, r };
-}
-
 export function makeChoiceButton(scene, x, y, w, h, label, kind, onClick, depth = 40) {
   const yes = kind === "yes";
   const fill = yes ? 0x7af3c2 : 0xffb0c8;

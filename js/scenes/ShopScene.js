@@ -1,8 +1,8 @@
-import { drawGrid, makeButton, makeIconCircle, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { paintTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { ECONOMY } from "../data/economy.js";
-import { CHEER_THEMES, CHEER_THEME_IDS, cheerThemeLabel, cheerThemeBlurb } from "../data/cheers.js";
+import { CHEER_THEMES, CHEER_THEME_IDS, cheerThemeLabel } from "../data/cheers.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -11,6 +11,11 @@ import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
+
+const CARD_W = 196;
+const CARD_H = 236;
+const CARD_GAP = 14;
+const CARD_COLS = 5;
 
 export class ShopScene extends Phaser.Scene {
   constructor() { super("shop"); }
@@ -36,8 +41,8 @@ export class ShopScene extends Phaser.Scene {
       go: () => this.scene.start("shop", { tab: row.id })
     })), this.tab);
 
-    this.add.text(W / 2, 138, t("shop.sub." + this.tab), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#7a4a30",
+    this.add.text(W / 2, 136, t("shop.sub." + this.tab), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#9a6a48",
       align: "center", wordWrap: { width: 1100 }
     }).setOrigin(0.5);
 
@@ -56,9 +61,21 @@ export class ShopScene extends Phaser.Scene {
     this.scene.start("shop", { tab: this.tab });
   }
 
-  plate(x, y, r, stroke) {
-    this.add.circle(x, y, r + 10, 0xffffff, 0.32).setDepth(5);
-    this.add.circle(x, y, r, 0xfff6ea, 1).setStrokeStyle(5, stroke, 0.92).setDepth(5);
+  slots(n) {
+    const W = this.scale.width;
+    const total = CARD_COLS * CARD_W + (CARD_COLS - 1) * CARD_GAP;
+    const left = Math.max(40, (W - total) / 2);
+    const top = 158;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const col = i % CARD_COLS;
+      const row = (i / CARD_COLS) | 0;
+      out.push({
+        x: left + CARD_W / 2 + col * (CARD_W + CARD_GAP),
+        y: top + CARD_H / 2 + row * (CARD_H + CARD_GAP)
+      });
+    }
+    return out;
   }
 
   pic(key, x, y, size, alpha) {
@@ -66,139 +83,208 @@ export class ShopScene extends Phaser.Scene {
     return this.add.image(x, y, k).setDisplaySize(size, size).setAlpha(alpha == null ? 1 : alpha).setDepth(8);
   }
 
-  priceDisc(x, y, r, color, icon, n, onClick) {
-    makeIconCircle(this, x, y, r, color, onClick, 12);
-    this.pic(icon, x - (n != null ? 14 : 0), y, 22);
-    if (n != null) {
-      this.add.text(x + 14, y, String(n), {
-        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#3a2418"
-      }).setOrigin(0.5).setDepth(14);
+  paintCard(x, y, spec) {
+    const w = CARD_W;
+    const h = CARD_H;
+    const idle = spec.stroke || 0xe8c8a8;
+    const accent = spec.accent || 0x4aa6e8;
+    const gfx = this.add.graphics().setDepth(5);
+    const draw = (hot) => {
+      gfx.clear();
+      gfx.fillStyle(spec.dim ? 0xe4ddd8 : 0xfffaf4, 0.98);
+      gfx.fillRoundedRect(x - w / 2, y - h / 2, w, h, 18);
+      gfx.lineStyle(hot ? 3 : 2, hot ? accent : idle, hot ? 1 : 0.88);
+      gfx.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
+      gfx.fillStyle(0xfff3e4, spec.dim ? 0.55 : 0.95);
+      gfx.fillRoundedRect(x - 50, y - 38, 100, 100, 16);
+    };
+    draw(false);
+
+    this.add.text(x, y - h / 2 + 18, spec.title, {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#6a4030",
+      align: "center", wordWrap: { width: w - 18 }
+    }).setOrigin(0.5).setDepth(8);
+
+    const ix = x;
+    const iy = y + 10;
+    if (spec.icon) this.pic(spec.icon, ix, iy, spec.iconSize || 86, spec.dim ? 0.42 : 1);
+    if (spec.paintIcon) spec.paintIcon(ix, iy);
+
+    if (spec.hint) {
+      this.add.text(x, y + 72, spec.hint, {
+        fontFamily: UI_FONT, fontSize: "11px", fontStyle: "700", color: "#c49a7a",
+        align: "center", wordWrap: { width: w - 18 }
+      }).setOrigin(0.5).setDepth(8);
+    }
+
+    const py = y + h / 2 - 22;
+    if (spec.priceIcon) {
+      this.pic(spec.priceIcon, x - (spec.price != null ? 16 : 0), py, 22);
+      if (spec.price != null) {
+        this.add.text(x + 14, py, String(spec.price), {
+          fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0.5).setDepth(10);
+      }
+    } else if (spec.priceMark) {
+      this.add.text(x, py, spec.priceMark, {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#2a7a38"
+      }).setOrigin(0.5).setDepth(10);
+    }
+
+    if (spec.stamp) {
+      this.add.text(x, iy, spec.stamp, {
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: spec.stampColor || "#8a7088"
+      }).setOrigin(0.5).setDepth(12).setAngle(-18).setAlpha(0.94);
+    }
+
+    const zone = this.add.zone(x, y, w, h).setDepth(14);
+    if (spec.onClick) {
+      zone.setInteractive({ useHandCursor: true });
+      zone.on("pointerover", () => draw(true));
+      zone.on("pointerout", () => draw(false));
+      zone.on("pointerdown", spec.onClick);
     }
   }
 
+  paintCheerIcon(theme, x, y) {
+    const g = this.add.graphics().setDepth(8);
+    const bits = theme.bits || [theme.glow];
+    bits.forEach((c, i) => {
+      const a = (i / bits.length) * Math.PI * 2 - Math.PI / 2;
+      g.fillStyle(c, 1);
+      g.fillCircle(x + Math.cos(a) * 24, y + Math.sin(a) * 24, 9);
+    });
+    g.fillStyle(theme.glow, 1);
+    g.fillCircle(x, y, 16);
+    g.fillStyle(0xfff6ea, 0.9);
+    g.fillCircle(x - 4, y - 5, 5);
+  }
+
   paintFighters() {
-    const r = 112;
+    const cells = this.slots(ROSTER_IDS.length);
     ROSTER_IDS.forEach((id, i) => {
       const data = ROSTER[id];
-      const x = 190 + i * 300;
-      const y = 392;
       const owned = SaveSystem.isUnlocked(id);
-      const stroke = SELECT_PLATE[id] || data.colors.main;
-      this.plate(x, y, r, stroke);
       const face = this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id;
-      this.add.image(x, y - 40, face).setDisplaySize(124, 124).setAlpha(owned ? 1 : 0.42).setDepth(8);
-      this.add.text(x, y + r + 22, I18n.charName(id), {
-        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
-      }).setOrigin(0.5);
-      const discY = y + 70;
-      if (owned) {
-        makeIconCircle(this, x, discY, 28, 0x2a7a38, null, 12);
-        this.add.text(x, discY, "✓", {
-          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#2a7a38"
-        }).setOrigin(0.5).setDepth(14);
-      } else {
-        this.priceDisc(x, discY, 32, 0xff6a22, "item-shard", ECONOMY.unlockTokenCost, () => {
+      this.paintCard(cells[i].x, cells[i].y, {
+        title: I18n.charName(id),
+        icon: face,
+        iconSize: 90,
+        hint: owned ? "" : t("shop.hintUnlock"),
+        stroke: SELECT_PLATE[id] || data.colors.main,
+        accent: SELECT_PLATE[id] || data.colors.main,
+        dim: owned,
+        stamp: owned ? t("shop.owned") : null,
+        priceIcon: owned ? null : "item-shard",
+        price: owned ? null : ECONOMY.unlockTokenCost,
+        onClick: owned ? null : () => {
           const res = SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost);
           res.ok ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
-        });
-      }
+        }
+      });
     });
   }
 
   paintCosmetics() {
-    const r = 128;
+    const cells = this.slots(CHEER_THEME_IDS.length);
     CHEER_THEME_IDS.forEach((id, i) => {
       const theme = CHEER_THEMES[id];
-      const x = 250 + i * 390;
-      const y = 400;
-      this.plate(x, y, r, theme.stroke);
-      this.add.text(x, y - 78, cheerThemeLabel(theme), {
-        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
-      }).setOrigin(0.5).setDepth(8);
-      this.add.text(x, y - 48, cheerThemeBlurb(theme), {
-        fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30", align: "center", wordWrap: { width: 200 }
-      }).setOrigin(0.5).setDepth(8);
       const equipped = SaveSystem.equippedCheer() === id;
       const owned = SaveSystem.isCheerUnlocked(id);
-      const discY = y + 70;
-      if (theme.comingSoon && !owned) {
-        makeIconCircle(this, x, discY, 28, 0xc8bdd8, null, 12);
-        this.add.text(x, discY, "🔒", {
-          fontFamily: UI_FONT, fontSize: "18px", color: "#7a4a30"
-        }).setOrigin(0.5).setDepth(14);
-      } else if (equipped) {
-        makeIconCircle(this, x, discY, 28, 0x2a7a38, null, 12);
-        this.add.text(x, discY, "✓", {
-          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#2a7a38"
-        }).setOrigin(0.5).setDepth(14);
+      const locked = theme.comingSoon && !owned;
+      let stamp = null;
+      let priceIcon = null;
+      let price = null;
+      let priceMark = null;
+      let onClick = null;
+      if (locked) stamp = t("shop.soon");
+      else if (equipped) {
+        stamp = t("shop.using");
       } else if (owned) {
-        makeIconCircle(this, x, discY, 32, 0x7d5cff, () => {
+        priceMark = "▶";
+        onClick = () => {
           SaveSystem.equipCheer(id);
           AudioSystem.ui();
           this.refresh();
-        }, 12);
-        this.add.text(x, discY, "▶", {
-          fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
-        }).setOrigin(0.5).setDepth(14);
+        };
       } else {
-        this.priceDisc(x, discY, 34, 0x3ad6ff, "item-powder", theme.price, () => {
+        priceIcon = "item-powder";
+        price = theme.price;
+        onClick = () => {
           const res = SaveSystem.unlockCheer(id);
           res.ok ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
-        });
+        };
       }
+      this.paintCard(cells[i].x, cells[i].y, {
+        title: cheerThemeLabel(theme),
+        hint: "",
+        stroke: theme.stroke,
+        accent: theme.glow,
+        dim: locked,
+        stamp,
+        priceIcon,
+        price,
+        priceMark,
+        onClick,
+        paintIcon: (x, y) => this.paintCheerIcon(theme, x, y)
+      });
     });
   }
 
   paintItems() {
-    const W = this.scale.width;
-    const r = 124;
+    const cells = this.slots(SHOP_USE_GOODS.length);
     SHOP_USE_GOODS.forEach((good, i) => {
-      const x = W / 2 - 220 + i * 440;
-      const y = 400;
-      this.plate(x, y, r, 0x3ad6ff);
-      const ik = itemIconKey(good.id);
-      this.pic(ik, x, y - 28, 88);
-      this.add.text(x, y + 28, t("item." + good.id + ".name"), {
-        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
-      }).setOrigin(0.5).setDepth(8);
-      this.priceDisc(x, y + 72, 34, 0xffb14a, "item-coin", good.price, () => {
-        const res = SaveSystem.buyWithCoins(good.id, good.price);
-        res.ok ? AudioSystem.ui() : AudioSystem.error();
-        this.refresh();
+      this.paintCard(cells[i].x, cells[i].y, {
+        title: t("item." + good.id + ".name"),
+        icon: itemIconKey(good.id),
+        hint: "",
+        stroke: 0xffd24a,
+        accent: 0xffb14a,
+        priceIcon: "item-coin",
+        price: good.price,
+        onClick: () => {
+          const res = SaveSystem.buyWithCoins(good.id, good.price);
+          res.ok ? AudioSystem.ui() : AudioSystem.error();
+          this.refresh();
+        }
       });
     });
   }
 
   paintTrade() {
-    const W = this.scale.width;
-    const r = 124;
+    const cells = this.slots(SHOP_TRADE_GOODS.length);
     const rate = ECONOMY.pvpPerToken | 5;
     SHOP_TRADE_GOODS.forEach((good, i) => {
-      const x = W / 2 - 220 + i * 440;
-      const y = 400;
-      this.plate(x, y, r, 0xc8ff3a);
       if (good.action === "exchangeShard") {
-        this.pic("item-stone", x - 36, y - 28, 52);
-        this.pic("item-shard", x + 36, y - 28, 52);
-        this.add.text(x, y + 18, rate + " : 1", {
-          fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
-        }).setOrigin(0.5).setDepth(8);
-        this.priceDisc(x, y + 72, 34, 0xc8ff3a, "item-stone", rate, () => {
-          const res = SaveSystem.useItem("stone");
-          res.ok ? AudioSystem.ui() : AudioSystem.error();
-          this.refresh();
+        this.paintCard(cells[i].x, cells[i].y, {
+          title: t("item.stone.name"),
+          icon: "item-stone",
+          hint: t("shop.hintRate", { n: rate }),
+          stroke: 0xb8a0e8,
+          accent: 0x7d5cff,
+          priceIcon: "item-stone",
+          price: rate,
+          onClick: () => {
+            const res = SaveSystem.useItem("stone");
+            res.ok ? AudioSystem.ui() : AudioSystem.error();
+            this.refresh();
+          }
         });
       } else {
-        this.pic("item-powder", x - 36, y - 28, 52);
-        this.pic("item-shard", x + 36, y - 28, 52);
-        this.add.text(x, y + 18, "100 : 100", {
-          fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
-        }).setOrigin(0.5).setDepth(8);
-        this.priceDisc(x, y + 72, 34, 0x3ad6ff, "item-powder", good.price, () => {
-          SaveSystem.buyTokensWithPremium(good.shards) ? AudioSystem.ui() : AudioSystem.error();
-          this.refresh();
+        this.paintCard(cells[i].x, cells[i].y, {
+          title: t("item.shard.name"),
+          icon: "item-shard",
+          hint: t("shop.hintPack", { n: good.shards }),
+          stroke: 0x7ae8ff,
+          accent: 0x3ad6ff,
+          priceIcon: "item-powder",
+          price: good.price,
+          onClick: () => {
+            SaveSystem.buyTokensWithPremium(good.shards) ? AudioSystem.ui() : AudioSystem.error();
+            this.refresh();
+          }
         });
       }
     });

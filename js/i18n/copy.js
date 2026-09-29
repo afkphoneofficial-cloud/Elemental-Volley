@@ -414,6 +414,9 @@ export const COPY = {
       exchange: "แลกหินประหลาดเป็นเศษธาตุ  (5:1)",
       tradeStone: "แลก 1 ชิ้น",
       buyTokens: "เศษธาตุ 100 ก้อน ด้วยผงอีเธเรีย 100",
+      hintUnlock: "ปลดล็อกตัวละคร",
+      hintRate: "หิน {n} เป็นเศษ 1",
+      hintPack: "ได้เศษธาตุ {n}",
       foot: "มุมขวาบนคือของที่มีอยู่  ·  แตะผงอีเธเรียเพื่อเปิดหน้ารายละเอียดการเติม  ·  กระชับมิตรไม่มีเหรียญเกาะ"
     },
     topup: {
@@ -1092,6 +1095,9 @@ export const COPY = {
       exchange: "Trade Odd Stones for Element Shards  (5:1)",
       tradeStone: "Trade 1",
       buyTokens: "100 Element Shards for 100 Etheria Powder",
+      hintUnlock: "Unlock fighter",
+      hintRate: "{n} stones for 1 shard",
+      hintPack: "Get {n} shards",
       foot: "Top right is what you own  ·  Tap Etheria Powder for the top-up rates  ·  Exhibition drops no Isle Coins"
     },
     topup: {
