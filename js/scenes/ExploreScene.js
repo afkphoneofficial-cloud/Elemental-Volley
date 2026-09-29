@@ -1,8 +1,12 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
-import { t, I18n } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
+import { Session } from "../systems/Session.js";
 import { MAP_LOCS } from "../data/worldMap.js";
+import { TRAIN_STAGES, trainMapXY } from "../data/trainStages.js";
+import { botSheet } from "../data/growth.js";
 
 export class ExploreScene extends Phaser.Scene {
   constructor() { super("explore"); }
@@ -29,6 +33,16 @@ export class ExploreScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30"
     }).setOrigin(0.5);
 
+    const hintBack = this.add.graphics().setDepth(18);
+    hintBack.fillStyle(0xfff6ea, 0.92);
+    hintBack.fillRoundedRect(W - 368, 8, 348, 108, 14);
+    hintBack.lineStyle(2, 0xffb14a, 0.7);
+    hintBack.strokeRoundedRect(W - 368, 8, 348, 108, 14);
+    this.add.text(W - 24, 16, t("explore.hint"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828",
+      align: "right", wordWrap: { width: 328 }, lineSpacing: 3
+    }).setOrigin(1, 0).setDepth(19);
+
     makeButton(this, 80, 44, 120, 36, t("nav.back"), () => {
       AudioSystem.ui();
       this.scene.start(this.from || "select");
@@ -53,6 +67,7 @@ export class ExploreScene extends Phaser.Scene {
     }
 
     MAP_LOCS.forEach((loc) => this.spawnPin(loc));
+    TRAIN_STAGES.forEach((stage) => this.spawnTrain(stage));
     this.drawLegend(W, H);
 
     this.popup = this.add.container(0, 0).setDepth(50).setVisible(false);
@@ -99,6 +114,35 @@ export class ExploreScene extends Phaser.Scene {
     ring.on("pointerdown", () => this.openLoc(loc));
   }
 
+  spawnTrain(stage) {
+    const loc = MAP_LOCS.find((row) => row.char === stage.char);
+    const p = this.pinXY(trainMapXY(stage));
+    const col = loc ? loc.color : 0xffb14a;
+    const open = SaveSystem.isTrainOpen(stage.id);
+    const cleared = SaveSystem.isTrainCleared(stage.id);
+    const fill = !open ? 0xc8bdd8 : cleared ? 0xffe08a : 0xfff6ea;
+    const ring = this.add.circle(p.x, p.y, 16, fill, 0.96)
+      .setStrokeStyle(3, open ? col : 0x8a7a90, open ? 1 : 0.55)
+      .setDepth(14);
+    ring.setInteractive(new Phaser.Geom.Circle(0, 0, 22), Phaser.Geom.Circle.Contains);
+    ring.input.cursor = "pointer";
+    this.add.circle(p.x, p.y + 16, 8, 0x000000, 0.16).setDepth(13);
+    this.add.text(p.x, p.y - 1, String(stage.rank), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900",
+      color: !open ? "#6a6070" : "#3a2418"
+    }).setOrigin(0.5).setDepth(15);
+    if (open) {
+      this.tweens.add({
+        targets: ring,
+        scale: 1.08,
+        duration: 900,
+        yoyo: true,
+        repeat: -1
+      });
+    }
+    ring.on("pointerdown", () => this.openTrain(stage));
+  }
+
   drawLegend(W, H) {
     const y = H - 28;
     const items = [
@@ -135,16 +179,53 @@ export class ExploreScene extends Phaser.Scene {
     });
   }
 
+  openTrain(stage) {
+    AudioSystem.ui();
+    const open = SaveSystem.isTrainOpen(stage.id);
+    const cleared = SaveSystem.isTrainCleared(stage.id);
+    const vis = this.textures.exists("vis_" + stage.char) ? "vis_" + stage.char : "vis_ignis";
+    const diff = t("select.diff" + stage.diff[0].toUpperCase() + stage.diff.slice(1));
+    let body = t("explore.stageBody");
+    if (!open) body = t("explore.stageLocked");
+    else if (cleared) body = t("explore.stageCleared");
+    this.buildPopup({
+      chip: open ? "#c45a16" : "#6a6070",
+      status: cleared ? t("explore.statusCleared") : open ? t("explore.statusOpen") : t("explore.statusLock"),
+      title: t("explore.stageTitle", { name: charName(stage.char), diff }),
+      region: t("explore.stageRegion", { n: stage.rank }),
+      body,
+      vis,
+      go: open ? () => this.startTrain(stage) : null,
+      goLabel: t("explore.fight")
+    });
+  }
+
+  startTrain(stage) {
+    if (!SaveSystem.isTrainOpen(stage.id)) return;
+    if (!SaveSystem.isUnlocked(Session.playerId)) return;
+    Session.mode = "bot";
+    Session.rival = null;
+    Session.net = false;
+    Session.botId = stage.char;
+    Session.difficulty = stage.diff;
+    Session.botSheet = botSheet(stage.char, stage.diff);
+    Session.trainStage = stage.id;
+    Session.youSide = Math.random() < 0.5 ? 1 : 2;
+    Session.youSkin = SaveSystem.skinOf(Session.playerId);
+    AudioSystem.ui();
+    this.scene.start("luck");
+  }
+
   buildPopup(info) {
     this.closePopup();
     const W = this.scale.width;
     const H = this.scale.height;
     const cardW = 560;
-    const cardH = 360;
+    const cardH = info.go ? 400 : 360;
     const y0 = H / 2 - cardH / 2;
     const headerH = info.vis ? 132 : (info.region ? 108 : 92);
     const viewW = cardW - 72;
-    const viewH = cardH - headerH - 28;
+    const viewH = cardH - headerH - (info.go ? 72 : 28);
     const viewX = W / 2 - viewW / 2;
     const viewY = y0 + headerH;
 
@@ -222,6 +303,13 @@ export class ExploreScene extends Phaser.Scene {
     const close = makeButton(this, W / 2 + cardW / 2 - 36, y0 + 28, 44, 40, "✕", () => this.closePopup(), 0x7d5cff);
     this.popup.add(bits.concat([wrap, dragZ, maskG]));
     this.popup.add([close.gfx, close.text, close.bg]);
+    if (info.go) {
+      const go = makeButton(this, W / 2, y0 + cardH - 36, 220, 44, info.goLabel || t("explore.fight"), () => {
+        AudioSystem.ui();
+        info.go();
+      }, 0xffb14a, 56);
+      this.popup.add([go.gfx, go.text, go.bg]);
+    }
     this.popup.setVisible(true);
   }
 

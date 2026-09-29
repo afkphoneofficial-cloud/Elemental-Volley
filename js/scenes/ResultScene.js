@@ -75,6 +75,7 @@ export class ResultScene extends Phaser.Scene {
       this.xpLevel = sheet.level;
     }
     this.hasLoot = hasMatchLoot(pay) || this.bonus > 0 || this.etherBar > 0 || this.etherVial > 0;
+    if (this.botMode && this.win && Session.trainStage) SaveSystem.clearTrainStage(Session.trainStage);
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
     Session.netHost = false;
@@ -112,6 +113,10 @@ export class ResultScene extends Phaser.Scene {
       const kind = Session.mode;
       if ((kind === "pvp" || kind === "special") && !isRankWindowOpen(kind)) {
         this.scene.start("mode");
+        return;
+      }
+      if (Session.trainStage) {
+        this.scene.start("explore", { from: "select" });
         return;
       }
       this.scene.start("select");

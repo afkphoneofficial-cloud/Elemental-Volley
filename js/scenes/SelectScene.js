@@ -76,6 +76,7 @@ export class SelectScene extends Phaser.Scene {
         Session.playerId = this.pick;
         Session.youSkin = SaveSystem.skinOf(this.pick);
         Session.youSide = Math.random() < 0.5 ? 1 : 2;
+        Session.trainStage = null;
         AudioSystem.ui();
         if (this.pvpMode) {
           Session.mode = "pvp";
@@ -105,6 +106,7 @@ export class SelectScene extends Phaser.Scene {
         Session.playerId = this.pick;
         Session.youSkin = SaveSystem.skinOf(this.pick);
         Session.mode = "bot";
+        Session.trainStage = null;
         AudioSystem.ui();
         this.scene.start("explore", { from: "select" });
       }, 0xffb14a);

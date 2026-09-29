@@ -425,7 +425,17 @@ export const COPY = {
     },
     explore: {
       title: "สำรวจแผนที่โลก",
-      sub: "เกาะอีเธเรีย  ·  แตะหมุดเพื่อดูที่อยู่"
+      sub: "แตะจุด 1–3 รอบธาตุเพื่อลงฝึกกับบอท",
+      hint: "12 ด่านฝึก รอบที่อยู่ธาตุ\nไฟ → น้ำ → สายฟ้า → ดิน\nแต่ละธาตุ ง่าย / ปกติ / ยาก\nชนะด่านก่อน ถึงปลดล็อกด่านถัดไป",
+      stageTitle: "{name}  ·  {diff}",
+      stageRegion: "จุดฝึก ระดับ {n}",
+      stageBody: "ลงแข่งกับบอทธาตุนี้ สเตตัสตามความยากเดิมของโหมดฝึก",
+      stageLocked: "ชนะด่านก่อนหน้าก่อน ถึงจะปลดล็อกจุดนี้",
+      stageCleared: "ชนะด่านนี้แล้ว เล่นซ้ำได้ หรือไปด่านถัดไป",
+      statusOpen: "พร้อมฝึก",
+      statusLock: "ยังล็อก",
+      statusCleared: "ชนะแล้ว",
+      fight: "ลงฝึก"
     },
     wiki: {
       title: "แผนที่โลก",
@@ -1010,7 +1020,17 @@ export const COPY = {
     },
     explore: {
       title: "Explore the world map",
-      sub: "Etheria Island  ·  Tap a pin to see a home"
+      sub: "Tap the 1–3 spots around an element to train vs a bot",
+      hint: "12 training stages around the elements\nFire → Water → Volt → Earth\nEach element: Easy / Normal / Hard\nWin a stage to unlock the next",
+      stageTitle: "{name}  ·  {diff}",
+      stageRegion: "Training node rank {n}",
+      stageBody: "Fight this element’s bot. Stats follow the original Easy / Normal / Hard logic.",
+      stageLocked: "Win the previous stage to unlock this node",
+      stageCleared: "Cleared. Replay it, or move to the next node",
+      statusOpen: "Ready",
+      statusLock: "Locked",
+      statusCleared: "Cleared",
+      fight: "Train"
     },
     wiki: {
       title: "World map",

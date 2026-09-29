@@ -11,6 +11,7 @@ import {
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
+import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
 import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { rankingWeek } from "../data/rankWindows.js";
@@ -46,7 +47,8 @@ const empty = () => ({
   showcaseId: null,
   friends: [],
   skins: emptySkins(),
-  growth: emptyGrowth()
+  growth: emptyGrowth(),
+  trainCleared: []
 });
 
 function finish(data) {
@@ -84,6 +86,8 @@ function finish(data) {
   data.growth = g;
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
   if (!Array.isArray(data.friends)) data.friends = [];
+  if (!Array.isArray(data.trainCleared)) data.trainCleared = [];
+  else data.trainCleared = data.trainCleared.filter((id) => typeof id === "string");
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
   }
@@ -145,6 +149,20 @@ export const SaveSystem = {
   isUnlocked(id) {
     if (this.data.starterId === id) return true;
     return (this.data.unlocked || []).includes(id);
+  },
+
+  isTrainCleared(id) {
+    return trainNodeCleared(this.data.trainCleared, id);
+  },
+
+  isTrainOpen(id) {
+    return trainNodeOpen(this.data.trainCleared, id);
+  },
+
+  clearTrainStage(id) {
+    if (!id || this.isTrainCleared(id)) return;
+    this.data.trainCleared = (this.data.trainCleared || []).concat([id]);
+    this.persist();
   },
 
   chooseStarter(id) {
