@@ -57,7 +57,7 @@ export class HubScene extends Phaser.Scene {
     const CH = 48;
     const GAP = 12;
     const pw = 220;
-    const bagW = 112;
+    const bagW = 124;
     const fx = PAD + pw + GAP + bagW / 2;
     const mailW = 100;
     const pvpW = 108;
@@ -104,12 +104,15 @@ export class HubScene extends Phaser.Scene {
       this.scene.start("bag");
     });
     this.bagChip = this.add.container(fx, TOP).setDepth(21);
-    if (this.textures.exists("item-fruit")) {
-      this.bagChip.add(this.add.image(-28, 0, "item-fruit").setDisplaySize(26, 26));
-    }
-    this.bagChip.add(this.add.text(10, 0, t("hub.navBag"), {
+    this.bagIcon = this.textures.exists("item-bag")
+      ? this.add.image(0, 0, "item-bag").setDisplaySize(28, 28)
+      : null;
+    this.bagText = this.add.text(0, 0, t("hub.navBag"), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0, 0.5));
+    }).setOrigin(0, 0.5);
+    if (this.bagIcon) this.bagChip.add(this.bagIcon);
+    this.bagChip.add(this.bagText);
+    this.layoutChip(this.bagChip, this.bagIcon, this.bagText);
 
     const etherKey = this.textures.exists("item-ether") ? "item-ether" : (this.textures.exists("vis_ether") ? "vis_ether" : "ether-art");
     chip(this, ex, TOP, etherW, 0x3ad6ff, () => this.openInfo("ether"));
