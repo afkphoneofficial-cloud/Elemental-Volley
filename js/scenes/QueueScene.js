@@ -9,6 +9,7 @@ import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, di
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { clampSkin } from "../data/skins.js";
+import { isRankWindowOpen } from "../data/rankWindows.js";
 
 function formatWait(ms) {
   const sec = Math.max(0, Math.floor(ms / 1000));
@@ -27,6 +28,11 @@ export class QueueScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    const kind = Session.mode;
+    if ((kind === "pvp" && !isRankWindowOpen("pvp")) || (kind === "special" && !isRankWindowOpen("special"))) {
+      this.scene.start("mode");
+      return;
+    }
     drawGrid(this);
     const W = this.scale.width;
     const rank = SaveSystem.data.rank;

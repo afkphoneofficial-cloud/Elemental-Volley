@@ -9,6 +9,7 @@ import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
+import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js";
 
 const SEASON_FX = {
@@ -107,7 +108,14 @@ export class ResultScene extends Phaser.Scene {
     this.buildVerdict(W, H, pal);
     this.buildStats(W, H, pal);
     this.buildLoot(W, H, pal);
-    this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => this.scene.start("select"));
+    this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => {
+      const kind = Session.mode;
+      if ((kind === "pvp" || kind === "special") && !isRankWindowOpen(kind)) {
+        this.scene.start("mode");
+        return;
+      }
+      this.scene.start("select");
+    });
     this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.scene.start("shop"), 0xc8ff3a);
     this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.scene.start("hub"), 0x7d5cff);
     this.showPage(this.hasLoot ? "loot" : "verdict");

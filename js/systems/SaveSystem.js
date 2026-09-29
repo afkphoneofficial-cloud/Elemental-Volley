@@ -13,6 +13,7 @@ import { emptySkins, clampSkin } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
+import { rankingWeek } from "../data/rankWindows.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -350,6 +351,7 @@ export const SaveSystem = {
     career.longestRally = Math.max(career.longestRally | 0, stats.longestRally | 0);
     this.data.matchLog.unshift({
       t: Date.now(),
+      week: rankingWeek().id,
       mode: entry.mode || "bot",
       win: Boolean(entry.win),
       you: entry.youId,

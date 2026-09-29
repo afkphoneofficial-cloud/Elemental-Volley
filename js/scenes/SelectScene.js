@@ -9,6 +9,7 @@ import { SELECT_PLATE, drawOrbit, drawLock, paintHopFx } from "../fx/SelectHover
 import { texSelect } from "../data/skins.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { botSheet, STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js";
+import { isRankWindowOpen } from "../data/rankWindows.js";
 
 const PLATE_R = 118;
 
@@ -20,6 +21,10 @@ export class SelectScene extends Phaser.Scene {
     this.pvpMode = Session.mode === "pvp";
     this.exhibitMode = Session.mode === "exhibit";
     this.specialMode = Session.mode === "special";
+    if ((this.pvpMode && !isRankWindowOpen("pvp")) || (this.specialMode && !isRankWindowOpen("special"))) {
+      this.scene.start("mode");
+      return;
+    }
     this.input.setTopOnly(true);
     drawGrid(this);
     const W = this.scale.width;

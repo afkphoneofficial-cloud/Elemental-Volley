@@ -4,6 +4,9 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
+import {
+  formatYmd, formatYmdShort, isRankWindowOpen, rankWindow
+} from "../data/rankWindows.js";
 
 export class ModeScene extends Phaser.Scene {
   constructor() { super("mode"); }
@@ -19,13 +22,15 @@ export class ModeScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
-    const cw = 500;
-    const ch = 262;
-    const gapX = 28;
+    const cw = 510;
+    const ch = 276;
+    const gapX = 24;
     const col0 = W / 2 - gapX / 2 - cw / 2;
     const col1 = W / 2 + gapX / 2 + cw / 2;
-    const row0 = 216;
-    const row1 = 492;
+    const row0 = 218;
+    const row1 = 508;
+    this._pvpOpen = isRankWindowOpen("pvp");
+    this._specialOpen = isRankWindowOpen("special");
 
     this.card(col0, row0, cw, ch, 0xffb14a, t("hub.playBot"), t("hub.modeBotBody"), () => {
       Session.mode = "bot";
@@ -38,16 +43,8 @@ export class ModeScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("friends", { pick: true });
     });
-    this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody"), () => {
-      Session.mode = "pvp";
-      AudioSystem.ui();
-      this.scene.start("select");
-    });
-    this.epicCard(col1, row1, cw, ch, t("hub.playSpecial"), t("hub.modeSpecialBody"), () => {
-      Session.mode = "special";
-      AudioSystem.ui();
-      this.scene.start("select");
-    });
+    this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody"), "pvp", () => this.enterRank("pvp"));
+    this.epicCard(col1, row1, cw, ch, t("hub.playSpecial"), t("hub.modeSpecialBody"), "special", () => this.enterRank("special"));
 
     makeButton(this, 120, 40, 140, 40, t("nav.back"), () => {
       AudioSystem.ui();
@@ -68,20 +65,108 @@ export class ModeScene extends Phaser.Scene {
     AudioSystem.playMenu();
   }
 
-  card(x, y, w, h, color, title, body, onClick) {
-    roundPanel(this, x, y, w, h, color, 0xfff6ea);
-    this.add.text(x, y - 78, title, {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418",
-      align: "center", wordWrap: { width: w - 40 }
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y - 8, body, {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#5a3828",
-      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
-    }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 88, 220, 44, title, () => onClick(), color);
+  enterRank(kind) {
+    const win = rankWindow(kind);
+    if (!win.open) {
+      AudioSystem.error();
+      this.showLockedHint(kind, win);
+      return;
+    }
+    Session.mode = kind;
+    AudioSystem.ui();
+    this.scene.start("select");
   }
 
-  rankCard(x, y, w, h, title, body, onClick) {
+  paintCopy(x, y, w, title, body, titleColor, bodyColor, seasonKind, epic) {
+    this.add.text(x, y - 96, title, {
+      fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: titleColor,
+      align: "center", wordWrap: { width: w - 36 },
+      stroke: epic ? "#3a1870" : "#fff6ea", strokeThickness: epic ? 6 : 0
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, seasonKind ? y - 38 : y - 8, body, {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: bodyColor,
+      align: "center", wordWrap: { width: w - 48 }, lineSpacing: 4
+    }).setOrigin(0.5).setDepth(8);
+    if (!seasonKind) return false;
+    const win = rankWindow(seasonKind);
+    const lang = I18n.lang;
+    const days = t(seasonKind === "pvp" ? "hub.modePvpDays" : "hub.modeSpecialDays");
+    const status = win.open ? t("hub.modeOpenNow") : t("hub.modeClosedNow");
+    const week = t("hub.modeWeek", {
+      start: formatYmdShort(win.week.start, lang),
+      end: formatYmdShort(win.week.end, lang)
+    });
+    this.add.text(x, y + 18, t("hub.modeSeason"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: epic ? "#ffe08a" : "#c45a16"
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, y + 40, days, {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: bodyColor
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, y + 62, status + "  ·  " + week, {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800",
+      color: win.open ? (epic ? "#c8ff3a" : "#1a7a48") : (epic ? "#ff8ab8" : "#c45a16")
+    }).setOrigin(0.5).setDepth(8);
+    return !win.open;
+  }
+
+  lockButton(x, y, w, h) {
+    const g = this.add.graphics().setDepth(41);
+    g.fillStyle(0x12080e, 0.42);
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, Math.min(18, h / 2));
+    g.lineStyle(4, 0xc8b090, 0.95);
+    for (let i = 0; i < 8; i += 1) {
+      const t = i / 7;
+      const px = x - w / 2 + 16 + t * (w - 32);
+      const py = y + Math.sin(i * 1.15) * 6;
+      g.strokeCircle(px, py, 6);
+      g.fillStyle(0x8a7058, 1);
+      g.fillCircle(px, py, 2.4);
+      g.lineStyle(4, 0xc8b090, 0.95);
+    }
+    g.fillStyle(0x1a1018, 0.94);
+    g.fillCircle(x, y + 2, 15);
+    g.lineStyle(3, 0xffe08a, 1);
+    g.strokeCircle(x, y + 2, 15);
+    g.beginPath();
+    g.arc(x, y - 6, 7, Math.PI * 1.05, -0.05, false);
+    g.strokePath();
+    g.fillStyle(0xffe08a, 1);
+    g.fillRoundedRect(x - 8, y - 1, 16, 12, 3);
+  }
+
+  showLockedHint(kind, win) {
+    this.closePlayRules();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const date = formatYmd(win.next, I18n.lang);
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x1a1008, 0.55).setDepth(70).setInteractive();
+    dim.on("pointerdown", () => this.closePlayRules());
+    const g = this.add.graphics().setDepth(71);
+    g.fillStyle(0xfff6ea, 0.98);
+    g.fillRoundedRect(W / 2 - 300, H / 2 - 150, 600, 300, 24);
+    g.lineStyle(3, 0xff6a22, 0.8);
+    g.strokeRoundedRect(W / 2 - 300, H / 2 - 150, 600, 300, 24);
+    const title = this.add.text(W / 2, H / 2 - 88, t("hub.modeLockedTitle"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(72);
+    const body = this.add.text(W / 2, H / 2 - 12, t("hub.modeLockedBody", { date }), {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#5a3828",
+      align: "center", wordWrap: { width: 520 }, lineSpacing: 6
+    }).setOrigin(0.5).setDepth(72);
+    const close = makeButton(this, W / 2, H / 2 + 92, 180, 44, t("hub.infoClose"), () => {
+      AudioSystem.ui();
+      this.closePlayRules();
+    }, 0xff6a22, 80);
+    this.ruleBits = [dim, g, title, body, close.gfx, close.text, close.bg];
+  }
+
+  card(x, y, w, h, color, title, body, onClick) {
+    roundPanel(this, x, y, w, h, color, 0xfff6ea);
+    this.paintCopy(x, y, w, title, body, "#3a2418", "#5a3828", null, false);
+    makeButton(this, x, y + 108, 220, 44, title, () => onClick(), color);
+  }
+
+  rankCard(x, y, w, h, title, body, kind, onClick) {
     const halo = this.add.graphics().setDepth(3);
     halo.fillStyle(0xa898ff, 0.16);
     halo.fillRoundedRect(x - w / 2 - 12, y - h / 2 - 12, w + 24, h + 24, 24);
@@ -102,15 +187,14 @@ export class ModeScene extends Phaser.Scene {
     panel.lineStyle(1.5, 0xc8b8ff, 0.55);
     panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
 
-    this.add.text(x, y - 78, title, {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418",
-      align: "center", wordWrap: { width: w - 40 }
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y - 8, body, {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#5a3828",
-      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
-    }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 88, 220, 44, title, () => onClick(), 0x7d5cff);
+    const locked = this.paintCopy(x, y, w, title, body, "#3a2418", "#5a3828", kind, false);
+    if (locked) {
+      const veil = this.add.graphics().setDepth(5);
+      veil.fillStyle(0x12080e, 0.22);
+      veil.fillRoundedRect(x - w / 2, y - h / 2, w, h, 20);
+    }
+    makeButton(this, x, y + 108, 220, 44, title, () => onClick(), 0x7d5cff);
+    if (locked) this.lockButton(x, y + 108, 220, 44);
 
     if (wantFx() && this.textures.exists("dot")) {
       try {
@@ -134,7 +218,7 @@ export class ModeScene extends Phaser.Scene {
     }
   }
 
-  epicCard(x, y, w, h, title, body, onClick) {
+  epicCard(x, y, w, h, title, body, kind, onClick) {
     const halo = this.add.graphics().setDepth(3);
     halo.fillStyle(0x7d5cff, 0.18);
     halo.fillRoundedRect(x - w / 2 - 18, y - h / 2 - 18, w + 36, h + 36, 28);
@@ -158,16 +242,14 @@ export class ModeScene extends Phaser.Scene {
     panel.fillStyle(0xffffff, 0.08);
     panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 14, w - 36, 36, 12);
 
-    this.add.text(x, y - 78, title, {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#ffe08a",
-      stroke: "#3a1870", strokeThickness: 6,
-      align: "center", wordWrap: { width: w - 40 }
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(x, y - 8, body, {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#e8dcff",
-      align: "center", wordWrap: { width: w - 56 }, lineSpacing: 3
-    }).setOrigin(0.5).setDepth(8);
-    makeButton(this, x, y + 88, 260, 46, title, () => onClick(), 0xffd24a);
+    const locked = this.paintCopy(x, y, w, title, body, "#ffe08a", "#e8dcff", kind, true);
+    if (locked) {
+      const veil = this.add.graphics().setDepth(5);
+      veil.fillStyle(0x000000, 0.28);
+      veil.fillRoundedRect(x - w / 2, y - h / 2, w, h, 20);
+    }
+    makeButton(this, x, y + 108, 260, 46, title, () => onClick(), 0xffd24a);
+    if (locked) this.lockButton(x, y + 108, 260, 46);
 
     if (wantFx() && this.textures.exists("dot")) {
       try {
@@ -192,6 +274,15 @@ export class ModeScene extends Phaser.Scene {
   }
 
   update(now) {
+    if (now - (this.winAt || 0) > 8000) {
+      this.winAt = now;
+      const p = isRankWindowOpen("pvp");
+      const s = isRankWindowOpen("special");
+      if (p !== this._pvpOpen || s !== this._specialOpen) {
+        this.scene.restart();
+        return;
+      }
+    }
     if (!this.fxRing || !this.fxBoxes) return;
     const t = now * 0.001;
     this.fxRing.clear();
