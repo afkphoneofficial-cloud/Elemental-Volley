@@ -122,6 +122,43 @@ export function clampGrowth(raw) {
   };
 }
 
+export function copyGrowth(raw) {
+  const g = clampGrowth(raw);
+  return {
+    xp: g.xp,
+    spentStart: copySpent(g.spentStart, zeroSpent()),
+    spentLevel: copySpent(g.spentLevel, zeroSpent()),
+    freeLevelRespec: g.freeLevelRespec
+  };
+}
+
+export function growthEqual(a, b) {
+  const A = clampGrowth(a);
+  const B = clampGrowth(b);
+  return STAT_IDS.every((s) => A.spentStart[s] === B.spentStart[s] && A.spentLevel[s] === B.spentLevel[s]);
+}
+
+export function trySpend(charId, row, stat) {
+  if (!STAT_IDS.includes(stat)) return null;
+  const sheet = sheetFromRow(charId, row);
+  if ((sheet.spent[stat] | 0) >= (sheet.caps[stat] | 0)) return null;
+  const next = copyGrowth(row);
+  if (sheet.unspentStart > 0) next.spentStart[stat] += 1;
+  else if (sheet.unspentLevel > 0) next.spentLevel[stat] += 1;
+  else return null;
+  return normalizeRow(charId, next);
+}
+
+export function tryUnspend(charId, row, saved, stat) {
+  if (!STAT_IDS.includes(stat)) return null;
+  const draft = copyGrowth(row);
+  const base = copyGrowth(saved);
+  if (draft.spentLevel[stat] > base.spentLevel[stat]) draft.spentLevel[stat] -= 1;
+  else if (draft.spentStart[stat] > base.spentStart[stat]) draft.spentStart[stat] -= 1;
+  else return null;
+  return normalizeRow(charId, draft);
+}
+
 export function combinedSpent(g) {
   const spent = zeroSpent();
   STAT_IDS.forEach((s) => {

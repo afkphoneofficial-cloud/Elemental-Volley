@@ -325,15 +325,18 @@ export const SaveSystem = {
     return this.growthOf(id);
   },
 
-  spendGrowth(id, stat) {
+  commitGrowth(id, row) {
     if (!this.isUnlocked(id)) return false;
-    const sheet = this.growthOf(id);
-    if ((sheet.spent[stat] | 0) >= (sheet.caps[stat] | 0)) return false;
-    const row = clampGrowth(this.data.growth[id]);
-    if (sheet.unspentStart > 0) row.spentStart[stat] = (row.spentStart[stat] | 0) + 1;
-    else if (sheet.unspentLevel > 0) row.spentLevel[stat] = (row.spentLevel[stat] | 0) + 1;
-    else return false;
-    this.data.growth[id] = normalizeRow(id, row);
+    const saved = clampGrowth(this.data.growth[id]);
+    const next = normalizeRow(id, row);
+    const ok = STAT_IDS.every((s) =>
+      (next.spentStart[s] | 0) >= (saved.spentStart[s] | 0)
+      && (next.spentLevel[s] | 0) >= (saved.spentLevel[s] | 0)
+    );
+    if (!ok) return false;
+    next.xp = saved.xp;
+    next.freeLevelRespec = saved.freeLevelRespec;
+    this.data.growth[id] = next;
     this.persist();
     return true;
   },

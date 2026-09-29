@@ -1,11 +1,21 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { STAT_IDS, GROWTH_MAX_LV, GROWTH_SPECIAL_LV } from "../data/growth.js";
+import {
+  STAT_IDS, GROWTH_MAX_LV, GROWTH_SPECIAL_LV,
+  copyGrowth, growthEqual, trySpend, tryUnspend, sheetFromRow
+} from "../data/growth.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { texSelect } from "../data/skins.js";
+
+function setBtnLive(btn, on) {
+  const a = on ? 1 : 0.38;
+  btn.gfx.setAlpha(a);
+  btn.text.setAlpha(on ? 1 : 0.55);
+  btn.bg.setAlpha(on ? 1 : 0.55);
+}
 
 export class GrowthScene extends Phaser.Scene {
   constructor() { super("growth"); }
@@ -15,6 +25,7 @@ export class GrowthScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     this.charId = SaveSystem.data.showcaseId || SaveSystem.data.starterId || "ignis";
+    this.draft = null;
     this.hintOn = false;
     this.hintPart = 0;
     this.hintBits = [];
@@ -32,9 +43,7 @@ export class GrowthScene extends Phaser.Scene {
     ROSTER_IDS.forEach((id, i) => {
       const x = W / 2 - 240 + i * 160;
       makeButton(this, x, 108, 140, 40, charName(id), () => {
-        this.charId = id;
-        this.refresh();
-        AudioSystem.ui();
+        this.pickChar(id);
       }, SaveSystem.isUnlocked(id) ? 0xffb14a : 0xc8bdd8);
     });
 
@@ -51,41 +60,56 @@ export class GrowthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#c45a16",
       align: "center", wordWrap: { width: 240 }
     }).setOrigin(0.5);
-    this.ptsText = this.add.text(720, 168, "", {
+    this.ptsText = this.add.text(720, 160, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008",
       wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
-    this.specialText = this.add.text(720, 196, "", {
+    this.specialText = this.add.text(720, 186, "", {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7d5cff"
+    }).setOrigin(0.5);
+    this.draftText = this.add.text(720, 208, "", {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#9a3a18",
+      wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
 
     this.rows = STAT_IDS.map((stat, i) => {
-      const y = 242 + i * 66;
-      roundPanel(this, 720, y, 640, 58, 0xffb14a, 0xfff6ea);
-      const name = this.add.text(430, y - 11, "", {
+      const y = 236 + i * 62;
+      roundPanel(this, 720, y, 640, 56, 0xffb14a, 0xfff6ea);
+      const name = this.add.text(418, y - 11, "", {
         fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#1a1008",
         stroke: "#fff6ea", strokeThickness: 4
       }).setOrigin(0, 0.5).setDepth(8);
-      const val = this.add.text(430, y + 13, "", {
+      const val = this.add.text(418, y + 13, "", {
         fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418",
         stroke: "#fff6ea", strokeThickness: 3
       }).setOrigin(0, 0.5).setDepth(8);
-      const plus = makeButton(this, 980, y, 72, 38, "+", () => {
-        if (SaveSystem.spendGrowth(this.charId, stat)) {
-          AudioSystem.ui();
-          this.refresh();
-        }
+      const minus = makeButton(this, 900, y, 56, 36, "−", () => {
+        this.nudge(stat, -1);
+      }, 0xff8ab8);
+      const plus = makeButton(this, 980, y, 56, 36, "+", () => {
+        this.nudge(stat, 1);
       }, 0x7d5cff);
-      return { stat, name, val, plus };
+      return { stat, name, val, plus, minus };
     });
 
-    this.respecStartBtn = makeButton(this, 720, 528, 580, 42, t("growth.respecStart"), () => {
+    this.confirmBtn = makeButton(this, 560, 498, 250, 40, t("growth.confirm"), () => {
+      this.commitDraft();
+    }, 0x3ad6ff);
+    this.cancelBtn = makeButton(this, 880, 498, 250, 40, t("growth.cancelDraft"), () => {
+      this.discardDraft();
+    }, 0xc8bdd8);
+    this.confirmBtn.text.setFontSize(15);
+    this.cancelBtn.text.setFontSize(15);
+
+    this.respecStartBtn = makeButton(this, 720, 546, 580, 40, t("growth.respecStart"), () => {
+      this.discardDraft(false);
       if (SaveSystem.respecStartGrowth(this.charId)) {
         AudioSystem.ui();
         this.refresh();
       }
     }, 0xff8ab8);
-    this.respecLevelBtn = makeButton(this, 720, 578, 580, 42, t("growth.respecLevel"), () => {
+    this.respecLevelBtn = makeButton(this, 720, 594, 580, 40, t("growth.respecLevel"), () => {
+      this.discardDraft(false);
       const res = SaveSystem.respecLevelGrowth(this.charId);
       if (res && res.ok) {
         AudioSystem.ui();
@@ -97,8 +121,55 @@ export class GrowthScene extends Phaser.Scene {
     AudioSystem.playMenu();
   }
 
+  savedRow() {
+    return copyGrowth(SaveSystem.data.growth[this.charId]);
+  }
+
+  viewRow() {
+    return this.draft || this.savedRow();
+  }
+
+  pickChar(id) {
+    this.discardDraft(false);
+    this.charId = id;
+    this.refresh();
+    AudioSystem.ui();
+  }
+
+  nudge(stat, dir) {
+    if (!SaveSystem.isUnlocked(this.charId)) return;
+    const saved = this.savedRow();
+    const cur = this.viewRow();
+    const next = dir > 0
+      ? trySpend(this.charId, cur, stat)
+      : tryUnspend(this.charId, cur, saved, stat);
+    if (!next) return;
+    this.draft = growthEqual(next, saved) ? null : next;
+    AudioSystem.ui();
+    this.refresh();
+  }
+
+  commitDraft() {
+    if (!this.draft) return;
+    if (SaveSystem.commitGrowth(this.charId, this.draft)) {
+      this.draft = null;
+      AudioSystem.ui();
+      this.refresh();
+    }
+  }
+
+  discardDraft(sound = true) {
+    if (!this.draft) return;
+    this.draft = null;
+    if (sound) AudioSystem.ui();
+    this.refresh();
+  }
+
   refresh() {
-    const sheet = SaveSystem.growthOf(this.charId);
+    const saved = this.savedRow();
+    const row = this.viewRow();
+    const sheet = sheetFromRow(this.charId, row);
+    const dirty = !!this.draft && !growthEqual(this.draft, saved);
     const key = texSelect(this, this.charId, SaveSystem.skinOf(this.charId));
     if (this.textures.exists(key)) this.hero.setTexture(key);
     this.lvText.setText(t("growth.level", { n: sheet.level, max: GROWTH_MAX_LV }));
@@ -119,17 +190,22 @@ export class GrowthScene extends Phaser.Scene {
     this.specialText.setText(sheet.specialReady
       ? t("growth.specialOn")
       : t("growth.specialOff", { n: GROWTH_SPECIAL_LV }));
-    this.rows.forEach((row) => {
-      row.name.setText(t("growth.stat." + row.stat));
-      row.val.setText(t("growth.statLine", {
-        spent: sheet.spent[row.stat],
-        gift: row.stat === sheet.giftStat ? sheet.gift : 0,
-        total: sheet.totals[row.stat],
-        cap: sheet.caps[row.stat]
+    this.draftText.setText(dirty ? t("growth.draftNote") : "");
+    this.rows.forEach((item) => {
+      item.name.setText(t("growth.stat." + item.stat));
+      item.val.setText(t("growth.statLine", {
+        spent: sheet.spent[item.stat],
+        gift: item.stat === sheet.giftStat ? sheet.gift : 0,
+        total: sheet.totals[item.stat],
+        cap: sheet.caps[item.stat]
       }));
     });
     this.respecStartBtn.text.setFontSize(15).setText(t("growth.respecStart"));
     this.respecLevelBtn.text.setFontSize(15).setText(sheet.freeLevelRespec ? t("growth.respecLevel") : t("growth.useFruit"));
+    this.confirmBtn.text.setText(t("growth.confirm"));
+    this.cancelBtn.text.setText(t("growth.cancelDraft"));
+    setBtnLive(this.confirmBtn, dirty);
+    setBtnLive(this.cancelBtn, dirty);
   }
 
   toggleHint() {
@@ -152,9 +228,8 @@ export class GrowthScene extends Phaser.Scene {
     this.closeHint();
     this.hintOn = true;
     const W = this.scale.width;
-    const H = this.scale.height;
     const n = this.hintPart + 1;
-    const veil = this.add.rectangle(W / 2, H / 2, W, H, 0x3a2418, 0.45).setDepth(50).setInteractive();
+    const veil = this.add.rectangle(W / 2, this.scale.height / 2, W, this.scale.height, 0x3a2418, 0.45).setDepth(50).setInteractive();
     const panel = this.add.graphics().setDepth(51);
     panel.fillStyle(0xfff6ea, 0.98);
     panel.fillRoundedRect(W / 2 - 380, 70, 760, 560, 28);
