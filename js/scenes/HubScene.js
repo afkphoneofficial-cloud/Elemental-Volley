@@ -18,6 +18,7 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
+import { wantFx } from "../systems/GameSettings.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -54,16 +55,17 @@ export class HubScene extends Phaser.Scene {
     const PAD = 28;
     const TOP = 48;
     const CH = 48;
-    const GAP = 14;
-    const pw = 228;
-    const fx = PAD + pw + GAP + 59;
-    const mailW = 108;
-    const pvpW = 196;
-    const tokW = 168;
+    const GAP = 12;
+    const pw = 220;
+    const bagW = 112;
+    const fx = PAD + pw + GAP + bagW / 2;
+    const mailW = 100;
+    const pvpW = 188;
+    const tokW = 160;
     const mx = W - PAD - mailW / 2;
     const pvx = mx - mailW / 2 - GAP - pvpW / 2;
     const tx = pvx - pvpW / 2 - GAP - tokW / 2;
-    const ex = tx - tokW / 2 - GAP - 82;
+    const ex = tx - tokW / 2 - GAP - 80;
     this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
 
     const avId = save.avatarId;
@@ -96,13 +98,17 @@ export class HubScene extends Phaser.Scene {
         AudioSystem.ui();
         this.scene.start("career");
       });
-    chip(this, fx, TOP, 118, 0xff8ab8, () => {
+    chip(this, fx, TOP, bagW, 0xffb14a, () => {
       AudioSystem.ui();
-      this.scene.start("friends");
+      this.scene.start("bag");
     });
-    this.add.text(fx, TOP, t("hub.navFriends"), {
+    this.bagChip = this.add.container(fx, TOP).setDepth(21);
+    if (this.textures.exists("item-fruit")) {
+      this.bagChip.add(this.add.image(-28, 0, "item-fruit").setDisplaySize(26, 26));
+    }
+    this.bagChip.add(this.add.text(10, 0, t("hub.navBag"), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(21);
+    }).setOrigin(0, 0.5));
 
     const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
     chip(this, ex, TOP, 164, 0x3ad6ff, () => this.openInfo("ether"));
@@ -158,15 +164,12 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, W / 2 - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
-    makeButton(this, W / 2, 508, 360, 54, t("hub.play"), () => {
-      AudioSystem.ui();
-      this.scene.start("mode");
-    });
-    makeButton(this, W / 2 - 160, 572, 228, 44, t("hub.navFighter"), () => {
+    this.mountPlay(W);
+    makeButton(this, W / 2 - 150, 586, 180, 42, t("hub.navFighter"), () => {
       AudioSystem.ui();
       this.scene.start("dress");
     }, 0xff8ab8);
-    makeButton(this, W / 2 + 160, 572, 228, 44, t("hub.navBoard"), () => {
+    makeButton(this, W / 2 + 150, 586, 180, 42, t("hub.navBoard"), () => {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
     }, 0xffb14a);
@@ -179,9 +182,10 @@ export class HubScene extends Phaser.Scene {
     this.chatLabel = chatBtn.text;
     ChatSystem.bindHub(this);
     const nav = [
-      [hubNavX(1, W), t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
-      [hubNavX(2, W), t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
-      [hubNavX(3, W), t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
+      [hubNavX(1, W), t("hub.navFriends"), 0xff8ab8, () => this.scene.start("friends")],
+      [hubNavX(2, W), t("hub.navShop"), 0xc8ff3a, () => this.scene.start("shop")],
+      [hubNavX(3, W), t("hub.navMap"), 0xffb14a, () => this.scene.start("wiki", { from: "hub" })],
+      [hubNavX(4, W), t("hub.navSet"), 0xffe08a, () => this.scene.start("settings", { from: "hub" })]
     ];
     nav.forEach(([x, label, col, fn]) => {
       makeButton(this, x, navY, HUB_NAV.w, HUB_NAV.h, label, () => {
@@ -197,6 +201,45 @@ export class HubScene extends Phaser.Scene {
     mountHubBoardWidgets(this);
     Friends.sync();
     AudioSystem.playMenu();
+  }
+
+  mountPlay(W) {
+    const x = W / 2;
+    const y = 512;
+    this.playGlow = this.add.graphics().setDepth(8);
+    const drawGlow = (pulse) => {
+      this.playGlow.clear();
+      this.playGlow.fillStyle(0xff6a22, 0.18 + pulse * 0.1);
+      this.playGlow.fillRoundedRect(x - 150, y - 48, 300, 96, 32);
+      this.playGlow.fillStyle(0xffe08a, 0.22 + pulse * 0.12);
+      this.playGlow.fillRoundedRect(x - 122, y - 36, 244, 72, 26);
+      this.playGlow.lineStyle(3, 0xff6a22, 0.85 + pulse * 0.15);
+      this.playGlow.strokeRoundedRect(x - 122, y - 36, 244, 72, 26);
+    };
+    drawGlow(0);
+    this._playPulse = 0;
+    this.playDraw = drawGlow;
+    const go = () => {
+      AudioSystem.ui();
+      this.scene.start("mode");
+    };
+    const btn = makeButton(this, x, y, 200, 52, t("hub.play"), go, 0xff6a22);
+    btn.text.setFontSize("22px");
+    if (wantFx() && this.textures.exists("dot")) {
+      try {
+        this.playBurst = this.add.particles(x, y, "dot", {
+          lifespan: { min: 500, max: 1100 },
+          speed: { min: 20, max: 90 },
+          scale: { start: 0.7, end: 0 },
+          alpha: { start: 0.7, end: 0 },
+          tint: [0xff6a22, 0xffe08a, 0xffffff, 0xff8ab8],
+          blendMode: "ADD",
+          frequency: 70,
+          quantity: 1,
+          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 250, 78), quantity: 18 }
+        }).setDepth(7);
+      } catch (e) { this.playBurst = null; }
+    }
   }
 
   cycleShowcase(dir) {
@@ -221,6 +264,10 @@ export class HubScene extends Phaser.Scene {
     }
     paintHubBoardFx(this, now);
     this.paintEther();
+    if (this.playDraw) {
+      const pulse = (Math.sin(now / 380) + 1) / 2;
+      this.playDraw(pulse);
+    }
     if (this.time.now - (this.syncAt || 0) > 12000) {
       this.syncAt = this.time.now;
       Friends.sync();

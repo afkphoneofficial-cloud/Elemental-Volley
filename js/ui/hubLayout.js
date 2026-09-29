@@ -1,9 +1,9 @@
 export const HUB_NAV = {
   y: 48,
-  w: 164,
+  w: 142,
   h: 42,
-  gap: 16,
-  n: 4
+  gap: 12,
+  n: 5
 };
 
 export function hubNavX(i, width) {

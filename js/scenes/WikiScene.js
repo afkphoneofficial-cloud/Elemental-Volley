@@ -4,12 +4,14 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { paintTabs } from "../ui/sceneTabs.js";
+import { ITEM_IDS, itemIconKey } from "../data/items.js";
 
 export class WikiScene extends Phaser.Scene {
   constructor() { super("wiki"); }
 
   init(data) {
     this.from = (data && data.from) || "hub";
+    this.wikiTab = (data && data.tab) || "map";
   }
 
   create() {
@@ -35,11 +37,12 @@ export class WikiScene extends Phaser.Scene {
       this.scene.start(this.from);
     }, 0x7d5cff);
     paintTabs(this, 52, [
-      { id: "map", label: t("wiki.tabMap"), color: 0xffb14a, again: true, go: () => this.closePopup() },
+      { id: "map", label: t("wiki.tabMap"), color: 0xffb14a, go: () => this.scene.start("wiki", { from: this.from, tab: "map" }) },
+      { id: "items", label: t("wiki.tabItems"), color: 0xff8a3a, go: () => this.scene.start("wiki", { from: this.from, tab: "items" }) },
       { id: "story", label: t("wiki.tabStory"), color: 0x7d5cff, again: true, go: () => this.openStory() },
       { id: "cast", label: t("wiki.tabCast"), color: 0x3ad6ff, again: true, go: () => this.openCast() },
       { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() }
-    ], "map");
+    ], this.wikiTab === "items" ? "items" : "map");
 
     const frame = this.add.graphics().setDepth(4);
     frame.fillStyle(0xfff6ea, 0.2);
@@ -63,8 +66,17 @@ export class WikiScene extends Phaser.Scene {
     this.drawLegend(W, H);
 
     this.popup = this.add.container(0, 0).setDepth(50).setVisible(false);
+    this.itemLayer = this.add.container(0, 0).setDepth(40).setVisible(false);
     this.input.setTopOnly(false);
     AudioSystem.playMenu();
+    if (this.wikiTab === "items") this.openItems();
+  }
+
+  showMap() {
+    AudioSystem.ui();
+    this.wikiTab = "map";
+    this.closeItems();
+    this.closePopup();
   }
 
   pinXY(loc) {
@@ -142,8 +154,92 @@ export class WikiScene extends Phaser.Scene {
     });
   }
 
+  closeItems() {
+    (this.itemDetail || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.itemDetail = [];
+    if (!this.itemLayer) return;
+    this.itemLayer.setVisible(false);
+    this.itemLayer.removeAll(true);
+  }
+
+  openItems() {
+    this.closePopup();
+    this.wikiTab = "items";
+    if (this.itemLayer && this.itemLayer.visible && this.itemLayer.list && this.itemLayer.list.length) {
+      this.paintItemDetail();
+      return;
+    }
+    this.closeItems();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const keep = (o) => { this.itemLayer.add(o); return o; };
+    keep(this.add.rectangle(W / 2, H / 2 + 20, W - 40, H - 120, 0xfff6ea, 0.98).setStrokeStyle(3, 0xff8a3a, 0.55).setDepth(40));
+    keep(this.add.text(W / 2, 108, t("wiki.itemsTitle"), {
+      fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(41));
+    keep(this.add.text(W / 2, 140, t("wiki.itemsSub"), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
+    }).setOrigin(0.5).setDepth(41));
+    this.itemPick = this.itemPick || ITEM_IDS[0];
+    ITEM_IDS.forEach((id, i) => {
+      const y = 210 + i * 92;
+      const g = keep(this.add.graphics().setDepth(41));
+      const paint = () => {
+        g.clear();
+        const on = id === this.itemPick;
+        g.fillStyle(on ? 0xffe8c8 : 0xffffff, 0.96);
+        g.fillRoundedRect(56, y - 38, 420, 76, 16);
+        g.lineStyle(2, on ? 0xff6a22 : 0xffb14a, on ? 1 : 0.55);
+        g.strokeRoundedRect(56, y - 38, 420, 76, 16);
+      };
+      paint();
+      g._paintItem = paint;
+      const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+      keep(this.add.image(104, y, ik).setDisplaySize(56, 56).setDepth(42));
+      keep(this.add.text(148, y, t("item." + id + ".name"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
+      }).setOrigin(0, 0.5).setDepth(42));
+      keep(this.add.zone(266, y, 420, 76).setInteractive({ useHandCursor: true }).setDepth(43)
+        .on("pointerdown", () => {
+          AudioSystem.ui();
+          this.itemPick = id;
+          this.itemLayer.iterate((child) => { if (child && child._paintItem) child._paintItem(); });
+          this.paintItemDetail();
+        }));
+    });
+    this.itemLayer.setVisible(true);
+    this.paintItemDetail();
+  }
+
+  paintItemDetail() {
+    (this.itemDetail || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.itemDetail = [];
+    const id = this.itemPick || ITEM_IDS[0];
+    const key = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+    const dx = 820;
+    const dkeep = (o) => { this.itemDetail.push(o); this.itemLayer.add(o); return o; };
+    dkeep(this.add.circle(dx, 280, 70, 0xffe8c8, 1).setStrokeStyle(3, 0xff6a22, 0.55).setDepth(42));
+    dkeep(this.add.image(dx, 280, key).setDisplaySize(120, 120).setDepth(43));
+    dkeep(this.add.text(dx, 372, t("item." + id + ".name"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(42));
+    dkeep(this.add.text(dx, 420, t("wiki.itemsHow"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(42));
+    dkeep(this.add.text(dx, 478, t("item." + id + ".how"), {
+      fontFamily: UI_FONT, fontSize: "16px", color: "#5a3828", align: "center", wordWrap: { width: 420 }
+    }).setOrigin(0.5).setDepth(42));
+    dkeep(this.add.text(dx, 560, t("wiki.itemsUse"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#1a7a48"
+    }).setOrigin(0.5).setDepth(42));
+    dkeep(this.add.text(dx, 618, t("item." + id + ".use"), {
+      fontFamily: UI_FONT, fontSize: "16px", color: "#5a3828", align: "center", wordWrap: { width: 420 }
+    }).setOrigin(0.5).setDepth(42));
+  }
+
   openStory() {
     AudioSystem.ui();
+    this.closeItems();
     const pack = I18n.lore();
     const body = pack.story.join("\n\n") + "\n\n" + pack.ball + "\n\n" + pack.howTo;
     this.buildPopup({
@@ -159,6 +255,7 @@ export class WikiScene extends Phaser.Scene {
 
   openCast() {
     AudioSystem.ui();
+    this.closeItems();
     const rows = I18n.wikiCast();
     const body = rows.map((row) => {
       const skills = (row.abilities || []).map((n) => "·  " + n).join("\n");
@@ -177,6 +274,7 @@ export class WikiScene extends Phaser.Scene {
 
   openSecret() {
     AudioSystem.ui();
+    this.closeItems();
     const rows = I18n.secrets();
     const body = t("wiki.secretHead") + "\n\n" + rows.map((row) => {
       return row.code + "  ·  " + row.alias + "  ·  " + row.th + "\n" + t("wiki.from", { mark: row.mark }) + "\n" + row.rumor + "\n" + row.hint;

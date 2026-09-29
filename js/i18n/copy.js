@@ -51,6 +51,7 @@ export const COPY = {
       navMap: "แผนที่",
       navSet: "ตั้งค่า",
       navFriends: "เพื่อน",
+      navBag: "กระเป๋า",
       navBoard: "อันดับ",
       navDress: "แต่งตัว",
       navGrowth: "ธาตุกาย",
@@ -237,10 +238,10 @@ export const COPY = {
       }
     },
     item: {
-      stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า" },
-      shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า" },
-      ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ถ้าหลอดเต็มจะเก็บในกระเป๋าก่อน" },
-      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล" }
+      stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า", how: "ชนะโหมดฝึกฝน ตามสกอร์และความยาก แพ้ไม่ได้ก้อน", use: "สะสมแล้วนำไปแลกเศษธาตุที่ร้านค้า อัตรา 1:1" },
+      shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกจากหินประหลาดที่ร้าน", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
+      ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ถ้าหลอดเต็มจะเก็บในกระเป๋าก่อน", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลังลงสนาม 1 ก้อนจากหลอดมุมบน หรือกดใช้จากกระเป๋าถ้าหลอดเต็มตอนดรอป" },
+      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ยังไม่ดรอปจากแมตช์ จะมาจากร้านหรือกิจกรรมภายหลัง", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" }
     },
     growth: {
       title: "ธาตุกาย",
@@ -413,6 +414,11 @@ export const COPY = {
       tabCast: "ธาตุทั้งสี่",
       tabSecret: "แฟ้มลับ",
       tabMap: "แผนที่เกาะ",
+      tabItems: "ไอเท็ม",
+      itemsTitle: "คลังไอเท็ม",
+      itemsSub: "แตะชื่อทางซ้ายเพื่อดูรูปและรายละเอียด",
+      itemsHow: "ที่มา",
+      itemsUse: "ใช้ทำอะไร",
       tabExplore: "สำรวจ",
       exploreTitle: "สำรวจโลก",
       exploreBody: "โหมดเดินเกาะจะมาในแพทช์ถัดไป ใช้ธาตุกายของตัวละครตอนสำรวจเหมือนโหมดฝึกฝน\n\nแตะหมุดบนแผนที่เพื่ออ่านที่อยู่ได้ก่อน ยังลงเดินจริงไม่ได้",
@@ -599,6 +605,7 @@ export const COPY = {
       navMap: "Map",
       navSet: "Settings",
       navFriends: "Friends",
+      navBag: "Bag",
       navBoard: "Ranks",
       navDress: "Dress",
       navGrowth: "Body",
@@ -785,10 +792,10 @@ export const COPY = {
       }
     },
     item: {
-      stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop." },
-      shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop." },
-      ether_vial: { name: "Ether", body: "Use to restore 1 court charge. Extra drops go to the bag when the bar is full." },
-      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points." }
+      stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop.", how: "Win training matches. Amount follows score and difficulty. Losses drop none.", use: "Trade 1:1 for Element Shards in the shop." },
+      shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade Odd Stones in the shop.", use: "Unlock elemental fighters in the shop. 100 shards each." },
+      ether_vial: { name: "Ether", body: "Use to restore 1 court charge. Extra drops go to the bag when the bar is full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the bar was full when it dropped, use it from the bag." },
+      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Not dropped from matches yet. Shop and events come later.", use: "Use from the bag on a fighter to reclaim spent level-up points." }
     },
     growth: {
       title: "Element Body",
@@ -961,6 +968,11 @@ export const COPY = {
       tabCast: "The four elements",
       tabSecret: "Secret files",
       tabMap: "Island map",
+      tabItems: "Items",
+      itemsTitle: "Item list",
+      itemsSub: "Tap a name on the left to see art and details",
+      itemsHow: "Where it comes from",
+      itemsUse: "What it does",
       tabExplore: "Explore",
       exploreTitle: "World explore",
       exploreBody: "Walking the island comes in a later patch. Element Body stats will apply there the same way they do in training.\n\nTap pins on the map to read each place. You cannot walk them yet.",
