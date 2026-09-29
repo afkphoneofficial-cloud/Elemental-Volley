@@ -85,6 +85,7 @@ export class LuckScene extends Phaser.Scene {
     this.luckId = null;
     this.rollDone = false;
     this.pendingGo = null;
+    this.picked = false;
     this.off = this.net ? NetPlay.on((msg) => {
       if (msg.t === "luck") this.playNetLuck(msg);
       if (msg.t === "go") this.armGo(msg);
@@ -117,10 +118,46 @@ export class LuckScene extends Phaser.Scene {
     this._boot = null;
     if (this._retry) window.clearTimeout(this._retry);
     this._retry = null;
+    this.stopPickClock();
+  }
+
+  stopPickClock() {
+    if (this._pickIv) window.clearInterval(this._pickIv);
+    this._pickIv = null;
+  }
+
+  startPickClock(youPick, pickUntil) {
+    this.stopPickClock();
+    this.pickYou = youPick === true;
+    const ms = 10000;
+    this.pickUntil = pickUntil > 0 ? pickUntil : Date.now() + ms;
+    this.tickPick();
+    this._pickIv = window.setInterval(() => this.tickPick(), 200);
+  }
+
+  tickPick() {
+    if (!this.sys || !this.sys.isActive()) {
+      this.stopPickClock();
+      return;
+    }
+    const left = Math.max(0, Math.ceil((this.pickUntil - Date.now()) / 1000));
+    if (this.pickYou) this.status.setText(t("luck.youWin", { n: left }));
+    else this.status.setText(t("luck.waitFoe", { n: left }));
+    if (left > 0) return;
+    this.stopPickClock();
+    if (this.picked) return;
+    this.status.setText(t("luck.autoPick"));
+    if (!this.net && this.pickYou) {
+      const pick = Phaser.Utils.Array.GetRandom(COURTS);
+      this.chooseCourt(pick.id);
+    } else if (this.net && this.pickYou) {
+      this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
+    }
   }
 
   armGo(msg) {
     this.pendingGo = msg || true;
+    this.stopPickClock();
     if (this.rollDone) this.leaveToPlay(500);
   }
 
@@ -183,11 +220,12 @@ export class LuckScene extends Phaser.Scene {
         this.leaveToPlay(550);
         return;
       }
+      const until = msg.pickUntil | 0;
       if (msg.youPick) {
-        this.status.setText(t("luck.youWin"));
         this.showPicks();
+        this.startPickClock(true, until);
       } else {
-        this.status.setText(t("luck.waitFoe"));
+        this.startPickClock(false, until);
       }
     });
   }
@@ -204,8 +242,8 @@ export class LuckScene extends Phaser.Scene {
       Session.youServe = !youWin;
       AudioSystem.ui();
       if (youWin) {
-        this.status.setText(t("luck.youWin"));
         this.showPicks();
+        this.startPickClock(true, Date.now() + 10000);
       } else {
         const pick = Phaser.Utils.Array.GetRandom(COURTS);
         this.status.setText(t("luck.botWin", { court: I18n.courtName(pick.id) }));
@@ -232,6 +270,9 @@ export class LuckScene extends Phaser.Scene {
   }
 
   chooseCourt(id) {
+    if (this.picked) return;
+    this.picked = true;
+    this.stopPickClock();
     Session.courtId = id;
     AudioSystem.ui();
     if (this.net) {

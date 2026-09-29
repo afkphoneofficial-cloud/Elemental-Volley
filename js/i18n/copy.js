@@ -238,10 +238,11 @@ export const COPY = {
       title: "เสี่ยงดวงก่อนแข่ง",
       sub: "ผู้ชนะเลือกสนาม  ·  ผู้แพ้เสิร์ฟก่อน",
       rolling: "กำลังทอย...",
-      youWin: "คุณชนะ! เลือกสนามได้  ·  ฝั่งนั้นเสิร์ฟก่อน",
+      youWin: "เลือกสนามภายใน {n} วินาที  ·  อีกฝ่ายเสิร์ฟก่อน",
       botWin: "ฝั่งนั้นชนะ · เลือก {court}  ·  คุณเสิร์ฟก่อน",
-      waitFoe: "รออีกฝ่ายเลือกสนาม…",
-      waitGo: "กำลังเข้าสนาม…"
+      waitFoe: "รออีกฝ่ายเลือกสนาม  ·  {n} วินาที",
+      waitGo: "กำลังเข้าสนาม…",
+      autoPick: "หมดเวลา · สุ่มสนามให้…"
     },
     shop: {
       title: "ร้านค้า",
@@ -651,10 +652,11 @@ export const COPY = {
       title: "Coin flip before the match",
       sub: "Winner picks the court  ·  Loser serves first",
       rolling: "Rolling...",
-      youWin: "You win! Pick a court  ·  They serve first",
+      youWin: "Pick a court in {n}s  ·  They serve first",
       botWin: "They win · picked {court}  ·  You serve first",
-      waitFoe: "Waiting for their court pick…",
-      waitGo: "Entering the court…"
+      waitFoe: "Waiting for their pick  ·  {n}s",
+      waitGo: "Entering the court…",
+      autoPick: "Time up · picking a court…"
     },
     shop: {
       title: "Shop",

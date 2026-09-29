@@ -21,6 +21,8 @@ const MAX_LIVE = Math.max(1, Number(process.env.MAX_LIVE_MATCHES || 12));
 const COOLDOWN_MS = Number(process.env.DECLINE_COOLDOWN_MS || 5 * 60 * 1000);
 const OFFER_MS = Number(process.env.OFFER_MS || 30000);
 const SKIP_COOLDOWN_MS = Number(process.env.SKIP_COOLDOWN_MS || 2 * 60 * 1000);
+const LUCK_ROLL_MS = 800;
+const COURT_PICK_MS = 10000;
 const TICK_MS = 40;
 const FORFEIT_MS = Number(process.env.FORFEIT_MS || 30000);
 const HOST_YIELD_MS = 900;
@@ -322,7 +324,8 @@ function beginLuck(a, b, mode) {
     roundEnded: false,
     pauseQueued: null,
     droppedId: null,
-    dropAt: 0
+    dropAt: 0,
+    pickUntil: Date.now() + LUCK_ROLL_MS + COURT_PICK_MS
   };
   a.state = "luck";
   b.state = "luck";
@@ -330,13 +333,32 @@ function beginLuck(a, b, mode) {
   b.roomId = roomId;
   rooms.set(roomId, room);
   if (room.mode === "pvp") noteRankedPair(a.id, b.id);
-  send(a.ws, { t: "luck", roomId, mode: room.mode, youSide: youSideA, youRoll: rollA, foeRoll: rollB, youPick: aPicks, host: true, rival: preview(b) });
-  send(b.ws, { t: "luck", roomId, mode: room.mode, youSide: youSideA === 1 ? 2 : 1, youRoll: rollB, foeRoll: rollA, youPick: !aPicks, host: false, rival: preview(a) });
+  send(a.ws, luckPayload(room, a));
+  send(b.ws, luckPayload(room, b));
+  const wait = Math.max(0, room.pickUntil - Date.now());
   room.luckTimer = setTimeout(() => {
     if (!rooms.has(roomId) || room.phase !== "luck") return;
     if (!room.courtId) room.courtId = COURTS[Math.floor(Math.random() * COURTS.length)];
     startPlay(room);
-  }, 20000);
+  }, wait);
+}
+
+function luckPayload(room, p) {
+  const youIsA = p.id === room.a.id;
+  const foe = youIsA ? room.b : room.a;
+  return {
+    t: "luck",
+    roomId: room.id,
+    mode: room.mode || "pvp",
+    youSide: youIsA ? room.sideA : (room.sideA === 1 ? 2 : 1),
+    youRoll: youIsA ? room.rollA : room.rollB,
+    foeRoll: youIsA ? room.rollB : room.rollA,
+    youPick: youIsA ? room.aPicks : !room.aPicks,
+    host: room.hostId === p.id,
+    rival: preview(foe),
+    pickUntil: room.pickUntil || 0,
+    pickMs: COURT_PICK_MS
+  };
 }
 
 function pickCourt(p, courtId) {
@@ -636,18 +658,7 @@ function onHello(ws, user, body) {
       }
       const foe = mate(liveRoom, p);
       if (liveRoom.phase === "luck") {
-        const youIsA = p.id === liveRoom.a.id;
-        send(ws, {
-          t: "luck",
-          roomId: liveRoom.id,
-          mode: liveRoom.mode || "pvp",
-          youSide: youIsA ? liveRoom.sideA : (liveRoom.sideA === 1 ? 2 : 1),
-          youRoll: youIsA ? liveRoom.rollA : liveRoom.rollB,
-          foeRoll: youIsA ? liveRoom.rollB : liveRoom.rollA,
-          youPick: youIsA ? liveRoom.aPicks : !liveRoom.aPicks,
-          host: liveRoom.hostId === p.id,
-          rival: preview(foe)
-        });
+        send(ws, luckPayload(liveRoom, p));
       } else {
         send(ws, goPayload(liveRoom, p, foe, liveRoom.hostId === p.id));
         if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
