@@ -4,9 +4,8 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
-import {
-  formatYmd, formatYmdShort, isRankWindowOpen, rankWindow
-} from "../data/rankWindows.js";
+import { MODE_DROPS } from "../data/modeDrops.js";
+import { itemIconKey } from "../data/items.js";
 
 export class ModeScene extends Phaser.Scene {
   constructor() { super("mode"); }
@@ -37,12 +36,12 @@ export class ModeScene extends Phaser.Scene {
       Session.rival = null;
       AudioSystem.ui();
       this.scene.start("select");
-    });
+    }, "bot");
     this.card(col1, row0, cw, ch, 0xff8ab8, t("hub.playExhibit"), t("hub.modeExhibitBody"), () => {
       Session.mode = "exhibit";
       AudioSystem.ui();
       this.scene.start("friends", { pick: true });
-    });
+    }, "exhibit");
     this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody"), "pvp", () => this.enterRank("pvp"));
     this.epicCard(col1, row1, cw, ch, t("hub.playSpecial"), t("hub.modeSpecialBody"), "special", () => this.enterRank("special"));
 
@@ -161,10 +160,133 @@ export class ModeScene extends Phaser.Scene {
     this.ruleBits = [dim, g, title, body, close.gfx, close.text, close.bg];
   }
 
-  card(x, y, w, h, color, title, body, onClick) {
+  card(x, y, w, h, color, title, body, onClick, dropMode) {
     roundPanel(this, x, y, w, h, color, 0xfff6ea);
     this.paintCopy(x, y, w, title, body, null, false);
+    this.dropHint(x, y, w, h, dropMode, color);
     makeButton(this, x, y + 108, 220, 44, title, () => onClick(), color);
+  }
+
+  dropHint(x, y, w, h, mode, color) {
+    if (!mode) return;
+    makeButton(this, x + w / 2 - 78, y - h / 2 + 24, 140, 32, t("hub.dropBtn"), () => {
+      AudioSystem.ui();
+      this.openDropRates(mode);
+    }, color || 0xff8a3a, 46);
+  }
+
+  dropName(id) {
+    return id === "xp" ? t("hub.dropXpName") : t("item." + id + ".name");
+  }
+
+  dropWhen(id) {
+    if (id === "xp") return t("hub.dropXpWhen");
+    return t("hub.dropWhen." + id);
+  }
+
+  dropBody(id) {
+    if (id === "xp") return t("hub.dropXpBody");
+    return t("item." + id + ".body") + "\n\n" + t("item." + id + ".how") + "\n\n" + t("item." + id + ".use");
+  }
+
+  openDropRates(mode) {
+    this.closePlayRules();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const ids = MODE_DROPS[mode] || [];
+    this.dropMode = mode;
+    this.dropPick = ids[0] || null;
+    const modeName = t(mode === "bot" ? "hub.playBot" : mode === "pvp" ? "hub.playPvp" : mode === "special" ? "hub.playSpecial" : "hub.playExhibit");
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x1a1008, 0.55).setDepth(70).setInteractive();
+    dim.on("pointerdown", () => this.closePlayRules());
+    const g = this.add.graphics().setDepth(71);
+    g.fillStyle(0xfff6ea, 0.98);
+    g.fillRoundedRect(W / 2 - 470, H / 2 - 250, 940, 500, 24);
+    g.lineStyle(3, 0xff8a3a, 0.8);
+    g.strokeRoundedRect(W / 2 - 470, H / 2 - 250, 940, 500, 24);
+    const block = this.add.zone(W / 2, H / 2, 940, 500).setInteractive().setDepth(71);
+    const title = this.add.text(W / 2, H / 2 - 214, t("hub.dropTitle", { mode: modeName }), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(72);
+    const bits = [dim, g, block, title];
+    if (!ids.length) {
+      bits.push(this.add.text(W / 2, H / 2 - 20, t("hub.dropNone"), {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#5a3828",
+        align: "center", wordWrap: { width: 720 }
+      }).setOrigin(0.5).setDepth(72));
+    } else {
+      ids.forEach((id, i) => {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
+        const tx = W / 2 - 330 + col * 130;
+        const ty = H / 2 - 110 + row * 130;
+        const cell = this.add.graphics().setDepth(72);
+        const paint = () => {
+          cell.clear();
+          const on = id === this.dropPick;
+          cell.fillStyle(on ? 0xffe8c8 : 0xffffff, 0.96);
+          cell.fillRoundedRect(tx - 52, ty - 52, 104, 104, 16);
+          cell.lineStyle(2, on ? 0xff6a22 : 0xffb14a, on ? 1 : 0.55);
+          cell.strokeRoundedRect(tx - 52, ty - 52, 104, 104, 16);
+        };
+        paint();
+        cell._paintDrop = paint;
+        bits.push(cell);
+        if (id === "xp") {
+          bits.push(this.add.text(tx, ty, "XP", {
+            fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#c45a16"
+          }).setOrigin(0.5).setDepth(73));
+        } else {
+          const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+          bits.push(this.add.image(tx, ty, ik).setDisplaySize(72, 72).setDepth(73));
+        }
+        bits.push(this.add.zone(tx, ty, 104, 104).setInteractive({ useHandCursor: true }).setDepth(74)
+          .on("pointerdown", () => {
+            AudioSystem.ui();
+            this.dropPick = id;
+            bits.forEach((o) => { if (o && o._paintDrop) o._paintDrop(); });
+            this.paintDropDetail();
+          }));
+      });
+    }
+    const close = makeButton(this, W / 2, H / 2 + 214, 180, 44, t("hub.infoClose"), () => {
+      AudioSystem.ui();
+      this.closePlayRules();
+    }, 0xff6a22, 80);
+    this.ruleBits = bits.concat([close.gfx, close.text, close.bg]);
+    this.dropDetail = [];
+    if (this.dropPick) this.paintDropDetail();
+  }
+
+  paintDropDetail() {
+    (this.dropDetail || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.dropDetail = [];
+    const id = this.dropPick;
+    if (!id) return;
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const dx = W / 2 + 250;
+    const keep = (o) => { this.dropDetail.push(o); return o; };
+    keep(this.add.circle(dx, H / 2 - 90, 58, 0xffe8c8, 1).setStrokeStyle(3, 0xff6a22, 0.55).setDepth(72));
+    if (id === "xp") {
+      keep(this.add.text(dx, H / 2 - 90, "XP", {
+        fontFamily: UI_FONT, fontSize: "32px", fontStyle: "900", color: "#c45a16"
+      }).setOrigin(0.5).setDepth(73));
+    } else {
+      const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
+      keep(this.add.image(dx, H / 2 - 90, ik).setDisplaySize(96, 96).setDepth(73));
+    }
+    keep(this.add.text(dx, H / 2 - 12, this.dropName(id), {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418",
+      align: "center", wordWrap: { width: 340 }
+    }).setOrigin(0.5).setDepth(72));
+    keep(this.add.text(dx, H / 2 + 22, this.dropWhen(id), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(72));
+    keep(this.add.text(dx, H / 2 + 88, this.dropBody(id), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "600", color: "#5a3828",
+      align: "center", wordWrap: { width: 340 }, lineSpacing: 5
+    }).setOrigin(0.5).setDepth(72));
   }
 
   rankCard(x, y, w, h, title, body, kind, onClick) {
@@ -189,6 +311,7 @@ export class ModeScene extends Phaser.Scene {
     panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
 
     const locked = this.paintCopy(x, y, w, title, body, kind, false);
+    this.dropHint(x, y, w, h, kind, 0x7d5cff);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x12080e, 0.22);
@@ -244,6 +367,7 @@ export class ModeScene extends Phaser.Scene {
     panel.fillRoundedRect(x - w / 2 + 18, y - h / 2 + 14, w - 36, 36, 12);
 
     const locked = this.paintCopy(x, y, w, title, body, kind, true);
+    this.dropHint(x, y, w, h, kind, 0xffd24a);
     if (locked) {
       const veil = this.add.graphics().setDepth(5);
       veil.fillStyle(0x000000, 0.28);
@@ -350,6 +474,8 @@ export class ModeScene extends Phaser.Scene {
   }
 
   closePlayRules() {
+    (this.dropDetail || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.dropDetail = [];
     this.ruleBits.forEach((o) => { if (o && o.destroy) o.destroy(); });
     this.ruleBits = [];
   }
