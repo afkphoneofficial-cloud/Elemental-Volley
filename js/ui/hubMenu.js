@@ -92,14 +92,18 @@ export function paintHubMenu(scene) {
   const avId = save.avatarId;
   const entries = [
     { label: t("hub.navNews"), icon: "vis_icon_news", go: () => scene.scene.start("news") },
-    { label: unread ? t("mail.title") + " " + unread : t("mail.title"), icon: "", mail: true, go: () => {
+    { label: unread ? t("mail.title") + " " + unread : t("mail.title"), icon: "vis_icon_mail", go: () => {
       scene.mailOpen = !scene.mailOpen;
       if (scene.paintMailbox) scene.paintMailbox();
     } },
     { label: t("career.title"), icon: avatarKey(avId), go: () => scene.scene.start("career") },
     { label: t("hub.navGrowth"), icon: "item-fruit", go: () => scene.scene.start("growth") },
     { label: t("hub.navBag"), icon: "item-bag", go: () => scene.scene.start("bag") },
-    { label: t("hub.navDress"), icon: "vis_icon_mirror", go: () => scene.scene.start("dress") }
+    { label: t("hub.navDress"), icon: "vis_icon_mirror", go: () => scene.scene.start("dress") },
+    { label: t("hub.navShop"), icon: "vis_icon_shop", go: () => scene.scene.start("shop") },
+    { label: t("hub.navMap"), icon: "vis_icon_map", go: () => scene.scene.start("wiki", { from: "hub" }) },
+    { label: t("hub.navFriends"), icon: "vis_icon_friends", go: () => scene.scene.start("friends") },
+    { label: t("hub.navSet"), icon: "vis_icon_settings", go: () => scene.scene.start("settings", { from: "hub" }) }
   ];
 
   const cols = 2;
@@ -135,13 +139,7 @@ export function paintHubMenu(scene) {
       g.strokeRoundedRect(x - cellW / 2, y - cellH / 2, cellW, cellH, 16);
     };
     draw(false);
-    if (row.mail) {
-      keep(scene, scene.add.text(x, y - 12, "✉", {
-        fontFamily: UI_FONT, fontSize: "28px", color: "#c45a16"
-      }).setOrigin(0.5).setDepth(D + 3));
-    } else {
-      pic(scene, x, y - 12, row.icon, 40);
-    }
+    pic(scene, x, y - 12, row.icon, 40);
     keep(scene, scene.add.text(x, y + 28, row.label, {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#3a2418",
       align: "center", wordWrap: { width: cellW - 8 }

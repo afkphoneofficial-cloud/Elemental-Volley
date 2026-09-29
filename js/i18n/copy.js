@@ -70,7 +70,7 @@ export const COPY = {
       serverTag: "เซิร์ฟไทย",
       serverClock: "เซิร์ฟไทย  {time}",
       serverClockLocal: "เซิร์ฟไทย  {server}   ·   คุณ  {local}",
-      navShop: "ร้าน",
+      navShop: "ร้านค้า",
       navMap: "แผนที่",
       navSet: "ตั้งค่า",
       navFriends: "เพื่อน",
