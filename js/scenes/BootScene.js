@@ -6,6 +6,7 @@ import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
 import { SEASON_ART } from "../data/seasonCycle.js";
+import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -60,6 +61,11 @@ export class BootScene extends Phaser.Scene {
       this.load.image(badgeKey(row.id), "assets/sprites/ranks/" + row.id + ".png");
     });
     this.load.image(badgeKey(RANK_CAL_ID), "assets/sprites/ranks/" + RANK_CAL_ID + ".png");
+    SHOP_LOOKS.forEach((row) => {
+      SHOP_LOOK_POSES.forEach((pose) => {
+        this.load.image(shopLookLoadKey(row.id, pose.file), shopLookSrc(row.id, pose.file));
+      });
+    });
   }
 
   create() {
@@ -149,6 +155,17 @@ export class BootScene extends Phaser.Scene {
             TextureFactory.mirror(this, "vis_" + id + "_" + n + "_dive_r", "vis_" + id + "_" + n + "_dive_l", true);
           }
         });
+      });
+      SHOP_LOOKS.forEach((row) => {
+        SHOP_LOOK_POSES.forEach((pose) => {
+          TextureFactory.applyChibi(this, shopLookLoadKey(row.id, pose.file), shopLookVis(row.id, pose.vis));
+        });
+        const l = shopLookVis(row.id, "l");
+        const r = shopLookVis(row.id, "r");
+        const dl = shopLookVis(row.id, "dive_l");
+        const dr = shopLookVis(row.id, "dive_r");
+        if (!this.textures.exists(r) && this.textures.exists(l)) TextureFactory.mirror(this, l, r, true);
+        if (!this.textures.exists(dr) && this.textures.exists(dl)) TextureFactory.mirror(this, dl, dr, true);
       });
     } catch (e) {
       TextureFactory.build(this);

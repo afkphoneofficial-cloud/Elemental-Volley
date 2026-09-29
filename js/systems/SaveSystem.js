@@ -16,7 +16,7 @@ import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
-import { seasonCycleOf } from "../data/seasonCycle.js";
+import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -56,7 +56,8 @@ const empty = () => ({
   seasonSnap: {},
   seasonBadges: [],
   seasonMark: null,
-  champEquipped: {}
+  champEquipped: {},
+  shopLooks: emptyShopLooks()
 });
 
 function finish(data) {
@@ -107,6 +108,16 @@ function finish(data) {
   if (!Array.isArray(data.seasonBadges)) data.seasonBadges = [];
   if (!data.seasonMark || typeof data.seasonMark !== "object") data.seasonMark = null;
   if (!data.champEquipped || typeof data.champEquipped !== "object" || Array.isArray(data.champEquipped)) data.champEquipped = {};
+  const looks = emptyShopLooks();
+  const rawLooks = data.shopLooks && typeof data.shopLooks === "object" ? data.shopLooks : {};
+  data.shopLooks = {
+    owned: Array.isArray(rawLooks.owned) ? rawLooks.owned.filter((id) => typeof id === "string") : [],
+    worn: { ...looks.worn, ...(rawLooks.worn || {}) }
+  };
+  ROSTER_IDS.forEach((id) => {
+    const wear = data.shopLooks.worn[id];
+    if (wear && !data.shopLooks.owned.includes(wear)) data.shopLooks.worn[id] = "";
+  });
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
   }
@@ -374,6 +385,41 @@ export const SaveSystem = {
     const res = purchaseCosmetic(this.data, id);
     if (res.ok) this.persist();
     return res;
+  },
+
+  ownedShopLook(id) {
+    return (this.data.shopLooks.owned || []).indexOf(id) >= 0;
+  },
+
+  wornShopLook(charId) {
+    return (this.data.shopLooks.worn && this.data.shopLooks.worn[charId]) || "";
+  },
+
+  buyShopLook(id) {
+    const row = lookRow(id);
+    if (!row || !row.open) return { ok: false, reason: "no" };
+    if (this.ownedShopLook(id)) return { ok: false, reason: "owned" };
+    const cost = Math.max(1, row.price | 0);
+    if ((this.data.currencies.premium | 0) < cost) return { ok: false, reason: "premium" };
+    this.data.currencies.premium -= cost;
+    this.data.shopLooks.owned.push(id);
+    this.data.shopLooks.worn[row.charId] = id;
+    this.persist();
+    return { ok: true };
+  },
+
+  wearShopLook(id) {
+    const row = lookRow(id);
+    if (!row || !this.ownedShopLook(id)) return { ok: false, reason: "no" };
+    this.data.shopLooks.worn[row.charId] = id;
+    this.persist();
+    return { ok: true };
+  },
+
+  clearShopLook(charId) {
+    if (!this.data.shopLooks.worn) return;
+    this.data.shopLooks.worn[charId] = "";
+    this.persist();
   },
 
   equipCheer(id) {

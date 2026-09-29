@@ -2,7 +2,6 @@ import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { paintTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { ECONOMY } from "../data/economy.js";
-import { CHEER_THEMES, CHEER_THEME_IDS, cheerThemeLabel } from "../data/cheers.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -12,6 +11,8 @@ import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy } from "../ui/shopBuyPopup.js";
+import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
+import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
 const CARD_W = 196;
 const CARD_H = 236;
@@ -23,6 +24,7 @@ export class ShopScene extends Phaser.Scene {
 
   init(data) {
     this.tab = (data && data.tab) || "fighters";
+    this.costumeTier = (data && data.costumeTier) || "mist";
   }
 
   create() {
@@ -39,7 +41,7 @@ export class ShopScene extends Phaser.Scene {
       id: row.id,
       label: t("shop.tab." + row.id),
       color: row.color,
-      go: () => this.scene.start("shop", { tab: row.id })
+      go: () => this.scene.start("shop", { tab: row.id, costumeTier: this.costumeTier })
     })), this.tab);
 
     if (this.tab === "fighters") this.paintFighters();
@@ -47,22 +49,27 @@ export class ShopScene extends Phaser.Scene {
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();
 
-    this.events.once("shutdown", () => closeShopBuy(this));
+    this.events.once("shutdown", () => {
+      closeShopBuy(this);
+      closeLookPreview(this);
+    });
   }
 
   refresh() {
-    this.scene.start("shop", { tab: this.tab });
+    this.scene.start("shop", { tab: this.tab, costumeTier: this.costumeTier });
   }
 
-  slots(n) {
+  slots(n, padLeft, cols) {
     const W = this.scale.width;
-    const total = CARD_COLS * CARD_W + (CARD_COLS - 1) * CARD_GAP;
-    const left = Math.max(40, (W - total) / 2);
+    const useCols = cols || CARD_COLS;
+    const inset = padLeft | 0;
+    const total = useCols * CARD_W + (useCols - 1) * CARD_GAP;
+    const left = Math.max(inset + 16, inset + (W - inset - total) / 2);
     const top = 132;
     const out = [];
     for (let i = 0; i < n; i++) {
-      const col = i % CARD_COLS;
-      const row = (i / CARD_COLS) | 0;
+      const col = i % useCols;
+      const row = (i / useCols) | 0;
       out.push({
         x: left + CARD_W / 2 + col * (CARD_W + CARD_GAP),
         y: top + CARD_H / 2 + row * (CARD_H + CARD_GAP)
@@ -137,25 +144,100 @@ export class ShopScene extends Phaser.Scene {
       zone.on("pointerout", () => draw(false));
       zone.on("pointerdown", spec.onClick);
     }
+    if (spec.zoom) {
+      const zx = x + w / 2 - 20;
+      const zy = y - h / 2 + 20;
+      const zg = this.add.graphics().setDepth(18);
+      zg.fillStyle(0xfff6ea, 1);
+      zg.fillCircle(zx, zy, 16);
+      zg.lineStyle(2, 0x4aa6e8, 0.95);
+      zg.strokeCircle(zx, zy, 16);
+      this.add.text(zx, zy - 1, "⌕", {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a6aaa"
+      }).setOrigin(0.5).setDepth(19);
+      const zz = this.add.circle(zx, zy, 16, 0xffffff, 0.001).setInteractive({ useHandCursor: true }).setDepth(20);
+      zz.on("pointerdown", (p) => {
+        if (p && p.event && p.event.stopPropagation) p.event.stopPropagation();
+        spec.zoom();
+      });
+    }
   }
 
   bag() {
     return SaveSystem.data.currencies || {};
   }
 
-  paintCheerIcon(theme, x, y, depth) {
-    const g = this.add.graphics().setDepth(depth == null ? 8 : depth);
-    const bits = theme.bits || [theme.glow];
-    bits.forEach((c, i) => {
-      const a = (i / bits.length) * Math.PI * 2 - Math.PI / 2;
-      g.fillStyle(c, 1);
-      g.fillCircle(x + Math.cos(a) * 24, y + Math.sin(a) * 24, 9);
+  paintCosmetics() {
+    COSTUME_TIERS.forEach((tier, i) => {
+      const on = tier.id === this.costumeTier;
+      makeButton(this, 92, 168 + i * 52, 148, 44, costumeTierLabel(tier, I18n.lang), () => {
+        AudioSystem.ui();
+        this.scene.start("shop", { tab: "cosmetics", costumeTier: tier.id });
+      }, on ? (tier.color || 0xffb14a) : 0xc8bdd8);
     });
-    g.fillStyle(theme.glow, 1);
-    g.fillCircle(x, y, 16);
-    g.fillStyle(0xfff6ea, 0.9);
-    g.fillCircle(x - 4, y - 5, 5);
-    return g;
+    const tier = COSTUME_TIERS.find((row) => row.id === this.costumeTier) || COSTUME_TIERS[0];
+    if (!tier.open) {
+      this.add.text(this.scale.width / 2 + 70, 360, t("shop.tierSoon"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#8a5a38", align: "center", wordWrap: { width: 640 }
+      }).setOrigin(0.5);
+      return;
+    }
+    const rows = shopLooksInTier(tier.id);
+    const cells = this.slots(rows.length, 176, 4);
+    rows.forEach((look, i) => {
+      const owned = SaveSystem.ownedShopLook(look.id);
+      const worn = SaveSystem.wornShopLook(look.charId) === look.id;
+      const icon = this.textures.exists(shopLookVis(look.id, "select")) ? shopLookVis(look.id, "select") : "vis_select_" + look.charId;
+      let stamp = null;
+      let priceIcon = null;
+      let price = null;
+      let priceMark = null;
+      let onClick = null;
+      if (worn) stamp = t("shop.using");
+      else if (owned) {
+        priceMark = "▶";
+        onClick = () => {
+          SaveSystem.wearShopLook(look.id);
+          AudioSystem.ui();
+          this.refresh();
+        };
+      } else {
+        priceIcon = "item-powder";
+        price = look.price;
+        onClick = () => {
+          openShopBuy(this, {
+            title: shopLookLabel(look, I18n.lang),
+            icon,
+            kind: t("shop.kindLook"),
+            owned: 0,
+            body: I18n.charName(look.charId),
+            priceIcon: "item-powder",
+            unitPrice: look.price,
+            have: this.bag().premium | 0,
+            stack: false,
+            onConfirm: () => SaveSystem.buyShopLook(look.id),
+            after: () => this.refresh()
+          });
+        };
+      }
+      this.paintCard(cells[i].x, cells[i].y, {
+        title: shopLookLabel(look, I18n.lang),
+        hint: I18n.charName(look.charId),
+        icon,
+        iconSize: 86,
+        stroke: look.stroke,
+        accent: look.stroke,
+        stamp,
+        priceIcon,
+        price,
+        priceMark,
+        onClick,
+        zoom: () => {
+          AudioSystem.ui();
+          openLookPreview(this, look.id);
+        }
+      });
+    });
   }
 
   paintFighters() {
@@ -190,63 +272,6 @@ export class ShopScene extends Phaser.Scene {
             after: () => this.refresh()
           });
         }
-      });
-    });
-  }
-
-  paintCosmetics() {
-    const cells = this.slots(CHEER_THEME_IDS.length);
-    CHEER_THEME_IDS.forEach((id, i) => {
-      const theme = CHEER_THEMES[id];
-      const equipped = SaveSystem.equippedCheer() === id;
-      const owned = SaveSystem.isCheerUnlocked(id);
-      const locked = theme.comingSoon && !owned;
-      let stamp = null;
-      let priceIcon = null;
-      let price = null;
-      let priceMark = null;
-      let onClick = null;
-      if (locked) stamp = t("shop.soon");
-      else if (equipped) {
-        stamp = t("shop.using");
-      } else if (owned) {
-        priceMark = "▶";
-        onClick = () => {
-          SaveSystem.equipCheer(id);
-          AudioSystem.ui();
-          this.refresh();
-        };
-      } else {
-        priceIcon = "item-powder";
-        price = theme.price;
-        onClick = () => {
-          openShopBuy(this, {
-            title: cheerThemeLabel(theme),
-            kind: t("shop.kindCheer"),
-            owned: 0,
-            body: t("shop.buyCheerBody"),
-            priceIcon: "item-powder",
-            unitPrice: theme.price,
-            have: this.bag().premium | 0,
-            stack: false,
-            paintIcon: (x, y, d) => this.paintCheerIcon(theme, x, y, d),
-            onConfirm: () => SaveSystem.unlockCheer(id),
-            after: () => this.refresh()
-          });
-        };
-      }
-      this.paintCard(cells[i].x, cells[i].y, {
-        title: cheerThemeLabel(theme),
-        hint: "",
-        stroke: theme.stroke,
-        accent: theme.glow,
-        dim: locked,
-        stamp,
-        priceIcon,
-        price,
-        priceMark,
-        onClick,
-        paintIcon: (x, y) => this.paintCheerIcon(theme, x, y)
       });
     });
   }
