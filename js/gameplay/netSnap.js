@@ -59,7 +59,8 @@ export function packMatchSnap(scene) {
       v: MATCH_FX.volt ? 1 : 0,
       f: MATCH_FX.fire ? 1 : 0
     },
-    skins: [scene.skinForSide(1), scene.skinForSide(2)]
+    skins: [scene.skinForSide(1), scene.skinForSide(2)],
+    champs: [scene.champForSide(1), scene.champForSide(2)]
   };
 }
 
@@ -101,6 +102,17 @@ export function applyMatchSnap(scene, snap) {
     } else {
       scene.youSkin = rightS;
       scene.foeSkin = leftS;
+    }
+  }
+  if (Array.isArray(snap.champs) && snap.champs.length >= 2 && typeof scene.champForSide === "function") {
+    const leftC = Math.max(0, Math.min(3, snap.champs[0] | 0));
+    const rightC = Math.max(0, Math.min(3, snap.champs[1] | 0));
+    if (scene.youSide === 1) {
+      scene.youChamp = leftC;
+      scene.foeChamp = rightC;
+    } else {
+      scene.youChamp = rightC;
+      scene.foeChamp = leftC;
     }
   }
   return {

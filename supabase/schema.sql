@@ -174,6 +174,8 @@ set
   rank_wins = greatest(0, coalesce((save_data->'rank'->>'wins')::integer, 0)),
   rank_losses = greatest(0, coalesce((save_data->'rank'->>'losses')::integer, 0));
 
+drop function if exists public.server_leaderboard(integer) cascade;
+
 create or replace function public.server_leaderboard(p_limit integer default 100)
 returns table (
   place integer,

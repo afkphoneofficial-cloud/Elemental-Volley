@@ -30,7 +30,8 @@ import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
-import { texFace, texDive, clampSkin } from "../data/skins.js";
+import { clampSkin } from "../data/skins.js";
+import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
 import {
   GAUGE_MAX,
   MATCH_FX,
@@ -58,6 +59,8 @@ export class PlayScene extends Phaser.Scene {
     this.rightData = this.youSide === 1 ? this.botData : this.youData;
     this.youSkin = clampSkin(this.net ? (Session.youSkin || SaveSystem.skinOf(this.youData.id)) : SaveSystem.skinOf(this.youData.id));
     this.foeSkin = clampSkin(this.net ? (Session.foeSkin || (Session.rival && Session.rival.skin) || 1) : 1);
+    this.youChamp = this.net ? (Session.youChamp | 0) : champSetOf(this.youData.id);
+    this.foeChamp = this.net ? (Session.foeChamp | 0) : 0;
     this.score = [0, 0];
     this.p2Serves = this.firstServeIsP2();
     this.matchOver = false;
@@ -216,8 +219,14 @@ export class PlayScene extends Phaser.Scene {
     return youOnLeft ? this.foeSkin : this.youSkin;
   }
 
+  champForSide(courtSide) {
+    const youOnLeft = this.youSide === 1;
+    if (courtSide === 1) return youOnLeft ? this.youChamp : this.foeChamp;
+    return youOnLeft ? this.foeChamp : this.youChamp;
+  }
+
   faceKey(id, courtSide) {
-    return texFace(this, id, courtSide, this.skinForSide(courtSide));
+    return texHeroFace(this, id, courtSide, this.skinForSide(courtSide), this.champForSide(courtSide));
   }
 
   poseKey(id, courtSide, player) {
@@ -225,7 +234,7 @@ export class PlayScene extends Phaser.Scene {
     if (!diving) return this.faceKey(id, courtSide);
     const dir = player.divingDirection | 0;
     const side = dir === 1 ? 1 : dir === -1 ? 2 : courtSide;
-    return texDive(this, id, side, this.skinForSide(courtSide));
+    return texHeroDive(this, id, side, this.skinForSide(courtSide), this.champForSide(courtSide));
   }
 
   buildCourt() {
@@ -792,6 +801,7 @@ export class PlayScene extends Phaser.Scene {
       this.cheer.show(winSide, winData.id, {
         you: winSide === this.youSide,
         skin: this.skinForSide(winSide),
+        champSet: this.champForSide(winSide),
         season: this.season
       });
       this.showBanner(winData.name, leftWon ? "#c8ff3a" : "#ff8a3a");
@@ -947,8 +957,8 @@ export class PlayScene extends Phaser.Scene {
     const a = this.physicsPack;
     this.p1.setPosition(toScreenX(a.player1.x), toScreenY(a.player1.y));
     this.p2.setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y));
-    paintSkinAura(this.aura1, this.p1.x, this.p1.y, this.leftData.id, this.skinForSide(1), this.time.now, CHAR * 0.52);
-    paintSkinAura(this.aura2, this.p2.x, this.p2.y, this.rightData.id, this.skinForSide(2), this.time.now, CHAR * 0.52);
+    paintSkinAura(this.aura1, this.p1.x, this.p1.y, this.leftData.id, champAuraTier(this.leftData.id, this.skinForSide(1), this.champForSide(1)), this.time.now, CHAR * 0.52);
+    paintSkinAura(this.aura2, this.p2.x, this.p2.y, this.rightData.id, champAuraTier(this.rightData.id, this.skinForSide(2), this.champForSide(2)), this.time.now, CHAR * 0.52);
     this.sh1.setPosition(toScreenX(a.player1.x), toScreenY(WORLD.playerGroundY + 28));
     this.sh2.setPosition(toScreenX(a.player2.x), toScreenY(WORLD.playerGroundY + 28));
     this.ball.setPosition(toScreenX(a.ball.x), toScreenY(a.ball.y));
@@ -1018,6 +1028,7 @@ export class PlayScene extends Phaser.Scene {
     this.cheer.show(winSide, winData.id, {
       you: winSide === this.youSide,
       skin: this.skinForSide(winSide),
+      champSet: this.champForSide(winSide),
       season: this.season
     });
     this.notePointStats(winSide);

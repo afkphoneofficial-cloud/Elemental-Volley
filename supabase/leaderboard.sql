@@ -1,5 +1,6 @@
--- กระดาน 100 อันดับ + คอลัมน์แต้มสนามจริง (รันครั้งเดียวถ้าโปรเจกต์มีอยู่แล้ว)
--- SQL Editor → วางทั้งไฟล์นี้ → Run
+-- กระดาน 100 อันดับ + คอลัมน์แต้มสนามจริง
+-- SQL Editor → วางทั้งไฟล์นี้แล้ว Run ทั้งก้อน
+-- ถ้าขึ้น 42P13 cannot change return type: ฟังก์ชันเก่ามีอยู่แล้ว ไฟล์นี้ DROP ก่อน CREATE ให้แล้ว
 
 alter table public.profiles
   add column if not exists mmr integer not null default 1000,
@@ -34,6 +35,8 @@ set
   rank_games = greatest(0, coalesce((save_data->'rank'->>'games')::integer, 0)),
   rank_wins = greatest(0, coalesce((save_data->'rank'->>'wins')::integer, 0)),
   rank_losses = greatest(0, coalesce((save_data->'rank'->>'losses')::integer, 0));
+
+drop function if exists public.server_leaderboard(integer) cascade;
 
 create or replace function public.server_leaderboard(p_limit integer default 100)
 returns table (

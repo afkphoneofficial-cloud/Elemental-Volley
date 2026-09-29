@@ -7,7 +7,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
-import { RosterCarousel } from "../ui/RosterCarousel.js";
+import { champSetOf } from "../data/seasonLooks.js";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
@@ -75,6 +75,7 @@ export class SelectScene extends Phaser.Scene {
         if (!SaveSystem.isUnlocked(this.pick)) return;
         Session.playerId = this.pick;
         Session.youSkin = SaveSystem.skinOf(this.pick);
+        Session.youChamp = champSetOf(this.pick);
         Session.youSide = Math.random() < 0.5 ? 1 : 2;
         Session.trainStage = null;
         AudioSystem.ui();
@@ -105,6 +106,7 @@ export class SelectScene extends Phaser.Scene {
         if (!SaveSystem.isUnlocked(this.pick)) return;
         Session.playerId = this.pick;
         Session.youSkin = SaveSystem.skinOf(this.pick);
+        Session.youChamp = champSetOf(this.pick);
         Session.mode = "bot";
         Session.trainStage = null;
         AudioSystem.ui();

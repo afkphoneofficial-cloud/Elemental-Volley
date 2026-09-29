@@ -58,6 +58,13 @@ function clampSkin(n) {
   return n;
 }
 
+function clampChamp(n) {
+  n = n | 0;
+  if (n < 0) return 0;
+  if (n > 3) return 3;
+  return n;
+}
+
 function send(ws, msg) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
 }
@@ -71,7 +78,8 @@ function preview(p) {
     mmr: p.mmr | 0,
     wins: p.wins | 0,
     mostUsed: p.mostUsed || p.fighter,
-    skin: clampSkin(p.skin)
+    skin: clampSkin(p.skin),
+    champSet: clampChamp(p.champSet)
   };
 }
 
@@ -389,6 +397,8 @@ function startPlay(room) {
     foeFighter: room.b.fighter,
     youSkin: clampSkin(room.a.skin),
     foeSkin: clampSkin(room.b.skin),
+    youChamp: clampChamp(room.a.champSet),
+    foeChamp: clampChamp(room.b.champSet),
     rival: preview(room.b),
     host: true,
     mode: room.mode || "pvp"
@@ -403,6 +413,8 @@ function startPlay(room) {
     foeFighter: room.a.fighter,
     youSkin: clampSkin(room.b.skin),
     foeSkin: clampSkin(room.a.skin),
+    youChamp: clampChamp(room.b.champSet),
+    foeChamp: clampChamp(room.a.champSet),
     rival: preview(room.a),
     host: false,
     mode: room.mode || "pvp"
@@ -552,6 +564,8 @@ function goPayload(room, you, foe, host) {
     foeFighter: foe.fighter,
     youSkin: clampSkin(you.skin),
     foeSkin: clampSkin(foe.skin),
+    youChamp: clampChamp(you.champSet),
+    foeChamp: clampChamp(foe.champSet),
     rival: preview(foe),
     host: Boolean(host),
     mode: room.mode || "pvp"
@@ -627,6 +641,7 @@ function onHello(ws, user, body) {
     wins: body.wins | 0,
     mostUsed: body.mostUsed || body.fighter || "ignis",
     skin: clampSkin(body.skin || (prev && prev.skin) || 1),
+    champSet: clampChamp(body.champSet != null ? body.champSet : (prev && prev.champSet) || 0),
     state: "idle",
     offerId: null,
     roomId: null,
@@ -647,6 +662,7 @@ function onHello(ws, user, body) {
       const oldSeat = liveRoom.a.id === user.id ? liveRoom.a : liveRoom.b;
       p.fighter = oldSeat.fighter || p.fighter;
       p.skin = clampSkin(oldSeat.skin || p.skin);
+      p.champSet = clampChamp(oldSeat.champSet != null ? oldSeat.champSet : p.champSet);
       if (liveRoom.a.id === user.id) liveRoom.a = p;
       else liveRoom.b = p;
       p.roomId = liveRoom.id;
@@ -686,6 +702,7 @@ function onMsg(ws, raw) {
     }
     p.fighter = msg.fighter || p.fighter;
     p.skin = clampSkin(msg.skin || p.skin);
+    if (msg.champSet != null) p.champSet = clampChamp(msg.champSet);
     p.mmr = msg.mmr | 0;
     p.wins = msg.wins | 0;
     p.avatar = msg.avatar || p.avatar;
@@ -754,6 +771,7 @@ function onMsg(ws, raw) {
   if (msg.t === "exhibitVote") {
     if (msg.fighter) p.fighter = msg.fighter;
     if (msg.skin) p.skin = clampSkin(msg.skin);
+    if (msg.champSet != null) p.champSet = clampChamp(msg.champSet);
     voteExhibit(p, msg.fromId, msg.accept === true);
   }
 }

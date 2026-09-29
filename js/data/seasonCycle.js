@@ -57,7 +57,7 @@ SEASON_ELEMENTS.forEach((el) => {
     CHAMP_ITEMS[id] = {
       id,
       kind: "use",
-      icon: "item-cheer-champ",
+      icon: "vis_select_champ_" + el + "_" + set,
       effect: "champSkin",
       charId: el,
       set
@@ -69,6 +69,9 @@ export const SEASON_ART = [];
 SEASON_ELEMENTS.forEach((el) => {
   [1, 2, 3].forEach((set) => {
     SEASON_ART.push("select-champ-" + el + "-" + set);
+    SEASON_ART.push("champ-" + el + "-" + set + "-left");
+    SEASON_ART.push("champ-" + el + "-" + set + "-cheer");
+    SEASON_ART.push("champ-" + el + "-" + set + "-dive-left");
     SEASON_ART.push("plate-champ-" + el + "-" + set);
     SEASON_ART.push("plate-runner-" + el + "-" + set);
     SEASON_ART.push("plate-frame-" + el + "-" + set);

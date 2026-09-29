@@ -4,6 +4,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
+import { champSetOf } from "../data/seasonLooks.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { TRAIN_STAGES, trainMapXY } from "../data/trainStages.js";
 import { botSheet } from "../data/growth.js";
@@ -214,6 +215,8 @@ export class ExploreScene extends Phaser.Scene {
     Session.trainStage = stage.id;
     Session.youSide = Math.random() < 0.5 ? 1 : 2;
     Session.youSkin = SaveSystem.skinOf(Session.playerId);
+    Session.youChamp = champSetOf(Session.playerId);
+    Session.foeChamp = 0;
     AudioSystem.ui();
     this.scene.start("luck");
   }

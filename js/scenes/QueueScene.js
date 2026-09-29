@@ -9,6 +9,7 @@ import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, di
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { clampSkin } from "../data/skins.js";
+import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 
 function formatWait(ms) {
@@ -179,13 +180,16 @@ export class QueueScene extends Phaser.Scene {
         wins: msg.rival.wins | 0,
         mostUsed: msg.rival.mostUsed,
         difficulty: "normal",
-        skin: msg.rival.skin | 0 || 1
+        skin: msg.rival.skin | 0 || 1,
+        champSet: clampChamp(msg.rival.champSet)
       };
     }
     Session.youSide = msg.youSide === 2 ? 2 : 1;
     Session.botId = (msg.rival && msg.rival.fighter) || Session.botId;
     Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
+    Session.youChamp = champSetOf(Session.playerId);
     Session.foeSkin = clampSkin((msg.rival && msg.rival.skin) || 1);
+    Session.foeChamp = clampChamp(msg.rival && msg.rival.champSet);
     this.scene.start("luck", msg);
   }
 
@@ -218,10 +222,13 @@ export class QueueScene extends Phaser.Scene {
       wins: rival.wins | 0,
       mostUsed: rival.mostUsed,
       difficulty: "normal",
-      skin: rival.skin | 0 || 1
+      skin: rival.skin | 0 || 1,
+      champSet: clampChamp(rival.champSet)
     };
     Session.foeSkin = clampSkin(Session.rival.skin);
+    Session.foeChamp = Session.rival.champSet;
     Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
+    Session.youChamp = champSetOf(Session.playerId);
     this.status.setText(t("queue.foundLive"));
     this.setWaitVisible(false);
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(false);

@@ -5,6 +5,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { clampChamp } from "../data/seasonLooks.js";
 
 export class LuckScene extends Phaser.Scene {
   constructor() { super("luck"); }
@@ -203,10 +204,12 @@ export class LuckScene extends Phaser.Scene {
         wins: msg.rival.wins | 0,
         mostUsed: msg.rival.mostUsed,
         difficulty: "normal",
-        skin: msg.rival.skin | 0 || 1
+        skin: msg.rival.skin | 0 || 1,
+        champSet: clampChamp(msg.rival.champSet)
       };
       Session.botId = msg.rival.fighter || Session.botId;
       if (msg.rival.skin) Session.foeSkin = msg.rival.skin | 0;
+      Session.foeChamp = clampChamp(msg.rival.champSet);
     }
     this.status.setText(t("luck.rolling"));
     this.rollTween(0, () => {

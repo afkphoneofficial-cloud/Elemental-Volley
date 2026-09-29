@@ -1,8 +1,8 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { paintFighterTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { SKIN_TIERS, SKIN_PIECES, skinTier, texSelect, texFace } from "../data/skins.js";
-import { texHeroSelect } from "../data/seasonLooks.js";
+import { SKIN_TIERS, SKIN_PIECES, skinTier } from "../data/skins.js";
+import { texHeroSelect, texHeroFace } from "../data/seasonLooks.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -146,17 +146,17 @@ export class DressScene extends Phaser.Scene {
   }
 
   previewKey() {
-    if (this.view === "l") return texFace(this, this.charId, 2, this.tier);
-    if (this.view === "r") return texFace(this, this.charId, 1, this.tier);
-    return texHeroSelect(this, this.charId);
+    if (this.view === "l") return texHeroFace(this, this.charId, 2, this.tier, 0);
+    if (this.view === "r") return texHeroFace(this, this.charId, 1, this.tier, 0);
+    return texHeroSelect(this, this.charId, 0);
   }
 
   refresh() {
     const id = this.charId;
     const row = skinTier(this.tier);
     this.hero.setTexture(this.previewKey()).setDisplaySize(236, 236);
-    if (this.sideL) this.sideL.setTexture(texFace(this, id, 2, this.tier)).setDisplaySize(118, 118);
-    if (this.sideR) this.sideR.setTexture(texFace(this, id, 1, this.tier)).setDisplaySize(118, 118);
+    if (this.sideL) this.sideL.setTexture(texHeroFace(this, id, 2, this.tier, 0)).setDisplaySize(118, 118);
+    if (this.sideR) this.sideR.setTexture(texHeroFace(this, id, 1, this.tier, 0)).setDisplaySize(118, 118);
     this.plate.setFillStyle(SELECT_PLATE[id] || 0xffb14a, 1);
     this.nameLab.setText(charName(id));
     this.tierLab.setText(t("dress.tierLine", { n: this.tier, name: I18n.lang === "en" ? row.en : row.th }));

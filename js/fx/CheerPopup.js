@@ -3,7 +3,8 @@ import { UI_FONT } from "../ui/Ui.js";
 import { I18n } from "../i18n/I18n.js";
 import { pickCheer, getCheerTheme } from "../data/cheers.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
-import { texCheer, clampSkin } from "../data/skins.js";
+import { clampSkin } from "../data/skins.js";
+import { texHeroCheer } from "../data/seasonLooks.js";
 
 const COURT_LOOK = {
   summer: { stroke: 0xffb14a, fill: 0xfff6ea, ink: "#3a2418", name: "#c45a16", spark: [0xffe08a, 0xff6a22, 0xffffff] },
@@ -44,7 +45,7 @@ export class CheerPopup {
     this.root.setAlpha(1);
     this.root.setScale(0.82);
 
-    const faceKey = texCheer(this.scene, charId, skin);
+    const faceKey = texHeroCheer(this.scene, charId, skin, opts && opts.champSet);
     const halo = this.scene.add.circle(0, -28, 128, look.stroke, 0.22);
     const plate = this.scene.add.circle(0, -28, 118, look.fill, 0.96)
       .setStrokeStyle(5, look.stroke, 0.95);

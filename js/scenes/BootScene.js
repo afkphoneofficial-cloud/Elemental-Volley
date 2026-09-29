@@ -82,8 +82,27 @@ export class BootScene extends Phaser.Scene {
         let dest = id;
         if (id.indexOf("select-champ-") === 0) {
           dest = "vis_select_champ_" + id.slice("select-champ-".length).replace("-", "_");
+        } else if (id.indexOf("champ-") === 0) {
+          const left = id.match(/^champ-(\w+)-(\d+)-left$/);
+          const cheer = id.match(/^champ-(\w+)-(\d+)-cheer$/);
+          const dive = id.match(/^champ-(\w+)-(\d+)-dive-left$/);
+          if (left) dest = "vis_champ_" + left[1] + "_" + left[2] + "_l";
+          else if (cheer) dest = "vis_cheer_champ_" + cheer[1] + "_" + cheer[2];
+          else if (dive) dest = "vis_champ_" + dive[1] + "_" + dive[2] + "_dive_l";
         }
         TextureFactory.applyChibi(this, id, dest);
+      });
+      ["ignis", "aqua", "volt", "terra"].forEach((id) => {
+        [1, 2, 3].forEach((n) => {
+          const l = "vis_champ_" + id + "_" + n + "_l";
+          const r = "vis_champ_" + id + "_" + n + "_r";
+          const dl = "vis_champ_" + id + "_" + n + "_dive_l";
+          const dr = "vis_champ_" + id + "_" + n + "_dive_r";
+          if (!this.textures.exists(r) && this.textures.exists(l)) TextureFactory.mirror(this, l, r, true);
+          if (!this.textures.exists(l) && this.textures.exists(r)) TextureFactory.mirror(this, r, l, true);
+          if (!this.textures.exists(dr) && this.textures.exists(dl)) TextureFactory.mirror(this, dl, dr, true);
+          if (!this.textures.exists(dl) && this.textures.exists(dr)) TextureFactory.mirror(this, dr, dl, true);
+        });
       });
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));

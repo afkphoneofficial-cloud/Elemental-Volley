@@ -4,6 +4,7 @@ import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
 import { clampSkin } from "../data/skins.js";
+import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 
 const listeners = new Set();
 
@@ -34,12 +35,22 @@ function fighterSkin() {
   return SaveSystem.skinOf(id);
 }
 
+function fighterChamp() {
+  const id = Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId;
+  return champSetOf(id);
+}
+
 function applyNetFighters(msg) {
   if (msg.fighter) Session.playerId = msg.fighter;
   if (msg.foeFighter) Session.botId = msg.foeFighter;
   Session.youSkin = clampSkin(msg.youSkin || SaveSystem.skinOf(Session.playerId));
   Session.foeSkin = clampSkin(msg.foeSkin || (msg.rival && msg.rival.skin) || 1);
-  if (msg.rival && Session.rival) Session.rival.skin = Session.foeSkin;
+  Session.youChamp = clampChamp(msg.youChamp != null ? msg.youChamp : champSetOf(Session.playerId));
+  Session.foeChamp = clampChamp(msg.foeChamp != null ? msg.foeChamp : (msg.rival && msg.rival.champSet) || 0);
+  if (msg.rival && Session.rival) {
+    Session.rival.skin = Session.foeSkin;
+    Session.rival.champSet = Session.foeChamp;
+  }
 }
 
 export const NetPlay = {
@@ -94,6 +105,7 @@ export const NetPlay = {
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
         skin: fighterSkin(),
+        champSet: fighterChamp(),
         mmr: rank.mmr | 0,
         wins: rank.wins | 0,
         mostUsed: mostUsed()
@@ -151,7 +163,8 @@ export const NetPlay = {
             wins: msg.rival.wins | 0,
             mostUsed: msg.rival.mostUsed,
             difficulty: "normal",
-            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1)
+            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1),
+            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet)
           };
         }
       }
@@ -172,7 +185,8 @@ export const NetPlay = {
             wins: msg.rival.wins | 0,
             mostUsed: msg.rival.mostUsed,
             difficulty: "normal",
-            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1)
+            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1),
+            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet)
           };
         }
       }
@@ -217,6 +231,7 @@ export const NetPlay = {
         t: "queue",
         fighter: Session.playerId,
         skin: fighterSkin(),
+        champSet: fighterChamp(),
         mmr: rank.mmr | 0,
         wins: rank.wins | 0,
         avatar: SaveSystem.data.avatarId || "av01",
@@ -239,7 +254,8 @@ export const NetPlay = {
       fromId,
       accept: Boolean(accept),
       fighter: Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId,
-      skin: fighterSkin()
+      skin: fighterSkin(),
+      champSet: fighterChamp()
     });
   },
 
