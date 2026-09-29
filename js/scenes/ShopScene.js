@@ -31,7 +31,7 @@ export class ShopScene extends Phaser.Scene {
     const W = this.scale.width;
     paintWalletBar(this, "shop");
     makeButton(this, 96, 40, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
-    this.add.text(280, 40, t("shop.title"), {
+    this.add.text(W / 2, 40, t("shop.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
@@ -42,22 +42,12 @@ export class ShopScene extends Phaser.Scene {
       go: () => this.scene.start("shop", { tab: row.id })
     })), this.tab);
 
-    this.add.text(W / 2, 136, t("shop.sub." + this.tab), {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#9a6a48",
-      align: "center", wordWrap: { width: 1100 }
-    }).setOrigin(0.5);
-
     if (this.tab === "fighters") this.paintFighters();
     else if (this.tab === "cosmetics") this.paintCosmetics();
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();
 
     this.events.once("shutdown", () => closeShopBuy(this));
-
-    this.add.text(W / 2, 688, t("shop.foot"), {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38",
-      wordWrap: { width: 1100 }, align: "center"
-    }).setOrigin(0.5);
   }
 
   refresh() {
@@ -68,7 +58,7 @@ export class ShopScene extends Phaser.Scene {
     const W = this.scale.width;
     const total = CARD_COLS * CARD_W + (CARD_COLS - 1) * CARD_GAP;
     const left = Math.max(40, (W - total) / 2);
-    const top = 158;
+    const top = 132;
     const out = [];
     for (let i = 0; i < n; i++) {
       const col = i % CARD_COLS;
