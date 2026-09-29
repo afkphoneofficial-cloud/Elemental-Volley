@@ -70,12 +70,14 @@ export class HubScene extends Phaser.Scene {
     const pvpW = 108;
     const tokW = 96;
     const etherW = 108;
+    const coinW = 108;
     const profileX = PAD + pw / 2;
     const fx = PAD + pw + GAP + bagW / 2;
     const mx = PAD + pw + GAP + bagW + GAP + mailW / 2;
     const pvx = W - PAD - pvpW / 2;
     const tx = pvx - pvpW / 2 - GAP - tokW / 2;
     const ex = tx - tokW / 2 - GAP - etherW / 2;
+    const cxn = ex - etherW / 2 - GAP - coinW / 2;
     this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
 
     const avId = save.avatarId;
@@ -117,6 +119,15 @@ export class HubScene extends Phaser.Scene {
     this.layoutChip(this.bagChip, this.bagIcon, this.bagText);
 
     const etherKey = this.textures.exists("item-ether") ? "item-ether" : (this.textures.exists("vis_ether") ? "vis_ether" : "ether-art");
+    chip(this, cxn, TOP, coinW, 0xffd24a, () => this.openInfo("coins"));
+    this.coinBox = this.add.container(cxn, TOP).setDepth(21);
+    this.coinIcon = this.textures.exists("item-coin") ? this.add.image(0, 0, "item-coin").setDisplaySize(28, 28) : null;
+    this.coinText = this.add.text(0, 0, String(cur.coins | 0), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0, 0.5);
+    if (this.coinIcon) this.coinBox.add(this.coinIcon);
+    this.coinBox.add(this.coinText);
+
     chip(this, ex, TOP, etherW, 0x3ad6ff, () => this.openInfo("ether"));
     this.etherBox = this.add.container(ex, TOP).setDepth(21);
     this.etherIcon = this.textures.exists(etherKey)
@@ -203,6 +214,7 @@ export class HubScene extends Phaser.Scene {
     });
 
     this.paintEther();
+    this.layoutChip(this.coinBox, this.coinIcon, this.coinText);
     this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
     this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
     this.mountClock(W);

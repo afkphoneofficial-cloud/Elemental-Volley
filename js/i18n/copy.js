@@ -93,7 +93,9 @@ export const COPY = {
         tokensTitle: "เศษธาตุ",
         tokensBody: "สามารถนำไปแลกตัวละครธาตุได้ที่ร้านค้า",
         pvpTitle: "หินประหลาด",
-        pvpBody: "สามารถนำไปแลกเศษธาตุได้ที่ร้านค้า"
+        pvpBody: "สามารถนำไปแลกเศษธาตุได้ที่ร้านค้า",
+        coinsTitle: "เหรียญเกาะ",
+        coinsBody: "ได้จากแมตช์ทุกโหมดยกเว้นกระชับมิตร ใช้ซื้อไอเท็มใช้งานที่ร้าน"
       }
     },
     mail: {
@@ -798,7 +800,9 @@ export const COPY = {
         tokensTitle: "Element Shards",
         tokensBody: "Trade these at the shop for elemental fighters.",
         pvpTitle: "Odd Stones",
-        pvpBody: "Trade these at the shop for Element Shards."
+        pvpBody: "Trade these at the shop for Element Shards.",
+        coinsTitle: "Isle Coins",
+        coinsBody: "From every mode except Exhibition. Spend them on usable shop items."
       }
     },
     mail: {
