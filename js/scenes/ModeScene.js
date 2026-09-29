@@ -3,6 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { wantFx } from "../systems/GameSettings.js";
 import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { formatEtherWait } from "../systems/Ether.js";
@@ -118,7 +119,7 @@ export class ModeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(8);
     makeButton(this, x, y + 82, 220, 44, title, () => onClick(), 0x7d5cff);
 
-    if (this.textures.exists("dot")) {
+    if (wantFx() && this.textures.exists("dot")) {
       try {
         const spark = this.add.particles(x, y, "dot", {
           lifespan: 2200,
@@ -175,7 +176,7 @@ export class ModeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(8);
     makeButton(this, x, y + 82, 260, 46, title, () => onClick(), 0xffd24a);
 
-    if (this.textures.exists("dot")) {
+    if (wantFx() && this.textures.exists("dot")) {
       try {
         const spark = this.add.particles(x, y, "dot", {
           lifespan: 1600,

@@ -1,6 +1,7 @@
 import { UI_FONT } from "./Ui.js";
 import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { wantFx } from "../systems/GameSettings.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { avatarKey } from "../data/avatars.js";
 import { badgeKey, displayBadgeId } from "../data/ranks.js";
@@ -84,7 +85,7 @@ function paintWidget(scene, x, y, w, h, kind) {
       scene.scene.start("rankinfo", { from: "hub", tab: kind === "special" ? "special" : "pvp" });
     });
 
-  if (scene.textures.exists("dot")) {
+  if (wantFx() && scene.textures.exists("dot")) {
     try {
       const spark = scene.add.particles(x, y, "dot", {
         lifespan: epic ? 1600 : 2200,

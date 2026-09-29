@@ -1,3 +1,5 @@
+import { wantFx } from "../systems/GameSettings.js";
+
 export const ELEMENT_FX = {
   ignis: { tints: [0xff5a1f, 0xffd24a, 0xfff4e8], smash: [0xff3300, 0xffee88] },
   aqua: { tints: [0x3ad6ff, 0xffffff, 0x6ee7ff], smash: [0x2aa0ff, 0xe8ffff] },
@@ -30,7 +32,7 @@ export class HitFx {
   pop(x, y, charId, power) {
     const pal = ELEMENT_FX[charId] || ELEMENT_FX.ignis;
     const tints = power ? pal.smash : pal.tints;
-    if (this.burst) {
+    if (this.burst && wantFx()) {
       try {
         this.burst.setParticleTint(tints[0]);
       } catch (e) { /* tint optional */ }
@@ -54,7 +56,7 @@ export class HitFx {
 
   ultPop(x, y, charId) {
     this.pop(x, y, charId, true);
-    if (this.burst) {
+    if (this.burst && wantFx()) {
       try { this.burst.emitParticleAt(x, y, 36); } catch (e) {}
     }
   }

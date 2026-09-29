@@ -1,3 +1,5 @@
+import { bgmAllowed, sceneBgmPage } from "./GameSettings.js";
+
 let ctx = null;
 let master = null;
 let sfxBus = null;
@@ -280,7 +282,28 @@ function sparseAccent(id) {
   accentTimer = setTimeout(() => sparseAccent(id), wait);
 }
 
+function currentSceneKey() {
+  const g = window.game;
+  if (!g || !g.scene) return "auth";
+  try {
+    const live = g.scene.getScenes(true) || [];
+    if (live.some((s) => s.sys && s.sys.settings && s.sys.settings.key === "play")) return "play";
+    const s = live.find((x) => {
+      const key = x.sys && x.sys.settings && x.sys.settings.key;
+      return key && key !== "boot";
+    });
+    return (s && s.sys.settings.key) || "auth";
+  } catch (e) {
+    return "auth";
+  }
+}
+
 function playTheme(id) {
+  const page = id === "menu" ? sceneBgmPage(currentSceneKey()) : "match";
+  if (!bgmAllowed(page)) {
+    haltMusic();
+    return;
+  }
   if (!ensure()) return;
   if (!playFileTheme(id)) return;
 }
@@ -404,6 +427,16 @@ export const AudioSystem = {
   playCourt(id) {
     const key = id === "rain" || id === "spring" || id === "winter" || id === "summer" ? id : "summer";
     playTheme(key);
+  },
+
+  refreshBgm() {
+    const g = window.game;
+    const play = g && g.scene && g.scene.getScene("play");
+    if (play && play.scene && play.scene.isActive() && play.season) {
+      this.playCourt(play.season);
+      return;
+    }
+    this.playMenu();
   },
 
   stopMusic() {

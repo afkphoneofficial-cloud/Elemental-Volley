@@ -6,6 +6,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { shakeCam, wantFx } from "../systems/GameSettings.js";
 import {
   PikaPhysics,
   PikaUserInput,
@@ -119,6 +120,7 @@ export class PlayScene extends Phaser.Scene {
     this.jslot1 = { origin: null, rising: false, didPop: false };
     this.jslot2 = { origin: null, rising: false, didPop: false };
     const spark = () => {
+      if (!wantFx()) return null;
       try {
         const p = this.add.particles(0, 0, "dot", {
           lifespan: { min: 260, max: 560 },
@@ -1121,8 +1123,8 @@ export class PlayScene extends Phaser.Scene {
     this.cameras.main.flash(70, 255, 236, 210);
     const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };
     this.showBanner(names[ult.id] || "ULTIMATE", "#ffe08a");
-    if (ult.id === "ignis") this.cameras.main.shake(280, 0.01);
-    if (ult.id === "terra") this.cameras.main.shake(520, 0.02);
+    if (ult.id === "ignis") shakeCam(this.cameras.main, 280, 0.01);
+    if (ult.id === "terra") shakeCam(this.cameras.main, 520, 0.02);
     if (ult.pierce) this.time.delayedCall(420, () => this.showBanner(t("play.pierce"), "#ff6a22"));
     if (ult.statusBlocked) {
       this.time.delayedCall(ult.pierce ? 780 : 420, () => this.showBanner(t("play.statusBlocked"), "#ff8aa8"));
@@ -1309,7 +1311,7 @@ export class PlayScene extends Phaser.Scene {
     }
     if (MATCH_FX.stone || MATCH_FX.stuck) this.ball.setTint(0xc07830);
     if (MATCH_FX.stuck && !this.stuckShook) {
-      this.cameras.main.shake(280, 0.012);
+      shakeCam(this.cameras.main, 280, 0.012);
       this.stuckShook = true;
     }
     if (!MATCH_FX.stuck) this.stuckShook = false;

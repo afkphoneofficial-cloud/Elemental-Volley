@@ -27,6 +27,16 @@ export function paintFighterTabs(scene, active) {
   ], active);
 }
 
+export function paintSettingsTabs(scene, active) {
+  const from = scene.backTo || "hub";
+  paintTabs(scene, 36, [
+    { id: "general", label: t("settings.tabGeneral"), color: 0xff8a3a, go: () => scene.scene.start("settings", { from, tab: "general" }) },
+    { id: "video", label: t("settings.tabVideo"), color: 0x7d5cff, go: () => scene.scene.start("settings", { from, tab: "video" }) },
+    { id: "audio", label: t("settings.tabAudio"), color: 0x3ad6ff, go: () => scene.scene.start("settings", { from, tab: "audio" }) },
+    { id: "controls", label: t("settings.tabControls"), color: 0xffe08a, go: () => scene.scene.start("settings", { from, tab: "controls" }) }
+  ], active);
+}
+
 export function paintRankTabs(scene, active) {
   const from = scene.from || "hub";
   paintTabs(scene, 36, [

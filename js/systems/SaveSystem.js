@@ -20,7 +20,15 @@ const empty = () => ({
   unlocked: [],
   currencies: { pvp: 0, premium: 0, tokens: 0 },
   firstWinDate: null,
-  settings: { lang: "th", controlMode: "auto" },
+  settings: {
+    lang: "th",
+    controlMode: "auto",
+    bgmMode: "all",
+    bgmPages: { lobby: true, login: true, play: true, hangout: true, match: true },
+    reducedFx: false,
+    cameraShake: true,
+    lobbyMotion: true
+  },
   unlockedCheers: ["classic"],
   equippedCheer: "classic",
   career: emptyCareer(),
@@ -39,6 +47,7 @@ const empty = () => ({
 
 function finish(data) {
   data.settings = { ...empty().settings, ...(data.settings || {}) };
+  data.settings.bgmPages = { ...empty().settings.bgmPages, ...(data.settings.bgmPages || {}) };
   if (!Array.isArray(data.unlockedCheers) || !data.unlockedCheers.length) {
     data.unlockedCheers = ["classic"];
   }

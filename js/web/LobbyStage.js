@@ -1,3 +1,5 @@
+import { wantLobbyMotion } from "../systems/GameSettings.js";
+
 /** Cute looping mini-rally behind the game frame. Uses existing sprite assets. */
 
 const CHAR_IDS = ["ignis", "aqua", "volt", "terra"];
@@ -136,7 +138,7 @@ export async function mountLobbyStage() {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const fg = fgCanvas ? fgCanvas.getContext("2d") : null;
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const still = () => !wantLobbyMotion();
 
   const arts = {};
   await Promise.all([
@@ -240,7 +242,7 @@ export async function mountLobbyStage() {
 
     const courtA = COURTS[Math.floor(t / 16) % 4];
     const courtB = COURTS[Math.floor(t / 16 + 1) % 4];
-    const mix = reduced ? 0 : (t / 16) % 1;
+    const mix = still() ? 0 : (t / 16) % 1;
     const drawCourt = (key, a) => {
       const im = arts["court_" + key];
       if (!im || a < 0.02) return;
@@ -275,8 +277,8 @@ export async function mountLobbyStage() {
     ctx.globalAlpha = 1;
 
     const layer = fg || ctx;
-    const bob = (k) => reduced ? 0 : Math.sin(t * 3.2 + k) * 7;
-    const hitPulse = reduced ? 0 : (Math.sin(t * 4.2) + 1) * 0.5;
+    const bob = (k) => still() ? 0 : Math.sin(t * 3.2 + k) * 7;
+    const hitPulse = still() ? 0 : (Math.sin(t * 4.2) + 1) * 0.5;
     const hitL = hitPulse > 0.86;
     const hitR = hitPulse < 0.14;
     const squashL = hitL ? 0.86 : 1;
@@ -314,7 +316,7 @@ export async function mountLobbyStage() {
       y1: padT - 12
     };
     const showBall = box.y1 - box.y0 >= 36;
-    if (showBall && !reduced) {
+    if (showBall && !still()) {
       flyer.vx += Math.sin(t * 0.7) * 18 * dt + (Math.random() - 0.5) * 40 * dt;
       flyer.vy += Math.cos(t * 0.93) * 16 * dt + (Math.random() - 0.5) * 36 * dt;
       const spd = Math.hypot(flyer.vx, flyer.vy);
@@ -418,14 +420,20 @@ export async function mountLobbyStage() {
       drawSprite(layer, "aqua_l", g.right + 8, edge.aquaY, edge.charSize * edge.squashR);
     }
 
-    if (!reduced) raf = requestAnimationFrame(loop);
+    if (!still()) raf = requestAnimationFrame(loop);
+  };
+
+  const kick = () => {
+    cancelAnimationFrame(raf);
+    if (still()) loop(performance.now());
+    else raf = requestAnimationFrame(loop);
   };
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) cancelAnimationFrame(raf);
-    else if (!reduced) raf = requestAnimationFrame(loop);
+    else kick();
   });
+  window.addEventListener("ev-settings", kick);
 
-  if (reduced) loop(performance.now());
-  else raf = requestAnimationFrame(loop);
+  kick();
 }
