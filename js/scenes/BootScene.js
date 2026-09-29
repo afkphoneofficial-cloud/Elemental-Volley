@@ -63,6 +63,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image(badgeKey(RANK_CAL_ID), "assets/sprites/ranks/" + RANK_CAL_ID + ".png");
     SHOP_LOOKS.forEach((row) => {
       SHOP_LOOK_POSES.forEach((pose) => {
+        if (!pose.file) return;
         this.load.image(shopLookLoadKey(row.id, pose.file), shopLookSrc(row.id, pose.file));
       });
     });
@@ -158,6 +159,7 @@ export class BootScene extends Phaser.Scene {
       });
       SHOP_LOOKS.forEach((row) => {
         SHOP_LOOK_POSES.forEach((pose) => {
+          if (!pose.file) return;
           TextureFactory.applyChibi(this, shopLookLoadKey(row.id, pose.file), shopLookVis(row.id, pose.vis));
         });
         const l = shopLookVis(row.id, "l");

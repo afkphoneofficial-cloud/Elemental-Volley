@@ -431,7 +431,8 @@ export const COPY = {
       buyUnlockBody: "ยืนยันแล้วจะปลดล็อกตัวละครนี้ด้วยเศษธาตุ",
       buyCheerBody: "ยืนยันแล้วจะปลดล็อกธีมฉลองแต้มนี้",
       tierSoon: "เทียร์นี้ยังไม่เปิดขาย ของชุดจะมาในแพทช์ถัดไป",
-      pose: { select: "หน้าตรง", left: "ยืนด้านข้าง", dive: "ดิ่ง", cheer: "ฉลองแต้ม" },
+      page: "หน้า {n} / {m}",
+      pose: { select: "หน้าตรง", left: "ยืนซ้าย", right: "ยืนขวา", dive: "ดิ่ง", cheer: "ฉลองแต้ม" },
       foot: "มุมขวาบนคือของที่มีอยู่  ·  แตะผงอีเธเรียเพื่อเปิดหน้ารายละเอียดการเติม  ·  กระชับมิตรไม่มีเหรียญเกาะ"
     },
     topup: {
@@ -1127,7 +1128,8 @@ export const COPY = {
       buyUnlockBody: "Confirm to unlock this fighter with Element Shards.",
       buyCheerBody: "Confirm to unlock this cheer theme.",
       tierSoon: "This tier is not on sale yet. Sets come in a later patch.",
-      pose: { select: "Front", left: "Side stand", dive: "Dive", cheer: "Cheer" },
+      page: "Page {n} / {m}",
+      pose: { select: "Front", left: "Stand left", right: "Stand right", dive: "Dive", cheer: "Cheer" },
       foot: "Top right is what you own  ·  Tap Etheria Powder for the top-up rates  ·  Exhibition drops no Isle Coins"
     },
     topup: {

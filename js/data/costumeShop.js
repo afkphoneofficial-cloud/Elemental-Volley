@@ -30,6 +30,7 @@ const SETS = [
 export const SHOP_LOOK_POSES = [
   { id: "select", file: "select", vis: "select" },
   { id: "left", file: "left", vis: "l" },
+  { id: "right", file: "", vis: "r" },
   { id: "dive", file: "dive-left", vis: "dive_l" },
   { id: "cheer", file: "cheer", vis: "cheer" }
 ];
@@ -73,6 +74,16 @@ export function shopLookVis(id, vis) {
   if (vis === "select") return "vis_shop_" + id + "_select";
   if (vis === "cheer") return "vis_shop_" + id + "_cheer";
   return "vis_shop_" + id + "_" + vis;
+}
+
+export function shopLookPoseTexture(scene, lookId, pose) {
+  const vis = shopLookVis(lookId, pose.vis);
+  if (scene.textures.exists(vis)) return vis;
+  if (pose.file) {
+    const raw = shopLookLoadKey(lookId, pose.file);
+    if (scene.textures.exists(raw)) return raw;
+  }
+  return "";
 }
 
 export function emptyShopLooks() {

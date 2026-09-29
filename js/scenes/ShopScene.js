@@ -25,6 +25,7 @@ export class ShopScene extends Phaser.Scene {
   init(data) {
     this.tab = (data && data.tab) || "fighters";
     this.costumeTier = (data && data.costumeTier) || "mist";
+    this.costumePage = Math.max(0, (data && data.costumePage) | 0);
   }
 
   create() {
@@ -41,7 +42,7 @@ export class ShopScene extends Phaser.Scene {
       id: row.id,
       label: t("shop.tab." + row.id),
       color: row.color,
-      go: () => this.scene.start("shop", { tab: row.id, costumeTier: this.costumeTier })
+      go: () => this.scene.start("shop", { tab: row.id, costumeTier: this.costumeTier, costumePage: 0 })
     })), this.tab);
 
     if (this.tab === "fighters") this.paintFighters();
@@ -56,7 +57,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   refresh() {
-    this.scene.start("shop", { tab: this.tab, costumeTier: this.costumeTier });
+    this.scene.start("shop", { tab: this.tab, costumeTier: this.costumeTier, costumePage: this.costumePage });
   }
 
   slots(n, padLeft, cols) {
@@ -172,7 +173,7 @@ export class ShopScene extends Phaser.Scene {
       const on = tier.id === this.costumeTier;
       makeButton(this, 92, 168 + i * 52, 148, 44, costumeTierLabel(tier, I18n.lang), () => {
         AudioSystem.ui();
-        this.scene.start("shop", { tab: "cosmetics", costumeTier: tier.id });
+        this.scene.start("shop", { tab: "cosmetics", costumeTier: tier.id, costumePage: 0 });
       }, on ? (tier.color || 0xffb14a) : 0xc8bdd8);
     });
     const tier = COSTUME_TIERS.find((row) => row.id === this.costumeTier) || COSTUME_TIERS[0];
@@ -183,8 +184,12 @@ export class ShopScene extends Phaser.Scene {
       return;
     }
     const rows = shopLooksInTier(tier.id);
-    const cells = this.slots(rows.length, 176, 4);
-    rows.forEach((look, i) => {
+    const per = 8;
+    const pages = Math.max(1, Math.ceil(rows.length / per));
+    this.costumePage = Math.min(this.costumePage, pages - 1);
+    const slice = rows.slice(this.costumePage * per, this.costumePage * per + per);
+    const cells = this.slots(slice.length, 176, 4);
+    slice.forEach((look, i) => {
       const owned = SaveSystem.ownedShopLook(look.id);
       const worn = SaveSystem.wornShopLook(look.charId) === look.id;
       const icon = this.textures.exists(shopLookVis(look.id, "select")) ? shopLookVis(look.id, "select") : "vis_select_" + look.charId;
@@ -238,6 +243,29 @@ export class ShopScene extends Phaser.Scene {
         }
       });
     });
+    if (pages > 1) {
+      const px = this.scale.width / 2 + 70;
+      const py = 668;
+      makeButton(this, px - 130, py, 88, 40, "‹", () => {
+        AudioSystem.ui();
+        this.scene.start("shop", {
+          tab: "cosmetics",
+          costumeTier: this.costumeTier,
+          costumePage: (this.costumePage + pages - 1) % pages
+        });
+      }, 0x4aa6e8);
+      this.add.text(px, py, t("shop.page", { n: this.costumePage + 1, m: pages }), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+      }).setOrigin(0.5);
+      makeButton(this, px + 130, py, 88, 40, "›", () => {
+        AudioSystem.ui();
+        this.scene.start("shop", {
+          tab: "cosmetics",
+          costumeTier: this.costumeTier,
+          costumePage: (this.costumePage + 1) % pages
+        });
+      }, 0x4aa6e8);
+    }
   }
 
   paintFighters() {
