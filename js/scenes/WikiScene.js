@@ -42,7 +42,7 @@ export class WikiScene extends Phaser.Scene {
       { id: "story", label: t("wiki.tabStory"), color: 0x7d5cff, again: true, go: () => this.openStory() },
       { id: "cast", label: t("wiki.tabCast"), color: 0x3ad6ff, again: true, go: () => this.openCast() },
       { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() }
-    ], this.wikiTab === "items" ? "items" : "map");
+    ], this.wikiTab === "items" ? "items" : "map", 168);
 
     const frame = this.add.graphics().setDepth(4);
     frame.fillStyle(0xfff6ea, 0.2);

@@ -2,13 +2,14 @@ import { makeButton } from "./Ui.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
 
-export function paintTabs(scene, y, items, activeId) {
+export function paintTabs(scene, y, items, activeId, padLeft) {
   const n = items.length;
   if (!n) return;
   const gap = 10;
-  const w = Math.min(210, Math.max(108, Math.floor((scene.scale.width - 260) / n) - gap));
+  const inset = padLeft | 0;
+  const w = Math.min(210, Math.max(100, Math.floor((scene.scale.width - 48 - inset) / n) - gap));
   const total = n * w + (n - 1) * gap;
-  const x0 = scene.scale.width / 2 - total / 2 + w / 2;
+  const x0 = inset + (scene.scale.width - inset) / 2 - total / 2 + w / 2;
   items.forEach((it, i) => {
     const on = it.id === activeId;
     makeButton(scene, x0 + i * (w + gap), y, w, 36, it.label, () => {

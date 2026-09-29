@@ -60,12 +60,13 @@ export class HubScene extends Phaser.Scene {
     const bagW = 112;
     const fx = PAD + pw + GAP + bagW / 2;
     const mailW = 100;
-    const pvpW = 188;
-    const tokW = 160;
+    const pvpW = 108;
+    const tokW = 96;
+    const etherW = 108;
     const mx = W - PAD - mailW / 2;
     const pvx = mx - mailW / 2 - GAP - pvpW / 2;
     const tx = pvx - pvpW / 2 - GAP - tokW / 2;
-    const ex = tx - tokW / 2 - GAP - 80;
+    const ex = tx - tokW / 2 - GAP - etherW / 2;
     this.hubMail = { x: mx, y: TOP, w: mailW, h: CH };
 
     const avId = save.avatarId;
@@ -110,8 +111,8 @@ export class HubScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5));
 
-    const etherKey = this.textures.exists("vis_ether") ? "vis_ether" : "ether-art";
-    chip(this, ex, TOP, 164, 0x3ad6ff, () => this.openInfo("ether"));
+    const etherKey = this.textures.exists("item-ether") ? "item-ether" : (this.textures.exists("vis_ether") ? "vis_ether" : "ether-art");
+    chip(this, ex, TOP, etherW, 0x3ad6ff, () => this.openInfo("ether"));
     this.etherBox = this.add.container(ex, TOP).setDepth(21);
     this.etherIcon = this.textures.exists(etherKey)
       ? this.add.image(0, 0, etherKey).setDisplaySize(30, 30)
@@ -119,17 +120,15 @@ export class HubScene extends Phaser.Scene {
     this.etherText = this.add.text(0, 0, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5);
-    this.etherHint = this.add.text(0, 0, "?", {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#1a7a98"
-    }).setOrigin(0.5);
+    this.etherHint = null;
     if (this.etherIcon) this.etherBox.add(this.etherIcon);
-    this.etherBox.add([this.etherText, this.etherHint]);
+    this.etherBox.add(this.etherText);
 
     chip(this, tx, TOP, tokW, 0xffb14a, () => this.openInfo("tokens"));
     this.tokenBox = this.add.container(tx, TOP).setDepth(21);
     this.tokenIcon = this.textures.exists("item-shard") ? this.add.image(0, 0, "item-shard").setDisplaySize(28, 28) : null;
-    this.tokenText = this.add.text(0, 0, t("hub.chipToken", { n: cur.tokens }), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
+    this.tokenText = this.add.text(0, 0, String(cur.tokens | 0), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5);
     if (this.tokenIcon) this.tokenBox.add(this.tokenIcon);
     this.tokenBox.add(this.tokenText);
@@ -137,8 +136,8 @@ export class HubScene extends Phaser.Scene {
     chip(this, pvx, TOP, pvpW, 0x7d5cff, () => this.openInfo("pvp"));
     this.stoneBox = this.add.container(pvx, TOP).setDepth(21);
     this.stoneIcon = this.textures.exists("item-stone") ? this.add.image(0, 0, "item-stone").setDisplaySize(28, 28) : null;
-    this.stoneText = this.add.text(0, 0, t("hub.chipPvp", { n: cur.pvp }), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
+    this.stoneText = this.add.text(0, 0, String(cur.pvp | 0), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0, 0.5);
     if (this.stoneIcon) this.stoneBox.add(this.stoneIcon);
     this.stoneBox.add(this.stoneText);
@@ -209,12 +208,10 @@ export class HubScene extends Phaser.Scene {
     this.playGlow = this.add.graphics().setDepth(8);
     const drawGlow = (pulse) => {
       this.playGlow.clear();
-      this.playGlow.fillStyle(0xff6a22, 0.18 + pulse * 0.1);
-      this.playGlow.fillRoundedRect(x - 150, y - 48, 300, 96, 32);
-      this.playGlow.fillStyle(0xffe08a, 0.22 + pulse * 0.12);
-      this.playGlow.fillRoundedRect(x - 122, y - 36, 244, 72, 26);
-      this.playGlow.lineStyle(3, 0xff6a22, 0.85 + pulse * 0.15);
-      this.playGlow.strokeRoundedRect(x - 122, y - 36, 244, 72, 26);
+      this.playGlow.fillStyle(0xffe08a, 0.28 + pulse * 0.12);
+      this.playGlow.fillRoundedRect(x - 112, y - 32, 224, 64, 24);
+      this.playGlow.lineStyle(2.5, 0xff6a22, 0.8 + pulse * 0.15);
+      this.playGlow.strokeRoundedRect(x - 112, y - 32, 224, 64, 24);
     };
     drawGlow(0);
     this._playPulse = 0;
@@ -236,7 +233,7 @@ export class HubScene extends Phaser.Scene {
           blendMode: "ADD",
           frequency: 70,
           quantity: 1,
-          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 250, 78), quantity: 18 }
+          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 216, 60), quantity: 16 }
         }).setDepth(7);
       } catch (e) { this.playBurst = null; }
     }
@@ -303,19 +300,7 @@ export class HubScene extends Phaser.Scene {
     if (!this.etherText) return;
     const st = SaveSystem.etherNow();
     this.etherText.setText(st.n + "/" + ECONOMY.etherMax);
-    const gap = 6;
-    const iconW = this.etherIcon ? 30 : 0;
-    const qW = 14;
-    const tw = this.etherText.width;
-    const total = iconW + (iconW ? gap : 0) + tw + gap + qW;
-    let x = -total / 2;
-    if (this.etherIcon) {
-      this.etherIcon.setPosition(x + iconW / 2, 0);
-      x += iconW + gap;
-    }
-    this.etherText.setPosition(x, 0);
-    x += tw + gap;
-    if (this.etherHint) this.etherHint.setPosition(x + qW / 2, 0);
+    this.layoutChip(this.etherBox, this.etherIcon, this.etherText);
   }
 
   openInfo(kind) {
