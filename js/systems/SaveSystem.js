@@ -326,10 +326,11 @@ export const SaveSystem = {
   },
 
   buyTokensWithPremium(tokenCount) {
-    const cost = tokenCount * 1;
+    const n = Math.max(1, tokenCount | 0);
+    const cost = n * (ECONOMY.premiumPerToken | 2);
     if (this.data.currencies.premium < cost) return false;
     this.data.currencies.premium -= cost;
-    this.data.currencies.tokens += tokenCount;
+    this.data.currencies.tokens += n;
     this.persist();
     return true;
   },

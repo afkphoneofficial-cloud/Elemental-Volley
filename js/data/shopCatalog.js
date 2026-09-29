@@ -36,7 +36,7 @@ export const SHOP_USE_GOODS = [
 
 export const SHOP_TRADE_GOODS = [
   { id: "stone_trade", action: "exchangeShard" },
-  { id: "shard_pack", shards: 100, price: 100, currency: "premium" }
+  { id: "shard_pack", shards: 100, price: 200, currency: "premium" }
 ];
 
 /** Preview rates only. Payment is not live. Base ~2 powder per THB, bonus on larger packs. */

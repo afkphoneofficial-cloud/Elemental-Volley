@@ -295,58 +295,55 @@ export class ShopScene extends Phaser.Scene {
     const cells = this.slots(SHOP_TRADE_GOODS.length);
     const rate = ECONOMY.pvpPerToken | 5;
     SHOP_TRADE_GOODS.forEach((good, i) => {
+      const shardCard = {
+        title: t("item.shard.name"),
+        icon: "item-shard",
+        hint: "",
+        kind: t("shop.kindTrade"),
+        owned: this.bag().tokens | 0
+      };
       if (good.action === "exchangeShard") {
         this.paintCard(cells[i].x, cells[i].y, {
-          title: t("item.stone.name"),
-          icon: "item-stone",
-          hint: t("shop.hintRate", { n: rate }),
+          ...shardCard,
           stroke: 0xb8a0e8,
           accent: 0x7d5cff,
           priceIcon: "item-stone",
           price: rate,
           onClick: () => {
             openShopBuy(this, {
-              title: t("item.stone.name"),
-              icon: "item-stone",
-              kind: t("shop.kindTrade"),
-              owned: this.bag().pvp | 0,
-              body: t("item.stone.use"),
+              title: shardCard.title,
+              icon: "item-shard",
+              kind: shardCard.kind,
+              owned: shardCard.owned,
+              body: "",
               priceIcon: "item-stone",
               unitPrice: rate,
               have: this.bag().pvp | 0,
               maxQty: 99,
-              onConfirm: (qty) => {
-                const ok = SaveSystem.exchangePvpToTokens(qty);
-                return { ok };
-              },
+              onConfirm: (qty) => ({ ok: SaveSystem.exchangePvpToTokens(qty) }),
               after: () => this.refresh()
             });
           }
         });
       } else {
         this.paintCard(cells[i].x, cells[i].y, {
-          title: t("item.shard.name"),
-          icon: "item-shard",
-          hint: t("shop.hintPack", { n: good.shards }),
+          ...shardCard,
           stroke: 0x7ae8ff,
           accent: 0x3ad6ff,
           priceIcon: "item-powder",
           price: good.price,
           onClick: () => {
             openShopBuy(this, {
-              title: t("item.shard.name"),
+              title: shardCard.title,
               icon: "item-shard",
-              kind: t("shop.kindTrade"),
-              owned: this.bag().tokens | 0,
-              body: t("shop.hintPack", { n: good.shards }),
+              kind: shardCard.kind,
+              owned: shardCard.owned,
+              body: "",
               priceIcon: "item-powder",
               unitPrice: good.price,
               have: this.bag().premium | 0,
               maxQty: 99,
-              onConfirm: (qty) => {
-                const ok = SaveSystem.buyTokensWithPremium(good.shards * qty);
-                return { ok };
-              },
+              onConfirm: (qty) => ({ ok: SaveSystem.buyTokensWithPremium(good.shards * qty) }),
               after: () => this.refresh()
             });
           }

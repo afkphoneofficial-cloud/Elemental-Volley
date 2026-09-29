@@ -2,7 +2,7 @@
 export const ECONOMY = {
   unlockTokenCost: 100,
   pvpPerToken: 5,
-  premiumPerToken: 1,
+  premiumPerToken: 2,
   pvpWin: 40,
   pvpLoss: 15,
   firstWinBonus: 20,

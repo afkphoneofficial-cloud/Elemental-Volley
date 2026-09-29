@@ -284,7 +284,7 @@ export const COPY = {
     },
     item: {
       stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า", how: "ชนะโหมดฝึกฝน ตามสกอร์และความยาก แพ้ไม่ได้ก้อน", use: "สะสมแล้วนำไปแลกเศษธาตุที่ร้านค้า อัตรา 5 ก้อนต่อ 1 เศษธาตุ" },
-      shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกจากหินประหลาดที่ร้าน", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
+      shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกที่ร้านด้วยหินประหลาด 5 ก้อนต่อ 1 เศษ หรือผงอีเธเรีย 200 ต่อ 100 เศษ", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
       ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ใช้ได้เฉพาะตอนหลอดยังไม่เต็ม", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลัง 1 ก้อนเมื่อหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้" },
       bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ซื้อด้วยเหรียญเกาะที่ร้าน หรือรางวัลท็อป 10 ของแรงก์ธาตุ", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" },
       coin: { name: "เหรียญเกาะ", body: "เงินในเกม ใช้ซื้อไอเท็มใช้งานที่ร้าน", how: "ดรอปทุกโหมดยกเว้นกระชับมิตร ชนะได้มากกว่าแพ้", use: "ใช้ที่ร้านค้า แทบไอเท็มใช้งาน" },
@@ -401,7 +401,7 @@ export const COPY = {
         fighters: "ปลดล็อกตัวละครธาตุด้วยเศษธาตุ ตัวละ 100",
         cosmetics: "ธีมฉลองแต้มและของโชว์ ใช้ผงอีเธเรียจากหน้าเติมเงิน",
         items: "ไอเท็มใช้แล้วหมด ซื้อด้วยเหรียญเกาะจากแมตช์",
-        trade: "แลกหินประหลาดเป็นเศษธาตุ 5 ก้อนต่อ 1 เศษ และซื้อเศษธาตุด้วยผงอีเธเรีย"
+        trade: "เศษธาตุก้อนเดียวกัน แลกได้ด้วยหินประหลาด 5 ก้อนต่อ 1 เศษ หรือผงอีเธเรีย 200 ต่อ 100 เศษ",
       },
       owned: "เป็นเจ้าของแล้ว",
       unlock: "ปลดล็อก 100 เศษธาตุ",
@@ -413,7 +413,7 @@ export const COPY = {
       priceCoins: "{n} เหรียญเกาะ",
       exchange: "แลกหินประหลาดเป็นเศษธาตุ  (5:1)",
       tradeStone: "แลก 1 ชิ้น",
-      buyTokens: "เศษธาตุ 100 ก้อน ด้วยผงอีเธเรีย 100",
+      buyTokens: "เศษธาตุ 100 ก้อน ด้วยผงอีเธเรีย 200",
       hintUnlock: "ปลดล็อกตัวละคร",
       hintRate: "หิน {n} เป็นเศษ 1",
       hintPack: "ได้เศษธาตุ {n}",
@@ -977,7 +977,7 @@ export const COPY = {
     },
     item: {
       stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop.", how: "Win training matches. Amount follows score and difficulty. Losses drop none.", use: "Trade 5 Odd Stones for 1 Element Shard in the shop." },
-      shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade Odd Stones in the shop.", use: "Unlock elemental fighters in the shop. 100 shards each." },
+      shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade in the shop: 5 Odd Stones for 1 shard, or 200 Etheria Powder for 100 shards.", use: "Unlock elemental fighters in the shop. 100 shards each." },
       ether_vial: { name: "Ether", body: "Use to restore 1 court charge, only when the pool is not full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the pool is full or this would overflow, the button does nothing." },
       bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Buy with Isle Coins in the shop, or Element Rank top 10.", use: "Use from the bag on a fighter to reclaim spent level-up points." },
       coin: { name: "Isle Coins", body: "The in-match currency. Spend it on usable shop items.", how: "Drops in every mode except Exhibition. Wins pay more than losses.", use: "Spend in the shop Usables tab." },
@@ -1094,7 +1094,7 @@ export const COPY = {
         fighters: "Unlock elemental fighters with 100 Element Shards each",
         cosmetics: "Cheer themes and show-off items. Paid with Etheria Powder from the top-up page",
         items: "Consumables. Buy with Isle Coins from matches",
-        trade: "Trade Odd Stones for Shards at 5:1, or buy Shards with Etheria Powder"
+        trade: "The same Element Shards. Trade 5 Odd Stones for 1 shard, or 200 Etheria Powder for 100 shards",
       },
       owned: "Owned",
       unlock: "Unlock for 100 Element Shards",
@@ -1106,7 +1106,7 @@ export const COPY = {
       priceCoins: "{n} Isle Coins",
       exchange: "Trade Odd Stones for Element Shards  (5:1)",
       tradeStone: "Trade 1",
-      buyTokens: "100 Element Shards for 100 Etheria Powder",
+      buyTokens: "100 Element Shards for 200 Etheria Powder",
       hintUnlock: "Unlock fighter",
       hintRate: "{n} stones for 1 shard",
       hintPack: "Get {n} shards",
