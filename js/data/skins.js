@@ -30,6 +30,11 @@ export function emptySkins() {
   return out;
 }
 
+export function skinNeedLv(tier) {
+  const t = clampSkin(tier);
+  return t <= 1 ? 1 : (t - 1) * 10;
+}
+
 export function skinTier(n) {
   return SKIN_TIERS[clampSkin(n) - 1];
 }

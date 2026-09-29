@@ -9,7 +9,7 @@ import {
   migrateCosmetics,
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
-import { emptySkins, clampSkin } from "../data/skins.js";
+import { emptySkins, clampSkin, skinNeedLv } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
 import { ITEMS } from "../data/items.js";
@@ -531,10 +531,15 @@ export const SaveSystem = {
 
   setSkin(id, tier) {
     if (!this.isUnlocked(id)) return false;
+    if (!this.skinOpen(id, tier)) return false;
     if (!this.data.skins) this.data.skins = emptySkins();
     this.data.skins[id] = clampSkin(tier);
     this.persist();
     return true;
+  },
+
+  skinOpen(id, tier) {
+    return (this.growthOf(id).level | 0) >= skinNeedLv(tier);
   },
 
   growthOf(id) {

@@ -16,13 +16,13 @@ function champTex(scene, key) {
   return scene.textures.exists(key) ? key : "";
 }
 
-export function texHeroSelect(scene, id, champSet) {
+export function texHeroSelect(scene, id, champSet, skinTier) {
   const set = champSet != null ? champSet | 0 : champSetOf(id);
   if (set >= 1 && set <= 3) {
     const k = champTex(scene, "vis_select_champ_" + id + "_" + set);
     if (k) return k;
   }
-  return texSelect(scene, id, SaveSystem.skinOf(id));
+  return texSelect(scene, id, skinTier != null ? skinTier : SaveSystem.skinOf(id));
 }
 
 export function texHeroFace(scene, id, courtSide, tier, champSet) {
