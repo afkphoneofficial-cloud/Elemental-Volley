@@ -5,6 +5,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { paintTabs } from "../ui/sceneTabs.js";
 import { ITEM_IDS, itemIconKey } from "../data/items.js";
+import { pinHit } from "../ui/mapPins.js";
 
 export class WikiScene extends Phaser.Scene {
   constructor() { super("wiki"); }
@@ -93,8 +94,6 @@ export class WikiScene extends Phaser.Scene {
     const ring = this.add.circle(p.x, p.y, big ? 38 : loc.kind === "fog" ? 16 : 20, 0xfff6ea, 0.92)
       .setStrokeStyle(3, col, loc.kind === "shown" ? 1 : 0.7)
       .setDepth(8);
-    ring.setInteractive(new Phaser.Geom.Circle(0, 0, big ? 44 : 28), Phaser.Geom.Circle.Contains);
-    ring.input.cursor = "pointer";
     this.add.circle(p.x, p.y + (big ? 34 : 18), big ? 16 : 10, 0x000000, 0.18).setDepth(7);
     if (big) {
       const vis = this.textures.exists("vis_" + loc.char) ? "vis_" + loc.char : "vis_ignis";
@@ -115,7 +114,7 @@ export class WikiScene extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-    ring.on("pointerdown", () => this.openLoc(loc));
+    pinHit(this, p.x, p.y, big ? 48 : 26, 16, () => this.openLoc(loc));
   }
 
   drawLegend(W, H) {

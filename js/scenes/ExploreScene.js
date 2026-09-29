@@ -7,6 +7,7 @@ import { Session } from "../systems/Session.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { TRAIN_STAGES, trainMapXY } from "../data/trainStages.js";
 import { botSheet } from "../data/growth.js";
+import { pinHit } from "../ui/mapPins.js";
 
 export class ExploreScene extends Phaser.Scene {
   constructor() { super("explore"); }
@@ -33,20 +34,14 @@ export class ExploreScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30"
     }).setOrigin(0.5);
 
-    const hintBack = this.add.graphics().setDepth(18);
-    hintBack.fillStyle(0xfff6ea, 0.92);
-    hintBack.fillRoundedRect(W - 368, 8, 348, 108, 14);
-    hintBack.lineStyle(2, 0xffb14a, 0.7);
-    hintBack.strokeRoundedRect(W - 368, 8, 348, 108, 14);
-    this.add.text(W - 24, 16, t("explore.hint"), {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828",
-      align: "right", wordWrap: { width: 328 }, lineSpacing: 3
-    }).setOrigin(1, 0).setDepth(19);
-
     makeButton(this, 80, 44, 120, 36, t("nav.back"), () => {
       AudioSystem.ui();
       this.scene.start(this.from || "select");
     }, 0x7d5cff);
+    makeButton(this, W - 90, 44, 140, 36, t("explore.hintBtn"), () => {
+      AudioSystem.ui();
+      this.openHint();
+    }, 0xffb14a);
 
     const frame = this.add.graphics().setDepth(4);
     frame.fillStyle(0xfff6ea, 0.2);
@@ -89,8 +84,6 @@ export class ExploreScene extends Phaser.Scene {
     const ring = this.add.circle(p.x, p.y, big ? 38 : loc.kind === "fog" ? 16 : 20, 0xfff6ea, 0.92)
       .setStrokeStyle(3, col, loc.kind === "shown" ? 1 : 0.7)
       .setDepth(8);
-    ring.setInteractive(new Phaser.Geom.Circle(0, 0, big ? 44 : 28), Phaser.Geom.Circle.Contains);
-    ring.input.cursor = "pointer";
     this.add.circle(p.x, p.y + (big ? 34 : 18), big ? 16 : 10, 0x000000, 0.18).setDepth(7);
     if (big) {
       const vis = this.textures.exists("vis_" + loc.char) ? "vis_" + loc.char : "vis_ignis";
@@ -111,7 +104,7 @@ export class ExploreScene extends Phaser.Scene {
       yoyo: true,
       repeat: -1
     });
-    ring.on("pointerdown", () => this.openLoc(loc));
+    pinHit(this, p.x, p.y, big ? 48 : 26, 20, () => this.openLoc(loc));
   }
 
   spawnTrain(stage) {
@@ -120,16 +113,15 @@ export class ExploreScene extends Phaser.Scene {
     const col = loc ? loc.color : 0xffb14a;
     const open = SaveSystem.isTrainOpen(stage.id);
     const cleared = SaveSystem.isTrainCleared(stage.id);
-    const fill = !open ? 0xc8bdd8 : cleared ? 0xffe08a : 0xfff6ea;
-    const ring = this.add.circle(p.x, p.y, 16, fill, 0.96)
-      .setStrokeStyle(3, open ? col : 0x8a7a90, open ? 1 : 0.55)
+    const ring = this.add.circle(p.x, p.y, 18, col, open ? 0.96 : 0.38)
+      .setStrokeStyle(cleared ? 4 : 3, cleared ? 0xffe08a : 0xfff6ea, open ? 1 : 0.55)
       .setDepth(14);
-    ring.setInteractive(new Phaser.Geom.Circle(0, 0, 22), Phaser.Geom.Circle.Contains);
-    ring.input.cursor = "pointer";
-    this.add.circle(p.x, p.y + 16, 8, 0x000000, 0.16).setDepth(13);
+    this.add.circle(p.x, p.y + 17, 8, 0x000000, 0.16).setDepth(13);
     this.add.text(p.x, p.y - 1, String(stage.rank), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900",
-      color: !open ? "#6a6070" : "#3a2418"
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900",
+      color: "#fff6ea",
+      stroke: "#1a1018",
+      strokeThickness: 4
     }).setOrigin(0.5).setDepth(15);
     if (open) {
       this.tweens.add({
@@ -140,21 +132,22 @@ export class ExploreScene extends Phaser.Scene {
         repeat: -1
       });
     }
-    ring.on("pointerdown", () => this.openTrain(stage));
+    pinHit(this, p.x, p.y, 26, 21, () => this.openTrain(stage));
   }
 
   drawLegend(W, H) {
     const y = H - 28;
     const items = [
-      { c: 0xff6a22, k: "legendShown" },
-      { c: 0x7d5cff, k: "legendSealed" },
-      { c: 0x8aa0b4, k: "legendFog" }
+      { c: 0xff5a1f, k: "legendFire" },
+      { c: 0x3ad6ff, k: "legendWater" },
+      { c: 0xc8ff3a, k: "legendVolt" },
+      { c: 0xe0a24a, k: "legendEarth" }
     ];
-    const start = W / 2 - 310;
+    const start = W / 2 - 380;
     items.forEach((it, i) => {
-      const x = start + i * 220;
-      this.add.circle(x, y, 7, it.c, 1).setDepth(10);
-      this.add.text(x + 14, y, t("wiki." + it.k), {
+      const x = start + i * 200;
+      this.add.circle(x, y, 8, it.c, 1).setStrokeStyle(2, 0xfff6ea, 0.9).setDepth(10);
+      this.add.text(x + 14, y, t("explore." + it.k), {
         fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#3a2418"
       }).setOrigin(0, 0.5).setDepth(10);
     });
@@ -162,6 +155,16 @@ export class ExploreScene extends Phaser.Scene {
 
   locCopy(loc) {
     return I18n.lang === "en" ? loc.en : loc.th;
+  }
+
+  openHint() {
+    this.buildPopup({
+      chip: "#c45a16",
+      status: t("explore.hintBtn"),
+      title: t("explore.hintTitle"),
+      region: "",
+      body: t("explore.hint")
+    });
   }
 
   openLoc(loc) {
