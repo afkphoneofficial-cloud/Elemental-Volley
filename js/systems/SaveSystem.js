@@ -223,6 +223,16 @@ export const SaveSystem = {
     return { ok: true };
   },
 
+  buyWithPremium(id, price, qty) {
+    const n = Math.max(1, qty | 0);
+    const cost = Math.max(1, price | 0) * n;
+    if ((this.data.currencies.premium | 0) < cost) return { ok: false, reason: "premium" };
+    if (!ITEMS[id] || ITEMS[id].kind !== "use") return { ok: false, reason: "no" };
+    this.data.currencies.premium -= cost;
+    this.addItem(id, n);
+    return { ok: true };
+  },
+
   itemCount(id) {
     if (!this.data.inventory) this.data.inventory = {};
     return this.data.inventory[id] | 0;

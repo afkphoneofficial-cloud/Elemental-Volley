@@ -315,6 +315,32 @@ export class ShopScene extends Phaser.Scene {
             });
           }
         });
+      } else if (good.itemId) {
+        const id = good.itemId;
+        this.paintCard(cells[i].x, cells[i].y, {
+          title: t("item." + id + ".name"),
+          icon: itemIconKey(id),
+          hint: "",
+          stroke: 0x7ae8a0,
+          accent: 0x3ad68a,
+          priceIcon: "item-powder",
+          price: good.price,
+          onClick: () => {
+            openShopBuy(this, {
+              title: t("item." + id + ".name"),
+              icon: itemIconKey(id),
+              kind: t("shop.kindTrade"),
+              owned: SaveSystem.itemCount(id),
+              body: "",
+              priceIcon: "item-powder",
+              unitPrice: good.price,
+              have: this.bag().premium | 0,
+              maxQty: 99,
+              onConfirm: (qty) => SaveSystem.buyWithPremium(id, good.price, qty),
+              after: () => this.refresh()
+            });
+          }
+        });
       } else {
         this.paintCard(cells[i].x, cells[i].y, {
           ...shardCard,
