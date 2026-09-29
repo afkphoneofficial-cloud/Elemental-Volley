@@ -35,17 +35,8 @@ export function paintHubNav(scene) {
   const H = scene.scale.height;
   const bw = 72;
   const bh = 72;
-  const pad = 10;
-  const pw = bw + pad * 2;
-  const ph = bh + pad * 2;
   const x = W / 2;
   const y = H - HUB_NAV.y;
-
-  const shell = keep(scene, scene.add.graphics().setDepth(18));
-  shell.fillStyle(0xfff6ea, 1);
-  shell.fillRoundedRect(x - pw / 2, y - ph / 2, pw, ph, 22);
-  shell.lineStyle(3, 0xff6a22, 1);
-  shell.strokeRoundedRect(x - pw / 2, y - ph / 2, pw, ph, 22);
 
   const gfx = keep(scene, scene.add.graphics().setDepth(20));
   const draw = (hot) => {

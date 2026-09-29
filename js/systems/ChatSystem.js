@@ -25,6 +25,8 @@ function els() {
 
 const CHAT_CAP = 30;
 const WORLD_MS = 10 * 60 * 1000;
+const CHAT_PANEL_W = Math.round(268 * 1.5);
+const HUB_CHAT_BTN = { w: 72, h: 72 };
 
 function worldSince() {
   return new Date(Date.now() - WORLD_MS).toISOString();
@@ -351,16 +353,21 @@ export const ChatSystem = {
     ui.dock.hidden = !this.visible || (onHub && !this.open);
     if (ui.toggle) ui.toggle.hidden = onHub;
     ui.dock.classList.toggle("on-hub", onHub);
-    const panelW = 268;
-    const cx = hubNavX(0, 1280);
-    ui.dock.style.left = (r.left + (cx - panelW / 2) * scale) + "px";
-    ui.dock.style.bottom = (window.innerHeight - r.bottom + (HUB_NAV.y + HUB_NAV.h / 2 + 10) * scale) + "px";
-    ui.dock.style.width = Math.round(panelW * scale) + "px";
+    ui.dock.style.width = Math.round(CHAT_PANEL_W * scale) + "px";
     ui.dock.style.setProperty("--chat-scale", String(scale));
-    if (!onHub) {
-      ui.dock.style.left = (r.left + (cx - HUB_NAV.w / 2) * scale) + "px";
-      ui.dock.style.width = Math.round(Math.max(HUB_NAV.w, this.open ? panelW : HUB_NAV.w) * scale) + "px";
+    if (onHub) {
+      const btnLeft = 1280 / 2 - HUB_CHAT_BTN.w / 2;
+      const btnBottom = 720 - HUB_NAV.y + HUB_CHAT_BTN.h / 2;
+      const gap = 12;
+      const left = btnLeft - gap - CHAT_PANEL_W;
+      ui.dock.style.left = (r.left + left * scale) + "px";
+      ui.dock.style.bottom = (window.innerHeight - r.bottom + (720 - btnBottom) * scale) + "px";
+      return;
     }
+    const cx = hubNavX(0, 1280);
+    ui.dock.style.left = (r.left + (cx - HUB_NAV.w / 2) * scale) + "px";
+    ui.dock.style.bottom = (window.innerHeight - r.bottom + (HUB_NAV.y + HUB_NAV.h / 2 + 10) * scale) + "px";
+    if (!this.open) ui.dock.style.width = Math.round(HUB_NAV.w * scale) + "px";
   }
 };
 
