@@ -189,7 +189,7 @@ export class ModeScene extends Phaser.Scene {
 
   dropBody(id) {
     if (id === "xp") return t("hub.dropXpBody");
-    return t("item." + id + ".body") + "\n\n" + t("item." + id + ".how") + "\n\n" + t("item." + id + ".use");
+    return t("item." + id + ".body") + "\n\n" + t("item." + id + ".use");
   }
 
   openDropRates(mode) {
@@ -270,26 +270,27 @@ export class ModeScene extends Phaser.Scene {
     const H = this.scale.height;
     const dx = W / 2 + 250;
     const keep = (o) => { this.dropDetail.push(o); return o; };
-    keep(this.add.circle(dx, H / 2 - 90, 58, 0xffe8c8, 1).setStrokeStyle(3, 0xff6a22, 0.55).setDepth(72));
+    keep(this.add.circle(dx, H / 2 - 118, 54, 0xffe8c8, 1).setStrokeStyle(3, 0xff6a22, 0.55).setDepth(72));
     if (id === "xp") {
-      keep(this.add.text(dx, H / 2 - 90, "XP", {
+      keep(this.add.text(dx, H / 2 - 118, "XP", {
         fontFamily: UI_FONT, fontSize: "32px", fontStyle: "900", color: "#c45a16"
       }).setOrigin(0.5).setDepth(73));
     } else {
       const ik = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
-      keep(this.add.image(dx, H / 2 - 90, ik).setDisplaySize(96, 96).setDepth(73));
+      keep(this.add.image(dx, H / 2 - 118, ik).setDisplaySize(96, 96).setDepth(73));
     }
-    keep(this.add.text(dx, H / 2 - 12, this.dropName(id), {
+    const nameTx = keep(this.add.text(dx, H / 2 - 48, this.dropName(id), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418",
       align: "center", wordWrap: { width: 340 }
-    }).setOrigin(0.5).setDepth(72));
-    keep(this.add.text(dx, H / 2 + 22, this.dropWhen(id), {
+    }).setOrigin(0.5, 0).setDepth(72));
+    const whenY = H / 2 - 48 + nameTx.height + 8;
+    const whenTx = keep(this.add.text(dx, whenY, this.dropWhen(id), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
-    }).setOrigin(0.5).setDepth(72));
-    keep(this.add.text(dx, H / 2 + 88, this.dropBody(id), {
+    }).setOrigin(0.5, 0).setDepth(72));
+    keep(this.add.text(dx, whenY + whenTx.height + 10, this.dropBody(id), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "600", color: "#5a3828",
       align: "center", wordWrap: { width: 340 }, lineSpacing: 5
-    }).setOrigin(0.5).setDepth(72));
+    }).setOrigin(0.5, 0).setDepth(72));
   }
 
   rankCard(x, y, w, h, title, body, kind, onClick) {
