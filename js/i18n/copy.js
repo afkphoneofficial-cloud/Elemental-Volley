@@ -30,7 +30,7 @@ export const COPY = {
       signedIn: "บัญชี  ·  {name}"
     },
     auth: {
-      login: "ต้องเข้าสู่ระบบด้วย Gmail ก่อน จึงจะเล่นและเห็นข้อมูลในไอดีได้",
+      login: "ยินดีต้อนรับสู่โลกธาตุ"
       wikiFirst: "ดูแผนที่โลกก่อน"
     },
     hub: {
@@ -545,7 +545,7 @@ export const COPY = {
       signedIn: "Signed in  ·  {name}"
     },
     auth: {
-      login: "Sign in with Gmail to play and load your account",
+      login: "Welcome to the elemental world"
       wikiFirst: "View the world map first"
     },
     hub: {
