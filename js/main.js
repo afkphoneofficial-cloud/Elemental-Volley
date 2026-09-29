@@ -3,6 +3,7 @@ import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
 import { I18n } from "./i18n/I18n.js";
 import { mountLobbyStage } from "./web/LobbyStage.js";
+import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
 import { BootScene } from "./scenes/BootScene.js";
 import { AuthScene } from "./scenes/AuthScene.js";
