@@ -33,7 +33,6 @@ import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { texFace, texDive, clampSkin } from "../data/skins.js";
 import {
   GAUGE_MAX,
-  HOLD_FRAMES,
   MATCH_FX,
   UltState,
   resetMatchUlt,
@@ -88,6 +87,7 @@ export class PlayScene extends Phaser.Scene {
     this.lastHitter = 0;
     this.season = Session.courtId || "summer";
     this.enterHold = 0;
+    this.enterDownAt = 0;
     this.ultArmed = false;
     this.streak = 0;
     this.streakSide = 0;
@@ -603,20 +603,18 @@ export class PlayScene extends Phaser.Scene {
     if (this.roundEnded) {
       this.ultArmed = false;
       this.enterHold = 0;
+      this.enterDownAt = 0;
       input.powerHit = 0;
-    } else if (isFull(myIdx)) {
-      if (down) {
-        this.enterHold += 1;
-        if (this.enterHold >= HOLD_FRAMES) this.ultArmed = true;
-        input.powerHit = 1;
-      } else {
-        input.powerHit = 0;
-        this.enterHold = 0;
-      }
+    } else if (down) {
+      if (!this.enterDownAt) this.enterDownAt = this.time.now;
+      this.enterHold += 1;
+      if (isFull(myIdx) && this.time.now - this.enterDownAt >= 200) this.ultArmed = true;
+      input.powerHit = 1;
     } else {
-      this.ultArmed = false;
+      input.powerHit = 0;
       this.enterHold = 0;
-      input.powerHit = !this.enterWasDown && down ? 1 : 0;
+      this.enterDownAt = 0;
+      if (!isFull(myIdx)) this.ultArmed = false;
     }
     this.enterWasDown = down;
     idle.xDirection = 0;
@@ -1031,6 +1029,7 @@ export class PlayScene extends Phaser.Scene {
     tickPointStatuses();
     this.ultArmed = false;
     this.enterHold = 0;
+    this.enterDownAt = 0;
     const youScore = this.youSide === 1 ? this.score[0] : this.score[1];
     const botScore = this.youSide === 1 ? this.score[1] : this.score[0];
     const need = GAME.winScore - 1;
@@ -1121,6 +1120,7 @@ export class PlayScene extends Phaser.Scene {
     this.justUlted = true;
     this.ultArmed = false;
     this.enterHold = 0;
+    this.enterDownAt = 0;
     this.ultCut.show(courtSide, ult.id, this.faceKey(ult.id, courtSide));
     this.cameras.main.flash(70, 255, 236, 210);
     const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };

@@ -47,6 +47,7 @@ export const NetPlay = {
   ready: false,
   ticks: [],
   lastIn: 0,
+  lastSent: { x: 0, y: 0, p: 0 },
   pending: { x: 0, y: 0, p: 0 },
   cooldownUntil: 0,
   lastOffer: null,
@@ -251,15 +252,19 @@ export const NetPlay = {
   },
 
   sendInput(input) {
-    this.pending = {
+    const next = {
       x: input.xDirection | 0,
       y: input.yDirection | 0,
       p: input.powerHit | 0
     };
+    this.pending = next;
     const now = Date.now();
-    if (now - this.lastIn < 36) return;
+    const prev = this.lastSent || { x: 0, y: 0, p: 0 };
+    const changed = prev.x !== next.x || prev.y !== next.y || prev.p !== next.p;
+    if (!changed && now - this.lastIn < 36) return;
     this.lastIn = now;
-    this.send({ t: "in", ...this.pending });
+    this.lastSent = next;
+    this.send({ t: "in", ...next });
   },
 
   takeTick() {

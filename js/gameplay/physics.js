@@ -574,7 +574,7 @@ function processPlayerMovementAndSetPlayerPosition(
  player.y === PLAYER_TOUCHING_GROUND_Y_COORD // player is touching on the ground
  ) {
  const jMul = growthMul(MATCH_FX.jumpMul, player.isPlayer2 ? 1 : 0) * growthMul(GROWTH_FX.jumpMul, player.isPlayer2 ? 1 : 0);
- player.yVelocity = -16 * jMul;
+ player.yVelocity = Math.abs(jMul - 1) < 1e-6 ? -16 : -16 * jMul;
  player.state = 1;
  player.frameNumber = 0;
  // maybe-stereo-sound function FUN_00408470 (0x90) omitted:
@@ -588,8 +588,6 @@ function processPlayerMovementAndSetPlayerPosition(
  if (!Number.isFinite(player.y)) player.y = PLAYER_TOUCHING_GROUND_Y_COORD;
  const futurePlayerY = player.y + player.yVelocity;
  player.y = futurePlayerY;
- if (player.y < 40) player.y = 40;
- if (player.y > PLAYER_TOUCHING_GROUND_Y_COORD) player.y = PLAYER_TOUCHING_GROUND_Y_COORD;
  if (futurePlayerY < PLAYER_TOUCHING_GROUND_Y_COORD) {
  player.yVelocity += 1;
  } else if (futurePlayerY > PLAYER_TOUCHING_GROUND_Y_COORD) {
