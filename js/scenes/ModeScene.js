@@ -6,6 +6,9 @@ import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { MODE_DROPS } from "../data/modeDrops.js";
 import { itemIconKey } from "../data/items.js";
+import {
+  formatYmd, formatYmdShort, isRankWindowOpen, rankWindow
+} from "../data/rankWindows.js";
 
 export class ModeScene extends Phaser.Scene {
   constructor() { super("mode"); }
