@@ -30,6 +30,7 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    SaveSystem.grantTryPowder();
     drawGrid(this);
     const W = this.scale.width;
     paintWalletBar(this, "shop");

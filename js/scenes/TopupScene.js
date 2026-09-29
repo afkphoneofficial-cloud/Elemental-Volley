@@ -1,6 +1,7 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
 import { t } from "../i18n/I18n.js";
 import { TOPUP_PACKS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
@@ -14,6 +15,7 @@ export class TopupScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    SaveSystem.grantTryPowder();
     drawGrid(this);
     const W = this.scale.width;
     paintWalletBar(this, "topup");
@@ -63,10 +65,5 @@ export class TopupScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5);
     });
-
-    this.add.text(W / 2, 668, t("topup.foot"), {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#8a5a38",
-      align: "center", wordWrap: { width: 1000 }
-    }).setOrigin(0.5);
   }
 }

@@ -44,6 +44,7 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    SaveSystem.grantTryPowder();
     NetPlay.ensure();
     drawGrid(this);
     const W = this.scale.width;

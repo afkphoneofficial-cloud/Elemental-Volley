@@ -300,6 +300,14 @@ export const SaveSystem = {
     this.persist();
   },
 
+  grantTryPowder() {
+    if (this.data.tryCostumePowder) return 0;
+    this.data.tryCostumePowder = true;
+    this.data.currencies.premium = (this.data.currencies.premium | 0) + 3000;
+    this.persist();
+    return 3000;
+  },
+
   addTokens(amount) {
     this.data.currencies.tokens += amount;
     this.persist();
