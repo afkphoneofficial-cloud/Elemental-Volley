@@ -61,6 +61,7 @@ window.game = new Phaser.Game({
 });
 
 SaveSystem.load();
+window.SaveSystem = SaveSystem;
 I18n.load();
 I18n.mountToggle();
 mountLobbyStage();
