@@ -33,6 +33,10 @@ export class RankScene extends Phaser.Scene {
       const dest = this.from === "queue" ? "queue" : this.from;
       this.scene.start(dest);
     }, 0x7d5cff);
+    makeButton(this, this.scale.width - 118, 36, 196, 40, t("career.season"), () => {
+      AudioSystem.ui();
+      this.scene.start("season", { from: "rankinfo", via: this.from, tab: this.tab === "special" ? "special" : "pvp" });
+    }, 0xc8ff3a);
 
     if (this.tab === "special") this.paintEpicSkin(W, H);
     if (this.tab === "rules") this.paintRules(W, H);
@@ -363,10 +367,7 @@ export class RankScene extends Phaser.Scene {
       t("rank.body2", { star: RANK_STAR_MMR }),
       t("rank.body3"),
       t("rank.body4"),
-      t("rank.body5"),
-      t("rank.body6"),
-      t("rank.body7"),
-      t("rank.body8")
+      t("rank.body5")
     ].join("\n");
     const bodyTx = this.add.text(W / 2, 430, body, {
       fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 1000 }, lineSpacing: 8

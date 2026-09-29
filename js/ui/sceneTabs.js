@@ -38,6 +38,13 @@ export function paintSettingsTabs(scene, active) {
   ], active);
 }
 
+export function paintSeasonTabs(scene, active) {
+  paintTabs(scene, 36, [
+    { id: "pvp", label: t("rank.tabPvp"), color: 0x7d5cff, go: () => scene.scene.start("season", { from: scene.from, via: scene.via, tab: "pvp" }) },
+    { id: "special", label: t("rank.tabSpecial"), color: 0xffd24a, go: () => scene.scene.start("season", { from: scene.from, via: scene.via, tab: "special" }) }
+  ], active, 176);
+}
+
 export function paintRankTabs(scene, active) {
   const from = scene.from || "hub";
   paintTabs(scene, 36, [

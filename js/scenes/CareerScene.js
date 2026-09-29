@@ -101,7 +101,11 @@ export class CareerScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "career", tab: "pvp" });
     }, 0xffb14a);
-    makeButton(this, W - 150, 36, 200, 40, t("career.howRank"), () => {
+    makeButton(this, W - 150, 36, 200, 40, t("career.season"), () => {
+      AudioSystem.ui();
+      this.scene.start("season", { from: "career", tab: "pvp" });
+    }, 0xc8ff3a);
+    makeButton(this, 280, 36, 180, 40, t("career.howRank"), () => {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "career", tab: "rules" });
     }, 0x3ad6ff);

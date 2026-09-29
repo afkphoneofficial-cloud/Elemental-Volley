@@ -148,9 +148,6 @@ export const COPY = {
       body3: "ชนะคู่ที่แต้มสูงกว่าได้แต้มมาก แพ้คู่ที่แต้มต่ำกว่าเสียมาก คิดจากโอกาสชนะคาดหวังตามช่องว่างแต้มสนาม",
       body4: "คิวขยายวงแต้มทุก 1.8 วินาที หาคนในคิวที่แต้มใกล้กันก่อน ถ้าเกาะยังว่างจะจับคู่แข่งเกาะในวงเดียวกัน เพื่อวัดอันดับได้เลย",
       body5: "โหมดบอทไม่ขยับอันดับและไม่กินเอเธอร์  สนามจัดอันดับกิน 1 เอเธอร์ตอนเจอคู่  กระดานเซิร์ฟโชว์ 100 อันดับแรกจากแต้มสนามที่บันทึกจริง",
-      body6: "ซีซั่นอันดับนับจันทร์–อาทิตย์ตามกรุงเทพ Rank Mode กับ Elements Rank คนละกระดาน คนละรางวัล จบสัปดาห์ส่งเข้าจดหมาย",
-      body7: "อันดับ 1 ได้ป้าย+เชียร์+เศษธาตุ  ·  2–3 ป้าย+เศษ  ·  4–10 ป้าย+เศษ  ·  11–50 เศษธาตุ  ·  51–100 ได้เอเธอร์ 30 ก้อน  ·  แข่งครบ 3 แมตช์ได้เอเธอร์ 10 ก้อนแม้ไม่ติดร้อย  Elements Rank ท็อป 10 มีผลคืนกาย",
-      body8: "เอเธอร์จากซีซั่นอยู่ในขวดในกระเป๋า ใช้ทีละ 1 ก้อนได้เฉพาะตอนหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้",
       tier: {
         sandling: "ลูกทราย",
         netling: "เฝ้าตาข่าย",
@@ -161,6 +158,18 @@ export const COPY = {
         primal: "ธาตุบริสุทธิ์",
         eternal: "สไปค์นิรันดร์"
       }
+    },
+    season: {
+      title: "รางวัลซีซั่น",
+      sub: "จันทร์–อาทิตย์ตามกรุงเทพ  ·  คนละกระดานคนละรางวัล  ·  จบสัปดาห์ส่งเข้าจดหมาย",
+      colPlace: "อันดับ",
+      colReward: "รางวัล",
+      place1: "1",
+      "place2-3": "2 – 3",
+      "place4-10": "4 – 10",
+      "place11-50": "11 – 50",
+      "place51-100": "51 – 100",
+      play: "แข่งครบ 3 แมตช์"
     },
     queue: {
       title: "กำลังหาคู่แข่ง",
@@ -337,7 +346,8 @@ export const COPY = {
       freeNote: "เปลี่ยนได้ตลอด  ·  ของพิเศษจะมาในร้านค้าภายหลัง",
       close: "ปิด",
       howRank: "กฎอันดับ",
-      board: "กระดานอันดับ"
+      board: "กระดานอันดับ",
+      season: "รางวัลซีซั่น"
     },
     select: {
       title: "เลือกตัวละคร เพื่อสำรวจแผนที่โลก",
@@ -790,9 +800,6 @@ export const COPY = {
       body3: "Beating a higher-rated rival pays more. Losing to a lower-rated rival costs more. The swing follows expected win chance from the court-score gap.",
       body4: "The queue widens every 1.8s. It prefers a live player in range. If the island is quiet, you get a court-matched island rival so rank still moves.",
       body5: "Bots never change rank and never spend Ether. Ranked spends 1 Ether when a rival is found. The server board shows the top 100 from saved court scores.",
-      body6: "A ranking season is Monday–Sunday Bangkok time. Rank Mode and Elements Rank are separate boards with separate prizes. Rewards land in mail when the week closes.",
-      body7: "Place 1: plate + cheer + shards. 2–3: plate + shards. 4–10: plate + shards. 11–50: shards. 51–100: 30 Ether. Play 3 matches: 10 Ether even off the board. Elements Rank top 10 also get Bodyfruit.",
-      body8: "Season Ether arrives as bag vials. Use one at a time only when the pool isn't full. If it's full or the grant would overflow, the button does nothing.",
       tier: {
         sandling: "Sandling",
         netling: "Netling",
@@ -803,6 +810,18 @@ export const COPY = {
         primal: "Primal Tide",
         eternal: "Eternal Spike"
       }
+    },
+    season: {
+      title: "Season rewards",
+      sub: "Monday–Sunday, Bangkok  ·  Separate boards, separate prizes  ·  Mail at week close",
+      colPlace: "Place",
+      colReward: "Rewards",
+      place1: "1",
+      "place2-3": "2 – 3",
+      "place4-10": "4 – 10",
+      "place11-50": "11 – 50",
+      "place51-100": "51 – 100",
+      play: "Play 3 matches"
     },
     queue: {
       title: "Finding a rival",
@@ -979,7 +998,8 @@ export const COPY = {
       freeNote: "Swap anytime  ·  Shop extras come later",
       close: "Close",
       howRank: "Rank rules",
-      board: "Leaderboard"
+      board: "Leaderboard",
+      season: "Season rewards"
     },
     select: {
       title: "Pick a fighter to explore the world map",
