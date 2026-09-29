@@ -30,7 +30,7 @@ export const COPY = {
       signedIn: "บัญชี  ·  {name}"
     },
     auth: {
-      login: "ยินดีต้อนรับสู่โลกธาตุ"
+      login: "ยินดีต้อนรับสู่โลกธาตุ",
       wikiFirst: "ดูแผนที่โลกก่อน"
     },
     hub: {
@@ -545,7 +545,7 @@ export const COPY = {
       signedIn: "Signed in  ·  {name}"
     },
     auth: {
-      login: "Welcome to the elemental world"
+      login: "Welcome to the elemental world",
       wikiFirst: "View the world map first"
     },
     hub: {
