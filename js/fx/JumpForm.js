@@ -104,7 +104,6 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
         gfx.fillStyle(0xff6a22, 0.18);
         gfx.fillCircle(x, y + i * 14, 12 - i);
       }
-      burst(scene, spark, x, y + 8, 0xff6a22, 3);
     } else if (charId === "aqua") {
       form.setTexture("jump-water");
       form.setVisible(true);
@@ -121,7 +120,6 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
         gfx.fillStyle(0x9af6ff, 0.55);
         gfx.fillCircle(x + Math.cos(a) * 18, y + 16 + i * 7, 4);
       }
-      burst(scene, spark, x, y + 10, 0x66e8ff, 3);
     } else if (charId === "volt") {
       const ox = slot.origin.x;
       const oy = slot.origin.y - 6;
@@ -134,8 +132,6 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
       gfx.fillStyle(0xe8ff3a, 0.45);
       gfx.fillCircle(x, y, 28);
       sparkles(gfx, x, y, now, 14, 0xffffaa, 40);
-      burst(scene, spark, x, y, 0xe8ff3a, 5);
-      burst(scene, spark, ox, oy, 0xffffff, 2);
     } else {
       const top = Math.min(y, groundY - 10);
       const h = Math.max(18, groundY - top);
@@ -152,8 +148,6 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
       gfx.fillStyle(0x8fd35a, 0.85);
       gfx.fillCircle(x + 6, top + 4, 7);
       sparkles(gfx, x, top, now, 8, 0xc8ff3a, 26);
-      burst(scene, spark, x, top, 0xc07830, 3);
-      burst(scene, spark, x, groundY - 4, 0x8a5a2a, 2);
     }
     return;
   }
@@ -174,7 +168,6 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
     gfx.fillEllipse(x - spread, y - 6, size * 0.5, size * 0.2);
     gfx.fillEllipse(x + spread, y - 6, size * 0.5, size * 0.2);
     sparkles(gfx, x, y, now, 8, 0xffe08a, 28);
-    burst(scene, spark, x, y + 6, 0xffd24a, 1);
   } else {
     sprite.setAngle(0);
     if (charId === "aqua") sparkles(gfx, x, y, now, 6, 0x9af6ff, 24);

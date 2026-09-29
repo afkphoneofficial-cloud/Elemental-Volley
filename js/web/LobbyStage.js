@@ -132,6 +132,16 @@ function loadImg(src) {
   });
 }
 
+function playSceneLive() {
+  try {
+    const g = window.game;
+    if (!g || !g.scene || typeof g.scene.isActive !== "function") return false;
+    return g.scene.isActive("play") || g.scene.isActive("luck") || g.scene.isActive("result");
+  } catch (e) {
+    return false;
+  }
+}
+
 export async function mountLobbyStage() {
   const canvas = document.getElementById("lobby-bg");
   const fgCanvas = document.getElementById("lobby-fg");
@@ -161,6 +171,7 @@ export async function mountLobbyStage() {
   }));
 
   let raf = 0;
+  let paintedStill = false;
   let start = performance.now();
   let lastNow = start;
   const flyer = {
@@ -232,6 +243,18 @@ export async function mountLobbyStage() {
   };
 
   const loop = (now) => {
+    if (document.hidden) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+    if (playSceneLive()) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+    if (still() && paintedStill) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
     const W = window.innerWidth;
     const H = window.innerHeight;
     const t = (now - start) / 1000;
@@ -420,13 +443,20 @@ export async function mountLobbyStage() {
       drawSprite(layer, "aqua_l", g.right + 8, edge.aquaY, edge.charSize * edge.squashR);
     }
 
-    if (!still()) raf = requestAnimationFrame(loop);
+    paintedStill = still();
+    raf = requestAnimationFrame(loop);
   };
 
+  let kicking = false;
   const kick = () => {
+    if (kicking) return;
+    kicking = true;
+    paintedStill = false;
     cancelAnimationFrame(raf);
-    if (still()) loop(performance.now());
-    else raf = requestAnimationFrame(loop);
+    raf = requestAnimationFrame((t) => {
+      kicking = false;
+      loop(t);
+    });
   };
 
   document.addEventListener("visibilitychange", () => {

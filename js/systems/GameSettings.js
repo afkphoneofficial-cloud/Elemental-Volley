@@ -43,10 +43,19 @@ export function mergeSettings(raw) {
   return next;
 }
 
+let bagCache = null;
+
 function bag() {
-  if (!SaveSystem.data.settings) SaveSystem.data.settings = defaultSettings();
-  SaveSystem.data.settings = mergeSettings(SaveSystem.data.settings);
-  return SaveSystem.data.settings;
+  const raw = SaveSystem.data && SaveSystem.data.settings;
+  if (bagCache && bagCache === raw) return bagCache;
+  const next = mergeSettings(raw);
+  if (SaveSystem.data) SaveSystem.data.settings = next;
+  bagCache = next;
+  return next;
+}
+
+export function invalidateSettingsCache() {
+  bagCache = null;
 }
 
 export function settings() {
@@ -60,6 +69,7 @@ export function patchSettings(partial) {
     next.bgmPages = { ...cur.bgmPages, ...partial.bgmPages };
   }
   SaveSystem.data.settings = next;
+  bagCache = next;
   SaveSystem.persist();
   try { window.dispatchEvent(new CustomEvent("ev-settings")); } catch (e) {}
   return next;

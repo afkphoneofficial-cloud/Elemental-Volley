@@ -969,8 +969,10 @@ export class PlayScene extends Phaser.Scene {
     this.p2.setTexture(this.poseKey(this.rightData.id, 2, a.player2));
     this.p1.setFlipX(false);
     this.p2.setFlipX(false);
-    syncJumpForm(this, this.jslot1, a.player1, this.p1, this.jform1, this.jfx1, this.leftData.id, this.time.now, CHAR, this.jspark1);
-    syncJumpForm(this, this.jslot2, a.player2, this.p2, this.jform2, this.jfx2, this.rightData.id, this.time.now, CHAR, this.jspark2);
+    try {
+      syncJumpForm(this, this.jslot1, a.player1, this.p1, this.jform1, this.jfx1, this.leftData.id, this.time.now, CHAR, this.jspark1);
+      syncJumpForm(this, this.jslot2, a.player2, this.p2, this.jform2, this.jfx2, this.rightData.id, this.time.now, CHAR, this.jspark2);
+    } catch (e) {}
     this.p1.setTint(a.player1.state === 2 ? 0xffe0a0 : 0xffffff);
     this.p2.setTint(a.player2.state === 2 ? 0xe8ffa0 : 0xffffff);
     if (a.ball.isPowerHit) {
