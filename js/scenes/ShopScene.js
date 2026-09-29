@@ -1,4 +1,4 @@
-import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, makeIconCircle, UI_FONT } from "../ui/Ui.js";
 import { paintTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS, ROSTER } from "../data/roster.js";
 import { ECONOMY } from "../data/economy.js";
@@ -10,6 +10,7 @@ import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
+import { SELECT_PLATE } from "../fx/SelectHover.js";
 
 export class ShopScene extends Phaser.Scene {
   constructor() { super("shop"); }
@@ -55,24 +56,48 @@ export class ShopScene extends Phaser.Scene {
     this.scene.start("shop", { tab: this.tab });
   }
 
+  plate(x, y, r, stroke) {
+    this.add.circle(x, y, r + 10, 0xffffff, 0.32).setDepth(5);
+    this.add.circle(x, y, r, 0xfff6ea, 1).setStrokeStyle(5, stroke, 0.92).setDepth(5);
+  }
+
+  pic(key, x, y, size, alpha) {
+    const k = this.textures.exists(key) ? key : "item-shard";
+    return this.add.image(x, y, k).setDisplaySize(size, size).setAlpha(alpha == null ? 1 : alpha).setDepth(8);
+  }
+
+  priceDisc(x, y, r, color, icon, n, onClick) {
+    makeIconCircle(this, x, y, r, color, onClick, 12);
+    this.pic(icon, x - (n != null ? 14 : 0), y, 22);
+    if (n != null) {
+      this.add.text(x + 14, y, String(n), {
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#3a2418"
+      }).setOrigin(0.5).setDepth(14);
+    }
+  }
+
   paintFighters() {
+    const r = 112;
     ROSTER_IDS.forEach((id, i) => {
       const data = ROSTER[id];
       const x = 190 + i * 300;
-      const y = 360;
+      const y = 392;
       const owned = SaveSystem.isUnlocked(id);
-      this.add.rectangle(x, y, 250, 280, 0x161022, 0.94).setStrokeStyle(2, data.colors.main, 0.7);
+      const stroke = SELECT_PLATE[id] || data.colors.main;
+      this.plate(x, y, r, stroke);
       const face = this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id;
-      this.add.image(x, y - 48, face).setDisplaySize(120, 120).setAlpha(owned ? 1 : 0.4).setDepth(6);
-      this.add.text(x, y + 62, I18n.charName(id), {
-        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#fff4e8"
+      this.add.image(x, y - 40, face).setDisplaySize(124, 124).setAlpha(owned ? 1 : 0.42).setDepth(8);
+      this.add.text(x, y + r + 22, I18n.charName(id), {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
       }).setOrigin(0.5);
+      const discY = y + 70;
       if (owned) {
-        this.add.text(x, y + 98, t("shop.owned"), {
-          fontFamily: UI_FONT, fontSize: "14px", color: "#c8ff3a"
-        }).setOrigin(0.5);
+        makeIconCircle(this, x, discY, 28, 0x2a7a38, null, 12);
+        this.add.text(x, discY, "✓", {
+          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#2a7a38"
+        }).setOrigin(0.5).setDepth(14);
       } else {
-        makeButton(this, x, y + 108, 200, 40, t("shop.unlock"), () => {
+        this.priceDisc(x, discY, 32, 0xff6a22, "item-shard", ECONOMY.unlockTokenCost, () => {
           const res = SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost);
           res.ok ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
@@ -82,94 +107,99 @@ export class ShopScene extends Phaser.Scene {
   }
 
   paintCosmetics() {
+    const r = 128;
     CHEER_THEME_IDS.forEach((id, i) => {
       const theme = CHEER_THEMES[id];
       const x = 250 + i * 390;
-      const y = 380;
-      this.add.rectangle(x, y, 360, 280, 0x161022, 0.94).setStrokeStyle(2, theme.stroke, 0.8);
-      this.add.text(x, y - 100, cheerThemeLabel(theme), {
-        fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#fff4e8"
-      }).setOrigin(0.5);
-      this.add.text(x, y - 58, cheerThemeBlurb(theme), {
-        fontFamily: UI_FONT, fontSize: "14px", color: "#c8bdd8", align: "center", wordWrap: { width: 320 }
-      }).setOrigin(0.5);
+      const y = 400;
+      this.plate(x, y, r, theme.stroke);
+      this.add.text(x, y - 78, cheerThemeLabel(theme), {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
+      }).setOrigin(0.5).setDepth(8);
+      this.add.text(x, y - 48, cheerThemeBlurb(theme), {
+        fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30", align: "center", wordWrap: { width: 200 }
+      }).setOrigin(0.5).setDepth(8);
       const equipped = SaveSystem.equippedCheer() === id;
       const owned = SaveSystem.isCheerUnlocked(id);
+      const discY = y + 70;
       if (theme.comingSoon && !owned) {
-        this.add.text(x, y + 50, t("shop.soon"), {
-          fontFamily: UI_FONT, fontSize: "16px", color: "#8e82a8"
-        }).setOrigin(0.5);
+        makeIconCircle(this, x, discY, 28, 0xc8bdd8, null, 12);
+        this.add.text(x, discY, "🔒", {
+          fontFamily: UI_FONT, fontSize: "18px", color: "#7a4a30"
+        }).setOrigin(0.5).setDepth(14);
       } else if (equipped) {
-        this.add.text(x, y + 50, t("shop.using"), {
-          fontFamily: UI_FONT, fontSize: "16px", color: "#c8ff3a"
-        }).setOrigin(0.5);
+        makeIconCircle(this, x, discY, 28, 0x2a7a38, null, 12);
+        this.add.text(x, discY, "✓", {
+          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#2a7a38"
+        }).setOrigin(0.5).setDepth(14);
       } else if (owned) {
-        makeButton(this, x, y + 58, 180, 40, t("shop.wear"), () => {
+        makeIconCircle(this, x, discY, 32, 0x7d5cff, () => {
           SaveSystem.equipCheer(id);
           AudioSystem.ui();
           this.refresh();
-        }, 0x7d5cff);
+        }, 12);
+        this.add.text(x, discY, "▶", {
+          fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0.5).setDepth(14);
       } else {
-        makeButton(this, x, y + 58, 240, 40, t("shop.buyPowder", { price: theme.price }), () => {
+        this.priceDisc(x, discY, 34, 0x3ad6ff, "item-powder", theme.price, () => {
           const res = SaveSystem.unlockCheer(id);
           res.ok ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
-        }, 0x3ad6ff);
+        });
       }
     });
   }
 
   paintItems() {
     const W = this.scale.width;
+    const r = 124;
     SHOP_USE_GOODS.forEach((good, i) => {
       const x = W / 2 - 220 + i * 440;
-      const y = 380;
-      this.add.rectangle(x, y, 400, 260, 0x161022, 0.94).setStrokeStyle(2, 0x3ad6ff, 0.75);
+      const y = 400;
+      this.plate(x, y, r, 0x3ad6ff);
       const ik = itemIconKey(good.id);
-      if (this.textures.exists(ik)) this.add.image(x, y - 70, ik).setDisplaySize(72, 72);
-      this.add.text(x, y + 8, t("item." + good.id + ".name"), {
-        fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#fff4e8"
-      }).setOrigin(0.5);
-      this.add.text(x, y + 44, t("shop.priceCoins", { n: good.price }), {
-        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#ffe08a"
-      }).setOrigin(0.5);
-      makeButton(this, x, y + 92, 220, 44, t("shop.buy"), () => {
+      this.pic(ik, x, y - 28, 88);
+      this.add.text(x, y + 28, t("item." + good.id + ".name"), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#3a2418"
+      }).setOrigin(0.5).setDepth(8);
+      this.priceDisc(x, y + 72, 34, 0xffb14a, "item-coin", good.price, () => {
         const res = SaveSystem.buyWithCoins(good.id, good.price);
         res.ok ? AudioSystem.ui() : AudioSystem.error();
         this.refresh();
-      }, 0xffb14a);
+      });
     });
   }
 
   paintTrade() {
     const W = this.scale.width;
+    const r = 124;
+    const rate = ECONOMY.pvpPerToken | 5;
     SHOP_TRADE_GOODS.forEach((good, i) => {
       const x = W / 2 - 220 + i * 440;
-      const y = 380;
-      this.add.rectangle(x, y, 400, 260, 0x161022, 0.94).setStrokeStyle(2, 0xc8ff3a, 0.75);
+      const y = 400;
+      this.plate(x, y, r, 0xc8ff3a);
       if (good.action === "exchangeShard") {
-        if (this.textures.exists("item-stone")) this.add.image(x - 36, y - 70, "item-stone").setDisplaySize(56, 56);
-        if (this.textures.exists("item-shard")) this.add.image(x + 36, y - 70, "item-shard").setDisplaySize(56, 56);
-        this.add.text(x, y + 8, t("shop.exchange"), {
-          fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#fff4e8",
-          align: "center", wordWrap: { width: 340 }
-        }).setOrigin(0.5);
-        makeButton(this, x, y + 92, 220, 44, t("shop.tradeStone"), () => {
+        this.pic("item-stone", x - 36, y - 28, 52);
+        this.pic("item-shard", x + 36, y - 28, 52);
+        this.add.text(x, y + 18, rate + " : 1", {
+          fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0.5).setDepth(8);
+        this.priceDisc(x, y + 72, 34, 0xc8ff3a, "item-stone", rate, () => {
           const res = SaveSystem.useItem("stone");
           res.ok ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
-        }, 0xc8ff3a);
+        });
       } else {
-        if (this.textures.exists("item-powder")) this.add.image(x - 36, y - 70, "item-powder").setDisplaySize(56, 56);
-        if (this.textures.exists("item-shard")) this.add.image(x + 36, y - 70, "item-shard").setDisplaySize(56, 56);
-        this.add.text(x, y + 8, t("shop.buyTokens"), {
-          fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#fff4e8",
-          align: "center", wordWrap: { width: 340 }
-        }).setOrigin(0.5);
-        makeButton(this, x, y + 92, 240, 44, t("shop.buyPowder", { price: good.price }), () => {
+        this.pic("item-powder", x - 36, y - 28, 52);
+        this.pic("item-shard", x + 36, y - 28, 52);
+        this.add.text(x, y + 18, "100 : 100", {
+          fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0.5).setDepth(8);
+        this.priceDisc(x, y + 72, 34, 0x3ad6ff, "item-powder", good.price, () => {
           SaveSystem.buyTokensWithPremium(good.shards) ? AudioSystem.ui() : AudioSystem.error();
           this.refresh();
-        }, 0x3ad6ff);
+        });
       }
     });
   }

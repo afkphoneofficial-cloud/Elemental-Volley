@@ -315,10 +315,11 @@ export const SaveSystem = {
   },
 
   exchangePvpToTokens(tokenCount) {
-    const cost = tokenCount * 1;
+    const n = Math.max(1, tokenCount | 0);
+    const cost = n * (ECONOMY.pvpPerToken | 5);
     if (this.data.currencies.pvp < cost) return false;
     this.data.currencies.pvp -= cost;
-    this.data.currencies.tokens += tokenCount;
+    this.data.currencies.tokens += n;
     this.persist();
     return true;
   },
