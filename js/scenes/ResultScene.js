@@ -8,7 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
-import { xpForBotMatch } from "../data/growth.js";
+import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { NetPlay } from "../systems/NetPlay.js";
 
 const SEASON_FX = {
@@ -29,7 +29,7 @@ export class ResultScene extends Phaser.Scene {
     this.refChar = this.payload.refChar || null;
     this.verdict = pickRefVerdict(this.win);
     this.page = "verdict";
-    this.bits = { verdict: [], stats: [] };
+    this.bits = { verdict: [], stats: [], loot: [] };
   }
 
   create() {
@@ -40,47 +40,58 @@ export class ResultScene extends Phaser.Scene {
     const pal = SEASON_FX[this.courtId] || SEASON_FX.summer;
     this.pal = pal;
 
-    let pvp = this.win ? ECONOMY.pvpWin : ECONOMY.pvpLoss;
-    SaveSystem.addPvp(pvp);
-    this.bonus = 0;
-    if (this.win) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
-    this.pvpGain = pvp;
     const sc = this.payload.score || {};
+    const youScore = sc.p1 | 0;
+    const foeScore = sc.p2 | 0;
     this.pvpMode = Session.mode === "pvp";
     this.exhibitMode = Session.mode === "exhibit";
+    this.specialMode = Session.mode === "special";
+    this.botMode = Session.mode === "bot";
+    const pay = matchRewards({
+      mode: Session.mode,
+      win: this.win,
+      youScore,
+      foeScore,
+      difficulty: Session.difficulty || "normal"
+    });
+    this.pvpGain = pay.stones;
+    this.shardGain = pay.shards;
+    this.xpGain = pay.xp;
+    this.bonus = 0;
+    if (pay.stones) SaveSystem.addPvp(pay.stones);
+    if (pay.firstWinEligible) this.bonus = SaveSystem.takeFirstWinBonus(ECONOMY.firstWinBonus);
+    if (pay.shards) SaveSystem.addTokens(pay.shards);
+    this.xpLevel = 0;
+    if (pay.xp) {
+      const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, pay.xp);
+      this.xpLevel = sheet.level;
+    }
+    this.hasLoot = hasMatchLoot(pay) || this.bonus > 0;
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
     Session.netHost = false;
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
-    this.xpGain = 0;
-    this.xpLevel = 0;
     if (this.pvpMode) {
       const opp = (Session.rival && Session.rival.mmr) || 1000;
-      const gap = Math.abs((sc.p1 | 0) - (sc.p2 | 0));
+      const gap = Math.abs(youScore - foeScore);
       const applied = applyRankedMatch(SaveSystem.data.rank, opp, this.win, gap);
       SaveSystem.setRank(applied.rank);
       this.rankDelta = applied.delta;
       this.rankAfter = applied.after;
       this.rankCal = isCalibrating(applied.rank);
     }
-    if (Session.mode === "bot") {
-      const gained = xpForBotMatch(this.win, Session.difficulty || "normal");
-      const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, gained);
-      this.xpGain = gained;
-      this.xpLevel = sheet.level;
-    }
     const rival = Session.rival;
     const foeName = rival ? (I18n.lang === "en" ? rival.nameEn : rival.nameTh) : "";
     SaveSystem.recordMatch({
       win: this.win,
-      mode: this.pvpMode ? "pvp" : this.exhibitMode ? "exhibit" : "bot",
+      mode: this.pvpMode ? "pvp" : this.exhibitMode ? "exhibit" : this.specialMode ? "special" : "bot",
       youId: this.payload.youId,
       foeId: this.payload.botId,
       foeName,
-      youScore: sc.p1,
-      foeScore: sc.p2,
+      youScore,
+      foeScore,
       diff: Session.difficulty,
       mmrDelta: this.rankDelta,
       stats: this.payload.stats || {}
@@ -88,10 +99,11 @@ export class ResultScene extends Phaser.Scene {
 
     this.buildVerdict(W, H, pal);
     this.buildStats(W, H, pal);
+    this.buildLoot(W, H, pal);
     this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => this.scene.start("select"));
     this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.scene.start("shop"), 0xc8ff3a);
     this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.scene.start("hub"), 0x7d5cff);
-    this.showPage("verdict");
+    this.showPage(this.hasLoot ? "loot" : "verdict");
     this.applyLang();
     this.playOutcomeFx(pal);
     AudioSystem.score();
@@ -143,10 +155,51 @@ export class ResultScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 880 }
     }).setOrigin(0.5).setDepth(8));
 
-    this.statsBtn = makeButton(this, W / 2, 548, 340, 50, t("result.statsBtn"), () => this.showPage("stats"), 0xff6a22);
+    if (this.hasLoot) {
+      this.lootBtn = makeButton(this, W / 2 - 190, 548, 280, 50, t("result.lootOpen"), () => this.showPage("loot"), 0xffb14a);
+      this.keep(v, this.lootBtn.gfx);
+      this.keep(v, this.lootBtn.text);
+      this.keep(v, this.lootBtn.bg);
+      this.statsBtn = makeButton(this, W / 2 + 190, 548, 280, 50, t("result.statsBtn"), () => this.showPage("stats"), 0xff6a22);
+    } else {
+      this.statsBtn = makeButton(this, W / 2, 548, 340, 50, t("result.statsBtn"), () => this.showPage("stats"), 0xff6a22);
+    }
     this.keep(v, this.statsBtn.gfx);
     this.keep(v, this.statsBtn.text);
     this.keep(v, this.statsBtn.bg);
+  }
+
+  buildLoot(W, H, pal) {
+    const g = "loot";
+    this.keep(g, this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.28).setDepth(5));
+    const card = this.add.graphics().setDepth(6);
+    card.fillStyle(0xfff6ea, 0.98);
+    card.fillRoundedRect(W / 2 - 360, 88, 720, 430, 28);
+    card.lineStyle(4, pal.glow, 0.9);
+    card.strokeRoundedRect(W / 2 - 360, 88, 720, 430, 28);
+    this.keep(g, card);
+    this.lootTitle = this.keep(g, this.add.text(W / 2, 140, "", {
+      fontFamily: UI_FONT, fontSize: "36px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(8));
+    this.lootSub = this.keep(g, this.add.text(W / 2, 186, "", {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#7a4a30", align: "center", wordWrap: { width: 620 }
+    }).setOrigin(0.5).setDepth(8));
+    this.lootStone = this.keep(g, this.add.text(W / 2, 268, "", {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#7d5cff"
+    }).setOrigin(0.5).setDepth(8));
+    this.lootShard = this.keep(g, this.add.text(W / 2, 318, "", {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(8));
+    this.lootXp = this.keep(g, this.add.text(W / 2, 368, "", {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a48"
+    }).setOrigin(0.5).setDepth(8));
+    this.lootBag = this.keep(g, this.add.text(W / 2, 430, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#8a5a38", align: "center", wordWrap: { width: 600 }
+    }).setOrigin(0.5).setDepth(8));
+    this.lootBackBtn = makeButton(this, W / 2, 548, 300, 50, t("result.lootToVerdict"), () => this.showPage("verdict"), 0xff6a22);
+    this.keep(g, this.lootBackBtn.gfx);
+    this.keep(g, this.lootBackBtn.text);
+    this.keep(g, this.lootBackBtn.bg);
   }
 
   buildStats(W, H, pal) {
@@ -202,6 +255,12 @@ export class ResultScene extends Phaser.Scene {
     this.page = page;
     this.bits.verdict.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "verdict"); });
     this.bits.stats.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "stats"); });
+    this.bits.loot.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "loot"); });
+    if (page === "loot") {
+      if (this.lootStone) this.lootStone.setVisible(this.pvpGain > 0);
+      if (this.lootShard) this.lootShard.setVisible(this.shardGain > 0);
+      if (this.lootXp) this.lootXp.setVisible(this.xpGain > 0);
+    }
     const showNav = true;
     if (this.againBtn && this.againBtn.bg) {
       [this.againBtn, this.shopBtn, this.hubBtn].forEach((b) => {
@@ -235,30 +294,58 @@ export class ResultScene extends Phaser.Scene {
       );
     }
     if (this.pvpText) {
-      let line = t("result.pvp", {
-        pvp: this.pvpGain,
-        bonus: this.bonus ? t("result.firstWin", { n: this.bonus }) : ""
-      }) + "   ·   " + t("result.total", {
+      const bits = [];
+      if (this.exhibitMode) bits.push(t("result.lootFun"));
+      else if (!this.hasLoot) bits.push(t("result.lootNone"));
+      else bits.push(t("result.total", {
         pvp: SaveSystem.data.currencies.pvp,
         tokens: SaveSystem.data.currencies.tokens
-      });
-      if (this.xpGain) {
-        line += "\n" + t("result.xpGain", { n: this.xpGain, lv: this.xpLevel });
-      }
+      }));
       if (this.pvpMode && this.rankAfter) {
         const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
-        if (this.rankCal) {
-          line += "\n" + t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - SaveSystem.data.rank.games) });
-        } else {
-          line += "\n" + t("result.rank", {
-            delta,
-            name: t("rank.tier." + this.rankAfter.id),
-            star: this.rankAfter.star || ""
-          });
-        }
+        if (this.rankCal) bits.push(t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - SaveSystem.data.rank.games) }));
+        else bits.push(t("result.rank", {
+          delta,
+          name: t("rank.tier." + this.rankAfter.id),
+          star: this.rankAfter.star || ""
+        }));
       }
-      this.pvpText.setText(line);
+      this.pvpText.setText(bits.join("\n"));
     }
+    if (this.lootTitle) this.lootTitle.setText(t("result.lootTitle"));
+    if (this.lootSub) this.lootSub.setText(t("result.lootSub"));
+    if (this.lootStone) {
+      this.lootStone.setText(this.pvpGain ? t("result.lootStone", { n: this.pvpGain }) + (this.bonus ? t("result.firstWin", { n: this.bonus }) : "") : "");
+    }
+    if (this.lootShard) this.lootShard.setText(this.shardGain ? t("result.lootShard", { n: this.shardGain }) : "");
+    if (this.lootXp) {
+      this.lootXp.setText(this.xpGain ? t("result.lootXp", {
+        name: charName(youId),
+        n: this.xpGain,
+        lv: this.xpLevel
+      }) : "");
+    }
+    if (this.page === "loot") {
+      let y = 268;
+      if (this.lootStone) {
+        this.lootStone.setVisible(this.pvpGain > 0);
+        if (this.pvpGain > 0) { this.lootStone.setY(y); y += 52; }
+      }
+      if (this.lootShard) {
+        this.lootShard.setVisible(this.shardGain > 0);
+        if (this.shardGain > 0) { this.lootShard.setY(y); y += 52; }
+      }
+      if (this.lootXp) {
+        this.lootXp.setVisible(this.xpGain > 0);
+        if (this.xpGain > 0) this.lootXp.setY(y);
+      }
+    }
+    if (this.lootBag) this.lootBag.setText(t("result.total", {
+      pvp: SaveSystem.data.currencies.pvp,
+      tokens: SaveSystem.data.currencies.tokens
+    }));
+    if (this.lootBtn && this.lootBtn.text) this.lootBtn.text.setText(t("result.lootOpen"));
+    if (this.lootBackBtn && this.lootBackBtn.text) this.lootBackBtn.text.setText(t("result.lootToVerdict"));
     if (this.statsBtn && this.statsBtn.text) this.statsBtn.text.setText(t("result.statsBtn"));
     if (this.statsBackBtn && this.statsBackBtn.text) this.statsBackBtn.text.setText(t("result.statsBack"));
     if (this.statsTitle) this.statsTitle.setText(t("result.statsTitle"));

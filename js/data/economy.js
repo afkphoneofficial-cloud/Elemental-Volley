@@ -1,11 +1,11 @@
-/** Unlock costs 100 Element Shards. Shards come from Odd Stone exchange or premium. */
+/** Unlock costs 100 Element Shards. Shards come from ranked wins or Odd Stone exchange. */
 export const ECONOMY = {
   unlockTokenCost: 100,
   pvpPerToken: 1,
   premiumPerToken: 1,
   pvpWin: 40,
   pvpLoss: 15,
-  firstWinBonus: 50,
+  firstWinBonus: 20,
   premiumTopup: 100,
   tokenPack: 100,
   cheerThemePremium: 80,

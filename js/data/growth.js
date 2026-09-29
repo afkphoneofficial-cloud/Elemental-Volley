@@ -1,4 +1,5 @@
 import { ROSTER, ROSTER_IDS } from "./roster.js";
+import { matchRewards } from "./matchRewards.js";
 
 export const GROWTH_MAX_LV = 50;
 export const GROWTH_SPECIAL_LV = 40;
@@ -288,10 +289,16 @@ export function botSheet(charId, difficulty) {
   return sheetFromRow(charId, spendNpc(charId, lv));
 }
 
-export function xpForBotMatch(win, difficulty) {
-  if (difficulty === "easy") return win ? 28 : 12;
-  if (difficulty === "hard") return win ? 64 : 22;
-  return win ? 42 : 16;
+export function xpForBotMatch(win, difficulty, youScore, foeScore) {
+  const you = youScore == null ? (win ? 15 : 10) : youScore;
+  const foe = foeScore == null ? (win ? 10 : 15) : foeScore;
+  return matchRewards({
+    mode: "bot",
+    win: win === true,
+    difficulty,
+    youScore: you,
+    foeScore: foe
+  }).xp;
 }
 
 function t01(n) {
