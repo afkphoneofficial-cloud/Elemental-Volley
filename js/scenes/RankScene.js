@@ -4,6 +4,8 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
+import { Leaderboard } from "../systems/Leaderboard.js";
+import { paintRankTabs } from "../ui/sceneTabs.js";
 
 export class RankScene extends Phaser.Scene {
   constructor() { super("rankinfo"); }
@@ -20,11 +22,12 @@ export class RankScene extends Phaser.Scene {
     const cal = isCalibrating(rank);
     const medal = medalFromMmr(rank.mmr);
 
-    this.add.text(W / 2, 36, t("rank.title"), {
-      fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
+    paintRankTabs(this, "rules");
+    this.add.text(W / 2, 78, t("rank.title"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 68, t("rank.sub"), {
-      fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30"
+    this.add.text(W / 2, 106, t("rank.sub"), {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
     }).setOrigin(0.5);
 
     roundPanel(this, W / 2, 148, 720, 96, 0x7d5cff, 0xfff6ea);
@@ -70,10 +73,14 @@ export class RankScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 1000 }, lineSpacing: 8
     }).setOrigin(0.5, 0);
 
-    makeButton(this, 120, 36, 140, 40, t("nav.back"), () => {
+    makeButton(this, 96, 36, 132, 40, t("nav.back"), () => {
       AudioSystem.ui();
       this.scene.start(this.from === "queue" ? "queue" : this.from);
     }, 0x7d5cff);
     AudioSystem.playMenu();
+  }
+
+  openBoard() {
+    Leaderboard.show();
   }
 }

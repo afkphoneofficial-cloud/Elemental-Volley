@@ -22,6 +22,7 @@ import { RankScene } from "./scenes/RankScene.js";
 import { ModeScene } from "./scenes/ModeScene.js";
 import { DressScene } from "./scenes/DressScene.js";
 import { GrowthScene } from "./scenes/GrowthScene.js";
+import { BagScene } from "./scenes/BagScene.js";
 import { FriendsScene } from "./scenes/FriendsScene.js";
 import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
@@ -51,7 +52,7 @@ window.game = new Phaser.Game({
     width: GAME.width,
     height: GAME.height
   },
-  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene, CareerScene, QueueScene, RankScene, ModeScene, FriendsScene, DressScene, GrowthScene]
+  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, PlayScene, ResultScene, WikiScene, SettingsScene, CareerScene, QueueScene, RankScene, ModeScene, FriendsScene, DressScene, GrowthScene, BagScene]
 });
 
 SaveSystem.load();

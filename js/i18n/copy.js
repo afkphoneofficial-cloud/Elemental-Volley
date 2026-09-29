@@ -51,6 +51,7 @@ export const COPY = {
       navBoard: "อันดับ",
       navDress: "แต่งตัว",
       navGrowth: "ธาตุกาย",
+      navFighter: "ตัวละคร",
       showcaseHint: "แตะหรือกดลูกศรเพื่อสลับตัวที่โชว์",
       chipToken: "ตรา {n}",
       chipPvp: "PVP {n}",
@@ -100,6 +101,8 @@ export const COPY = {
     rank: {
       title: "กฎอันดับ",
       sub: "ระบบจัดอันดับ 1v1 ของเกาะอีเธเรีย",
+      tabBoard: "กระดาน",
+      tabRules: "กฎอันดับ",
       calShort: "กำลังวัดระดับ {n}/{max}",
       calNow: "กำลังวัดระดับ  {n} / {max}  แมตช์",
       youAre: "คุณคือ  {name}  {star}",
@@ -198,6 +201,17 @@ export const COPY = {
       viewL: "ซ้าย",
       viewF: "หน้าตรง",
       viewR: "ขวา"
+    },
+    fighter: {
+      tabDress: "แต่งตัว",
+      tabGrowth: "ธาตุกาย",
+      tabBag: "กระเป๋า"
+    },
+    bag: {
+      title: "กระเป๋า",
+      sub: "ของใช้กับตัวละคร เช่น ผลคืนกาย",
+      empty: "ยังไม่มีของในกระเป๋า",
+      emptySub: "ผลคืนกายจะมาใช้ที่นี่ภายหลัง เมื่อมีไอเท็มแล้วจะกดใช้จากหน้านี้"
     },
     growth: {
       title: "ธาตุกาย",
@@ -357,6 +371,9 @@ export const COPY = {
       tabCast: "ธาตุทั้งสี่",
       tabSecret: "แฟ้มลับ",
       tabMap: "แผนที่เกาะ",
+      tabExplore: "สำรวจ",
+      exploreTitle: "สำรวจโลก",
+      exploreBody: "โหมดเดินเกาะจะมาในแพทช์ถัดไป ใช้ธาตุกายของตัวละครตอนสำรวจเหมือนโหมดฝึกฝน\n\nแตะหมุดบนแผนที่เพื่ออ่านที่อยู่ได้ก่อน ยังลงเดินจริงไม่ได้",
       legendShown: "ปรากฏแล้ว",
       legendSealed: "ยังไม่ปรากฏ",
       legendFog: "ยังไม่สำรวจ",
@@ -519,6 +536,7 @@ export const COPY = {
       navBoard: "Ranks",
       navDress: "Dress",
       navGrowth: "Body",
+      navFighter: "Fighter",
       showcaseHint: "Tap or use the arrows to swap the showcase fighter",
       chipToken: "Tokens {n}",
       chipPvp: "PVP {n}",
@@ -568,6 +586,8 @@ export const COPY = {
     rank: {
       title: "Rank rules",
       sub: "Etheria’s 1v1 court ranking",
+      tabBoard: "Board",
+      tabRules: "Rank rules",
       calShort: "Calibrating {n}/{max}",
       calNow: "Calibrating  {n} / {max}  matches",
       youAre: "You are  {name}  {star}",
@@ -666,6 +686,17 @@ export const COPY = {
       viewL: "Left",
       viewF: "Front",
       viewR: "Right"
+    },
+    fighter: {
+      tabDress: "Dress",
+      tabGrowth: "Body",
+      tabBag: "Bag"
+    },
+    bag: {
+      title: "Bag",
+      sub: "Items for your fighter, such as Bodyfruit",
+      empty: "The bag is empty",
+      emptySub: "Bodyfruit will be used here later. When items exist, this is where you spend them."
     },
     growth: {
       title: "Element Body",
@@ -825,6 +856,9 @@ export const COPY = {
       tabCast: "The four elements",
       tabSecret: "Secret files",
       tabMap: "Island map",
+      tabExplore: "Explore",
+      exploreTitle: "World explore",
+      exploreBody: "Walking the island comes in a later patch. Element Body stats will apply there the same way they do in training.\n\nTap pins on the map to read each place. You cannot walk them yet.",
       legendShown: "Appeared",
       legendSealed: "Not appeared",
       legendFog: "Unexplored",

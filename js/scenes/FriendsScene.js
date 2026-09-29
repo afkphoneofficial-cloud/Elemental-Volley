@@ -82,6 +82,10 @@ export class FriendsScene extends Phaser.Scene {
       this.hideForm();
       this.scene.start(this.pickMode ? "mode" : "hub");
     }, 0x7d5cff);
+    makeButton(this, 280, 42, 140, 40, t("friends.chat"), () => {
+      AudioSystem.ui();
+      ChatSystem.setOpen(true);
+    }, 0x3ad6ff);
     makeButton(this, W - 330, 42, 200, 40, t("friends.suggest"), () => {
       AudioSystem.ui();
       this.rollSuggest();

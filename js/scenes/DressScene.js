@@ -1,4 +1,5 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
+import { paintFighterTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { SKIN_TIERS, SKIN_PIECES, skinTier, texSelect, texFace } from "../data/skins.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
@@ -20,14 +21,11 @@ export class DressScene extends Phaser.Scene {
     this.hopping = false;
     this.view = "f";
 
-    this.add.text(W / 2, 36, t("dress.title"), {
-      fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
-    }).setOrigin(0.5);
-    this.add.text(W / 2, 68, t("dress.sub"), {
+    paintFighterTabs(this, "dress");
+    makeButton(this, 96, 36, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    this.add.text(W / 2, 78, t("dress.sub"), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
     }).setOrigin(0.5);
-
-    makeButton(this, 120, 40, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
 
     ROSTER_IDS.forEach((id, i) => {
       const x = W / 2 - 240 + i * 160;

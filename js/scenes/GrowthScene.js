@@ -9,6 +9,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { texSelect } from "../data/skins.js";
+import { paintFighterTabs } from "../ui/sceneTabs.js";
 
 function setBtnLive(btn, on) {
   const a = on ? 1 : 0.38;
@@ -30,19 +31,16 @@ export class GrowthScene extends Phaser.Scene {
     this.hintPart = 0;
     this.hintBits = [];
 
-    this.add.text(W / 2, 32, t("growth.title"), {
-      fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
+    paintFighterTabs(this, "growth");
+    makeButton(this, 96, 36, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, W - 90, 36, 150, 40, t("growth.hintBtn"), () => this.toggleHint(), 0x3ad6ff);
+    this.sub = this.add.text(W / 2, 78, t("growth.sub"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
     }).setOrigin(0.5);
-    this.sub = this.add.text(W / 2, 62, t("growth.sub"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
-    }).setOrigin(0.5);
-
-    makeButton(this, 120, 36, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
-    makeButton(this, W - 120, 36, 160, 40, t("growth.hintBtn"), () => this.toggleHint(), 0x3ad6ff);
 
     ROSTER_IDS.forEach((id, i) => {
       const x = W / 2 - 240 + i * 160;
-      makeButton(this, x, 108, 140, 40, charName(id), () => {
+      makeButton(this, x, 124, 140, 40, charName(id), () => {
         this.pickChar(id);
       }, SaveSystem.isUnlocked(id) ? 0xffb14a : 0xc8bdd8);
     });

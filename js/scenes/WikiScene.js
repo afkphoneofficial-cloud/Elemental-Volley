@@ -3,6 +3,7 @@ import { t, I18n } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { MAP_LOCS } from "../data/worldMap.js";
+import { paintTabs } from "../ui/sceneTabs.js";
 
 export class WikiScene extends Phaser.Scene {
   constructor() { super("wiki"); }
@@ -17,27 +18,30 @@ export class WikiScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     this.mapW = 1220;
-    this.mapH = 536;
+    this.mapH = 500;
     this.mapCX = W / 2;
-    this.mapCY = 386;
+    this.mapCY = 404;
 
-    this.add.text(W / 2, 28, t("wiki.title"), {
-      fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418",
+    this.add.text(W / 2, 18, t("wiki.title"), {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418",
       stroke: "#fff6ea", strokeThickness: 6
     }).setOrigin(0.5);
-    this.add.text(W / 2, 56, t("wiki.sub"), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#5a3828",
-      stroke: "#fff6ea", strokeThickness: 4
-    }).setOrigin(0.5);
 
-    makeButton(this, 96, 42, 132, 40, t("nav.back"), () => {
+    makeButton(this, 80, 52, 120, 36, t("nav.back"), () => {
       if (this.from === "auth") {
         this.scene.start("auth");
         return;
       }
       this.scene.start(this.from);
     }, 0x7d5cff);
-    makeButton(this, W - 96, 42, 132, 40, t("wiki.tabRules"), () => this.openRules(), 0xff8a3a);
+    paintTabs(this, 52, [
+      { id: "map", label: t("wiki.tabMap"), color: 0xffb14a, again: true, go: () => this.closePopup() },
+      { id: "rules", label: t("wiki.tabRules"), color: 0xff8a3a, again: true, go: () => this.openRules() },
+      { id: "story", label: t("wiki.tabStory"), color: 0x7d5cff, again: true, go: () => this.openStory() },
+      { id: "cast", label: t("wiki.tabCast"), color: 0x3ad6ff, again: true, go: () => this.openCast() },
+      { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() },
+      { id: "explore", label: t("wiki.tabExplore"), color: 0xc8ff3a, again: true, go: () => this.openExplore() }
+    ], "map");
 
     const frame = this.add.graphics().setDepth(4);
     frame.fillStyle(0xfff6ea, 0.2);
@@ -137,6 +141,69 @@ export class WikiScene extends Phaser.Scene {
       region: copy.region,
       body: copy.body,
       vis: loc.char && this.textures.exists("vis_" + loc.char) ? "vis_" + loc.char : null
+    });
+  }
+
+  openExplore() {
+    AudioSystem.ui();
+    this.buildPopup({
+      chip: "#2a7a38",
+      status: t("wiki.tabExplore"),
+      title: t("wiki.exploreTitle"),
+      region: "",
+      body: t("wiki.exploreBody"),
+      vis: null,
+      wide: true
+    });
+  }
+
+  openStory() {
+    AudioSystem.ui();
+    const pack = I18n.lore();
+    const body = pack.story.join("\n\n") + "\n\n" + pack.ball + "\n\n" + pack.howTo;
+    this.buildPopup({
+      chip: "#6a3cff",
+      status: pack.kicker,
+      title: pack.title,
+      region: "",
+      body,
+      vis: null,
+      wide: true
+    });
+  }
+
+  openCast() {
+    AudioSystem.ui();
+    const rows = I18n.wikiCast();
+    const body = rows.map((row) => {
+      const skills = (row.abilities || []).map((n) => "·  " + n).join("\n");
+      return row.title + "  ·  " + row.tag + "\n" + row.origin + "\n" + row.ult + "\n" + skills;
+    }).join("\n\n");
+    this.buildPopup({
+      chip: "#1a7a98",
+      status: t("wiki.tabCast"),
+      title: t("wiki.tabCast"),
+      region: "",
+      body,
+      vis: null,
+      wide: true
+    });
+  }
+
+  openSecret() {
+    AudioSystem.ui();
+    const rows = I18n.secrets();
+    const body = t("wiki.secretHead") + "\n\n" + rows.map((row) => {
+      return row.code + "  ·  " + row.alias + "  ·  " + row.th + "\n" + t("wiki.from", { mark: row.mark }) + "\n" + row.rumor + "\n" + row.hint;
+    }).join("\n\n");
+    this.buildPopup({
+      chip: "#c45a16",
+      status: t("wiki.tabSecret"),
+      title: t("wiki.tabSecret"),
+      region: "",
+      body,
+      vis: null,
+      wide: true
     });
   }
 

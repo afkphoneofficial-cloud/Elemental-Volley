@@ -146,21 +146,17 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, W / 2 - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
-    makeButton(this, W / 2, 500, 348, 52, t("hub.play"), () => {
+    makeButton(this, W / 2, 508, 360, 54, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("mode");
     });
-    makeButton(this, W / 2 - 150, 554, 200, 42, t("hub.navDress"), () => {
+    makeButton(this, W / 2 - 160, 572, 228, 44, t("hub.navFighter"), () => {
       AudioSystem.ui();
       this.scene.start("dress");
     }, 0xff8ab8);
-    makeButton(this, W / 2 + 150, 554, 200, 42, t("hub.navGrowth"), () => {
+    makeButton(this, W / 2 + 160, 572, 228, 44, t("hub.navBoard"), () => {
       AudioSystem.ui();
-      this.scene.start("growth");
-    }, 0x7d5cff);
-    makeButton(this, W / 2, 602, 280, 42, t("hub.navBoard"), () => {
-      AudioSystem.ui();
-      Leaderboard.show();
+      this.scene.start("rankinfo", { from: "hub" });
     }, 0xffb14a);
 
     const navY = H - HUB_NAV.y;
