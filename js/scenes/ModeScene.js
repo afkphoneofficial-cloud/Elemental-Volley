@@ -17,7 +17,7 @@ export class ModeScene extends Phaser.Scene {
     const st = SaveSystem.etherNow();
     const wait = st.full ? t("hub.etherFull") : t("hub.etherWait", { t: formatEtherWait(st.nextMs) });
     this.ruleBits = [];
-    this.epicRing = this.add.graphics().setDepth(7);
+    this.fxRing = this.add.graphics().setDepth(7);
 
     this.add.text(W / 2, 40, t("hub.modeTitle"), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
@@ -42,7 +42,7 @@ export class ModeScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("friends", { pick: true });
     });
-    this.card(col0, row1, cw, ch, 0x7d5cff, t("hub.playPvp"), t("hub.modePvpBody", {
+    this.rankCard(col0, row1, cw, ch, t("hub.playPvp"), t("hub.modePvpBody", {
       n: st.n, max: ECONOMY.etherMax, wait
     }), () => {
       Session.mode = "pvp";
@@ -67,7 +67,10 @@ export class ModeScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "mode" });
     }, 0x3ad6ff);
-    this.epicOrigin = { x: col1, y: row1, w: cw, h: ch };
+    this.fxBoxes = [
+      { x: col0, y: row1, w: cw, h: ch, kind: "rank" },
+      { x: col1, y: row1, w: cw, h: ch, kind: "epic" }
+    ];
     AudioSystem.playMenu();
   }
 
@@ -82,6 +85,59 @@ export class ModeScene extends Phaser.Scene {
       align: "center", wordWrap: { width: w - 64 }
     }).setOrigin(0.5).setDepth(8);
     makeButton(this, x, y + 82, 220, 44, title, () => onClick(), color);
+  }
+
+  rankCard(x, y, w, h, title, body, onClick) {
+    const halo = this.add.graphics().setDepth(3);
+    halo.fillStyle(0xa898ff, 0.16);
+    halo.fillRoundedRect(x - w / 2 - 12, y - h / 2 - 12, w + 24, h + 24, 24);
+    this.tweens.add({
+      targets: halo,
+      alpha: { from: 0.42, to: 0.78 },
+      duration: 1600,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+
+    const panel = this.add.graphics().setDepth(4);
+    panel.fillStyle(0xfff6ea, 0.96);
+    panel.fillRoundedRect(x - w / 2, y - h / 2, w, h, 20);
+    panel.lineStyle(3, 0x9b86ff, 0.7);
+    panel.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 20);
+    panel.lineStyle(1.5, 0xc8b8ff, 0.55);
+    panel.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 16);
+
+    this.add.text(x, y - 68, title, {
+      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#3a2418",
+      align: "center", wordWrap: { width: w - 40 }
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(x, y + 4, body, {
+      fontFamily: UI_FONT, fontSize: "14px", color: "#5a3828",
+      align: "center", wordWrap: { width: w - 64 }
+    }).setOrigin(0.5).setDepth(8);
+    makeButton(this, x, y + 82, 220, 44, title, () => onClick(), 0x7d5cff);
+
+    if (this.textures.exists("dot")) {
+      try {
+        const spark = this.add.particles(x, y, "dot", {
+          lifespan: 2200,
+          speed: { min: 2, max: 14 },
+          scale: { start: 0.38, end: 0 },
+          alpha: { start: 0.45, end: 0 },
+          tint: [0xc8b8ff, 0xe8e0ff, 0x9b86ff],
+          blendMode: "ADD",
+          quantity: 1,
+          frequency: 90,
+          emitZone: {
+            type: "edge",
+            source: new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h),
+            quantity: 16
+          }
+        });
+        spark.setDepth(6);
+      } catch (e) {}
+    }
   }
 
   epicCard(x, y, w, h, title, body, onClick) {
@@ -142,21 +198,36 @@ export class ModeScene extends Phaser.Scene {
   }
 
   update(now) {
-    if (!this.epicRing || !this.epicOrigin) return;
-    const { x, y, w, h } = this.epicOrigin;
+    if (!this.fxRing || !this.fxBoxes) return;
     const t = now * 0.001;
-    this.epicRing.clear();
-    for (let i = 0; i < 8; i += 1) {
-      const a = t * (i % 2 === 0 ? 1.4 : -1.1) + i * 0.785;
-      const rx = x + Math.cos(a) * (w * 0.52);
-      const ry = y + Math.sin(a) * (h * 0.52);
-      const r = 5 + Math.sin(t * 4 + i) * 2;
-      this.epicRing.fillStyle(i % 2 ? 0xffd24a : 0x3ad6ff, 0.85);
-      this.epicRing.fillCircle(rx, ry, r);
-    }
-    const pulse = 10 + Math.sin(t * 3) * 6;
-    this.epicRing.lineStyle(3, 0xffd24a, 0.35 + Math.sin(t * 2) * 0.15);
-    this.epicRing.strokeRoundedRect(x - w / 2 - pulse, y - h / 2 - pulse, w + pulse * 2, h + pulse * 2, 26);
+    this.fxRing.clear();
+    this.fxBoxes.forEach((box) => {
+      const { x, y, w, h, kind } = box;
+      if (kind === "rank") {
+        for (let i = 0; i < 4; i += 1) {
+          const a = t * 0.55 + i * 1.57;
+          const rx = x + Math.cos(a) * (w * 0.5);
+          const ry = y + Math.sin(a) * (h * 0.5);
+          this.fxRing.fillStyle(0xb8a8ff, 0.35);
+          this.fxRing.fillCircle(rx, ry, 3.2);
+        }
+        const pulse = 5 + Math.sin(t * 1.4) * 3;
+        this.fxRing.lineStyle(2, 0x9b86ff, 0.16 + Math.sin(t * 1.2) * 0.08);
+        this.fxRing.strokeRoundedRect(x - w / 2 - pulse, y - h / 2 - pulse, w + pulse * 2, h + pulse * 2, 24);
+        return;
+      }
+      for (let i = 0; i < 8; i += 1) {
+        const a = t * (i % 2 === 0 ? 1.4 : -1.1) + i * 0.785;
+        const rx = x + Math.cos(a) * (w * 0.52);
+        const ry = y + Math.sin(a) * (h * 0.52);
+        const r = 5 + Math.sin(t * 4 + i) * 2;
+        this.fxRing.fillStyle(i % 2 ? 0xffd24a : 0x3ad6ff, 0.85);
+        this.fxRing.fillCircle(rx, ry, r);
+      }
+      const pulse = 10 + Math.sin(t * 3) * 6;
+      this.fxRing.lineStyle(3, 0xffd24a, 0.35 + Math.sin(t * 2) * 0.15);
+      this.fxRing.strokeRoundedRect(x - w / 2 - pulse, y - h / 2 - pulse, w + pulse * 2, h + pulse * 2, 26);
+    });
   }
 
   openPlayRules() {
