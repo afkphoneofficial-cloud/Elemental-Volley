@@ -59,6 +59,7 @@ export const COPY = {
       etherWait: "อีก {t}",
       etherFull: "เต็มแล้ว",
       infoClose: "ปิด",
+      widgetMore: "ดูเต็ม",
       info: {
         etherTitle: "เอเธอร์",
         etherBody: "หลอดลงสนาม PVP สูงสุด {max} ก้อน เติมอีก 1 ทุก 12 นาที ({wait}) โหมดบอทไม่กินเอเธอร์",
@@ -550,6 +551,7 @@ export const COPY = {
       etherWait: "Next in {t}",
       etherFull: "Full",
       infoClose: "Close",
+      widgetMore: "See all",
       info: {
         etherTitle: "Ether",
         etherBody: "PVP court charge. Cap {max}. Gain 1 every 12 minutes ({wait}). Bots do not spend Ether.",

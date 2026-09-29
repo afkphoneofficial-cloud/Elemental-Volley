@@ -17,6 +17,7 @@ import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
+import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -180,6 +181,7 @@ export class HubScene extends Phaser.Scene {
 
     this.paintEther();
     mountMailboxHud(this);
+    mountHubBoardWidgets(this);
     Friends.sync();
     AudioSystem.playMenu();
   }
@@ -201,8 +203,27 @@ export class HubScene extends Phaser.Scene {
   }
 
   update(now) {
-    if (!this.heroAura || !this.heroImg) return;
-    paintSkinAura(this.heroAura, this.heroImg.x, this.heroY, this.heroId, this.heroSkin, now, 118);
+    if (this.heroAura && this.heroImg) {
+      paintSkinAura(this.heroAura, this.heroImg.x, this.heroY, this.heroId, this.heroSkin, now, 118);
+    }
+    paintHubBoardFx(this, now);
+    this.paintEther();
+    if (this.time.now - (this.syncAt || 0) > 12000) {
+      this.syncAt = this.time.now;
+      Friends.sync();
+    }
+    if (this.mailOpen) return;
+    if (!this.mailAt) this.mailAt = 0;
+    if (this.time.now - this.mailAt < 10000) return;
+    this.mailAt = this.time.now;
+    Mailbox.refresh().then(() => {
+      if (this.sys && this.sys.isActive() && this.paintMailbox) this.paintMailbox();
+    });
+  }
+
+  shutdown() {
+    ChatSystem.bindHub(null);
+    Leaderboard.hide();
   }
 
   paintEther() {
@@ -257,25 +278,5 @@ export class HubScene extends Phaser.Scene {
   closeInfo() {
     this.infoBits.forEach((o) => { if (o && o.destroy) o.destroy(); });
     this.infoBits = [];
-  }
-
-  update() {
-    this.paintEther();
-    if (this.time.now - (this.syncAt || 0) > 12000) {
-      this.syncAt = this.time.now;
-      Friends.sync();
-    }
-    if (this.mailOpen) return;
-    if (!this.mailAt) this.mailAt = 0;
-    if (this.time.now - this.mailAt < 10000) return;
-    this.mailAt = this.time.now;
-    Mailbox.refresh().then(() => {
-      if (this.sys && this.sys.isActive() && this.paintMailbox) this.paintMailbox();
-    });
-  }
-
-  shutdown() {
-    ChatSystem.bindHub(null);
-    Leaderboard.hide();
   }
 }

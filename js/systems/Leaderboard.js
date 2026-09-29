@@ -141,6 +141,17 @@ export const Leaderboard = {
     if (mine.error) this.fail = true;
   },
 
+  async peekTop(kind, n) {
+    const limit = Math.max(1, Math.min(5, n | 0 || 5));
+    if (kind === "special") return { rows: [], fail: false };
+    const sb = AuthSystem.db ? await AuthSystem.db() : null;
+    if (!sb) return { rows: [], fail: false };
+    const board = await sb.rpc("server_leaderboard", { p_limit: limit });
+    if (board.error) return { rows: [], fail: true };
+    const rows = Array.isArray(board.data) ? board.data.slice(0, limit) : [];
+    return { rows, fail: false };
+  },
+
   paintChrome() {
     const ui = els();
     if (ui.title) ui.title.textContent = t("board.title");
