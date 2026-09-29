@@ -18,8 +18,8 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
-import { wantFx } from "../systems/GameSettings.js";
-import { SERVER_TZ, formatZoneParts } from "../data/timeZones.js";
+import { wantFx, settings } from "../systems/GameSettings.js";
+import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -169,11 +169,15 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
     this.mountPlay(W);
-    makeButton(this, W / 2 - 150, 586, 180, 42, t("hub.navFighter"), () => {
+    makeButton(this, W / 2 - 210, 586, 168, 42, t("hub.navFighter"), () => {
       AudioSystem.ui();
       this.scene.start("dress");
     }, 0xff8ab8);
-    makeButton(this, W / 2 + 150, 586, 180, 42, t("hub.navBoard"), () => {
+    makeButton(this, W / 2, 586, 168, 42, t("hub.navNews"), () => {
+      AudioSystem.ui();
+      this.scene.start("news");
+    }, 0x3ad6ff);
+    makeButton(this, W / 2 + 210, 586, 168, 42, t("hub.navBoard"), () => {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
     }, 0xffb14a);
@@ -211,13 +215,14 @@ export class HubScene extends Phaser.Scene {
   mountPlay(W) {
     const x = W / 2;
     const y = 512;
+    const bw = 220;
+    const bh = 56;
+    const r = 22;
     this.playGlow = this.add.graphics().setDepth(8);
     const drawGlow = (pulse) => {
       this.playGlow.clear();
-      this.playGlow.fillStyle(0xffe08a, 0.28 + pulse * 0.12);
-      this.playGlow.fillRoundedRect(x - 112, y - 32, 224, 64, 24);
-      this.playGlow.lineStyle(2.5, 0xff6a22, 0.8 + pulse * 0.15);
-      this.playGlow.strokeRoundedRect(x - 112, y - 32, 224, 64, 24);
+      this.playGlow.fillStyle(0xffe08a, 0.22 + pulse * 0.16);
+      this.playGlow.fillRoundedRect(x - bw / 2 - 14, y - bh / 2 - 10, bw + 28, bh + 20, r + 8);
     };
     drawGlow(0);
     this._playPulse = 0;
@@ -226,8 +231,22 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("mode");
     };
-    const btn = makeButton(this, x, y, 200, 52, t("hub.play"), go, 0xff6a22);
-    btn.text.setFontSize("22px");
+    const gfx = this.add.graphics().setDepth(40);
+    const drawBtn = (hot) => {
+      gfx.clear();
+      gfx.fillStyle(hot ? 0xff8a3a : 0xff6a22, 1);
+      gfx.fillRoundedRect(x - bw / 2, y - bh / 2, bw, bh, r);
+      gfx.lineStyle(3, 0xffe08a, hot ? 1 : 0.95);
+      gfx.strokeRoundedRect(x - bw / 2, y - bh / 2, bw, bh, r);
+    };
+    drawBtn(false);
+    this.add.text(x, y, t("hub.play"), {
+      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#fff6ea"
+    }).setOrigin(0.5).setDepth(41);
+    const zone = this.add.zone(x, y, bw, bh).setInteractive({ useHandCursor: true }).setDepth(42);
+    zone.on("pointerover", () => drawBtn(true));
+    zone.on("pointerout", () => drawBtn(false));
+    zone.on("pointerdown", go);
     if (wantFx() && this.textures.exists("dot")) {
       try {
         this.playBurst = this.add.particles(x, y, "dot", {
@@ -239,7 +258,7 @@ export class HubScene extends Phaser.Scene {
           blendMode: "ADD",
           frequency: 70,
           quantity: 1,
-          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 216, 60), quantity: 16 }
+          emitZone: { type: "edge", source: new Phaser.Geom.Ellipse(0, 0, 232, 64), quantity: 16 }
         }).setDepth(7);
       } catch (e) { this.playBurst = null; }
     }
@@ -248,7 +267,7 @@ export class HubScene extends Phaser.Scene {
   mountClock(W) {
     const x = W / 2;
     const y = 40;
-    const w = 148;
+    const w = 200;
     const h = 54;
     this.clockGfx = this.add.graphics().setDepth(24);
     const draw = (hot) => {
@@ -292,9 +311,10 @@ export class HubScene extends Phaser.Scene {
 
   paintClock() {
     if (!this.clockText) return;
-    const parts = formatZoneParts(SERVER_TZ, I18n.lang);
+    const zone = timeZoneOf(settings().timeZone);
+    const parts = formatZoneParts(zone.tz, I18n.lang);
     this.clockText.setText((parts.weekday + "  " + parts.time).trim());
-    if (this.clockKicker) this.clockKicker.setText(t("hub.serverTag"));
+    if (this.clockKicker) this.clockKicker.setText(t("settings.tz." + zone.id));
   }
 
   cycleShowcase(dir) {

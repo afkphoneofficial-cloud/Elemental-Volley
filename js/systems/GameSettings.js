@@ -10,7 +10,7 @@ const PAGE_SCENES = {
   match: ["play"],
   hangout: [
     "settings", "shop", "friends", "wiki", "explore", "rankinfo", "season",
-    "career", "growth", "dress", "bag", "result", "topup"
+    "career", "growth", "dress", "bag", "result", "topup", "news"
   ]
 };
 
