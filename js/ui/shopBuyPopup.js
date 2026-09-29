@@ -254,19 +254,57 @@ export function openShopBuy(scene, spec) {
   paintQty();
 }
 
+export function closeShopNote(scene) {
+  if (!scene) return;
+  if (scene._shopNoteFade) {
+    scene._shopNoteFade.remove();
+    scene._shopNoteFade = null;
+  }
+  if (scene._shopNoteTimer) {
+    scene._shopNoteTimer.remove(false);
+    scene._shopNoteTimer = null;
+  }
+  if (scene._shopNote) {
+    scene._shopNote.destroy(true);
+    scene._shopNote = null;
+  }
+}
+
 export function shopNote(scene, text, ok) {
   if (!scene || !text) return;
+  closeShopNote(scene);
   const W = scene.scale.width;
   const H = scene.scale.height;
-  const msg = scene.add.text(W / 2, H - 56, text, {
+  const cx = W / 2;
+  const cy = H / 2;
+  const D = 100;
+  const root = scene.add.container(0, 0).setDepth(D).setAlpha(1);
+  scene._shopNote = root;
+  const dim = scene.add.rectangle(cx, cy, W, H, 0x3a2418, 0.42).setInteractive();
+  const pw = Math.min(560, W - 80);
+  const ph = 176;
+  const panel = scene.add.rectangle(cx, cy, pw, ph, 0xfffaf4, 1)
+    .setStrokeStyle(3, ok === false ? 0xff6a22 : 0x2aa87a, 0.95)
+    .setInteractive();
+  const msg = scene.add.text(cx, cy, text, {
     fontFamily: UI_FONT,
-    fontSize: "18px",
+    fontSize: "22px",
     fontStyle: "800",
     color: ok === false ? "#c45a16" : "#1a7a48",
-    backgroundColor: "#fff6ea",
-    padding: { x: 18, y: 10 },
     align: "center",
-    wordWrap: { width: Math.min(920, W - 80) }
-  }).setOrigin(0.5).setDepth(80);
-  scene.time.delayedCall(2200, () => { if (msg && msg.destroy) msg.destroy(); });
+    wordWrap: { width: pw - 56 }
+  }).setOrigin(0.5);
+  root.add([dim, panel, msg]);
+  const kill = () => closeShopNote(scene);
+  dim.on("pointerdown", kill);
+  panel.on("pointerdown", kill);
+  scene._shopNoteTimer = scene.time.delayedCall(2000, () => {
+    if (!scene._shopNote) return;
+    scene._shopNoteFade = scene.tweens.add({
+      targets: root,
+      alpha: 0,
+      duration: 280,
+      onComplete: kill
+    });
+  });
 }

@@ -10,7 +10,7 @@ import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
-import { openShopBuy, closeShopBuy, shopNote } from "../ui/shopBuyPopup.js";
+import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
@@ -56,6 +56,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.events.once("shutdown", () => {
       closeShopBuy(this);
+      closeShopNote(this);
       closeLookPreview(this);
     });
   }
@@ -71,6 +72,10 @@ export class ShopScene extends Phaser.Scene {
 
   bought(name, n) {
     this.refresh(t("shop.bought", { name, n: Math.max(1, n | 0) }));
+  }
+
+  traded(name, n) {
+    this.refresh(t("shop.traded", { name, n: Math.max(1, n | 0) }));
   }
 
   slots(n, padLeft, cols) {
@@ -387,7 +392,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().pvp | 0,
               maxQty: 99,
               onConfirm: (qty) => ({ ok: SaveSystem.exchangePvpToTokens(qty) }),
-              after: (qty) => this.bought(t("item.shard.name"), qty)
+              after: (qty) => this.traded(t("item.shard.name"), qty)
             });
           }
         });
@@ -413,7 +418,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().premium | 0,
               maxQty: 99,
               onConfirm: (qty) => SaveSystem.buyWithPremium(id, good.price, qty),
-              after: (qty) => this.bought(t("item." + id + ".name"), qty)
+              after: (qty) => this.traded(t("item." + id + ".name"), qty)
             });
           }
         });
@@ -436,7 +441,7 @@ export class ShopScene extends Phaser.Scene {
               have: this.bag().premium | 0,
               maxQty: 99,
               onConfirm: (qty) => ({ ok: SaveSystem.buyTokensWithPremium(good.shards * qty) }),
-              after: (qty) => this.bought(t("item.shard.name"), (good.shards | 0) * qty)
+              after: (qty) => this.traded(t("item.shard.name"), (good.shards | 0) * qty)
             });
           }
         });
