@@ -36,6 +36,10 @@ export function statsLive(mode) {
   return mode === "bot" || mode === "special";
 }
 
+export function zeroSpent() {
+  return { spike: 0, touch: 0, aim: 0, spring: 0 };
+}
+
 export function defaultSpent() {
   return { spike: 13, touch: 13, aim: 12, spring: 12 };
 }
@@ -43,7 +47,9 @@ export function defaultSpent() {
 export function emptyCharGrowth() {
   return {
     xp: 0,
-    spent: defaultSpent()
+    spentStart: defaultSpent(),
+    spentLevel: zeroSpent(),
+    freeLevelRespec: true
   };
 }
 
@@ -68,16 +74,70 @@ export function spendCapFor(charId, stat, level) {
   return STAT_CAP - gift;
 }
 
+export function levelPool(level) {
+  return Math.max(0, pointPool(level) - START_POINTS);
+}
+
+function copySpent(src, fallback) {
+  const spent = zeroSpent();
+  const from = src && typeof src === "object" ? src : fallback;
+  STAT_IDS.forEach((id) => { spent[id] = Math.max(0, (from && from[id]) | 0); });
+  return spent;
+}
+
+function splitLegacySpent(spent) {
+  const start = zeroSpent();
+  const level = zeroSpent();
+  let remain = START_POINTS;
+  STAT_IDS.forEach((s) => {
+    const n = Math.max(0, spent[s] | 0);
+    const toStart = Math.min(n, remain);
+    start[s] = toStart;
+    level[s] = n - toStart;
+    remain -= toStart;
+  });
+  return { spentStart: start, spentLevel: level };
+}
+
 export function clampGrowth(raw) {
   const row = raw && typeof raw === "object" ? raw : {};
-  const fallback = defaultSpent();
-  const spentIn = row.spent && typeof row.spent === "object" ? row.spent : fallback;
-  const spent = {};
-  STAT_IDS.forEach((id) => { spent[id] = Math.max(0, spentIn[id] | 0); });
+  let spentStart;
+  let spentLevel;
+  if (row.spentStart || row.spentLevel) {
+    spentStart = copySpent(row.spentStart, zeroSpent());
+    spentLevel = copySpent(row.spentLevel, zeroSpent());
+  } else if (row.spent) {
+    const split = splitLegacySpent(row.spent);
+    spentStart = split.spentStart;
+    spentLevel = split.spentLevel;
+  } else {
+    spentStart = defaultSpent();
+    spentLevel = zeroSpent();
+  }
   return {
     xp: Math.max(0, row.xp | 0),
-    spent
+    spentStart,
+    spentLevel,
+    freeLevelRespec: row.freeLevelRespec !== false
   };
+}
+
+export function combinedSpent(g) {
+  const spent = zeroSpent();
+  STAT_IDS.forEach((s) => {
+    spent[s] = (g.spentStart[s] | 0) + (g.spentLevel[s] | 0);
+  });
+  return spent;
+}
+
+function peel(spent, over) {
+  const order = STAT_IDS.slice().sort((a, b) => spent[b] - spent[a]);
+  order.forEach((s) => {
+    if (over <= 0) return;
+    const cut = Math.min(spent[s], over);
+    spent[s] -= cut;
+    over -= cut;
+  });
 }
 
 export function xpToNext(level) {
@@ -102,24 +162,21 @@ export function normalizeRow(charId, row) {
   const id = ROSTER[charId] ? charId : "ignis";
   const g = clampGrowth(row);
   const level = levelFromXp(g.xp).level;
-  const sig = ELEMENT_GIFT[id];
-  const gift = giftPoints(level);
-  const pool = pointPool(level);
+  const poolLv = levelPool(level);
   STAT_IDS.forEach((s) => {
     const cap = spendCapFor(id, s, level);
-    if (g.spent[s] > cap) g.spent[s] = cap;
+    let extra = g.spentStart[s] + g.spentLevel[s] - cap;
+    if (extra > 0) {
+      const cutLv = Math.min(g.spentLevel[s], extra);
+      g.spentLevel[s] -= cutLv;
+      extra -= cutLv;
+      if (extra > 0) g.spentStart[s] -= extra;
+    }
   });
-  let sum = STAT_IDS.reduce((n, s) => n + g.spent[s], 0);
-  if (sum > pool) {
-    let over = sum - pool;
-    const order = STAT_IDS.slice().sort((a, b) => g.spent[b] - g.spent[a]);
-    order.forEach((s) => {
-      if (over <= 0) return;
-      const cut = Math.min(g.spent[s], over);
-      g.spent[s] -= cut;
-      over -= cut;
-    });
-  }
+  let sumStart = STAT_IDS.reduce((n, s) => n + g.spentStart[s], 0);
+  if (sumStart > START_POINTS) peel(g.spentStart, sumStart - START_POINTS);
+  let sumLv = STAT_IDS.reduce((n, s) => n + g.spentLevel[s], 0);
+  if (sumLv > poolLv) peel(g.spentLevel, sumLv - poolLv);
   return g;
 }
 
@@ -128,15 +185,18 @@ export function sheetFromRow(charId, row) {
   const g = normalizeRow(id, row);
   const prog = levelFromXp(g.xp);
   const pool = pointPool(prog.level);
+  const poolLv = levelPool(prog.level);
   const gift = giftPoints(prog.level);
   const sig = ELEMENT_GIFT[id];
-  const spentSum = STAT_IDS.reduce((n, s) => n + g.spent[s], 0);
+  const spent = combinedSpent(g);
+  const sumStart = STAT_IDS.reduce((n, s) => n + g.spentStart[s], 0);
+  const sumLv = STAT_IDS.reduce((n, s) => n + g.spentLevel[s], 0);
   const totals = {};
   const caps = {};
   STAT_IDS.forEach((s) => {
     const gft = s === sig ? gift : 0;
     caps[s] = STAT_CAP - gft;
-    totals[s] = Math.min(STAT_CAP, g.spent[s] + gft);
+    totals[s] = Math.min(STAT_CAP, spent[s] + gft);
   });
   return {
     id,
@@ -144,34 +204,40 @@ export function sheetFromRow(charId, row) {
     level: prog.level,
     into: prog.into,
     need: prog.need,
-    spent: g.spent,
+    spent,
+    spentStart: g.spentStart,
+    spentLevel: g.spentLevel,
     totals,
     caps,
-    unspent: pool - spentSum,
+    unspent: (START_POINTS - sumStart) + (poolLv - sumLv),
+    unspentStart: START_POINTS - sumStart,
+    unspentLevel: poolLv - sumLv,
     gift,
     giftStat: sig,
     pool,
+    freeLevelRespec: g.freeLevelRespec === true,
     specialReady: prog.level >= GROWTH_SPECIAL_LV
   };
 }
 
 export function spendNpc(charId, level) {
   const lv = Math.max(1, Math.min(GROWTH_MAX_LV, level | 0));
-  const pool = pointPool(lv);
-  const spent = { spike: 0, touch: 0, aim: 0, spring: 0 };
+  const start = defaultSpent();
+  const spentLevel = zeroSpent();
+  const poolLv = levelPool(lv);
   const sig = ELEMENT_GIFT[ROSTER[charId] ? charId : "ignis"];
-  const intoGift = Math.min(spendCapFor(charId, sig, lv), Math.floor(pool * 0.45));
-  spent[sig] = intoGift;
-  let left = pool - intoGift;
+  let left = poolLv;
+  const intoGift = Math.min(spendCapFor(charId, sig, lv) - start[sig], Math.floor(left * 0.5));
+  spentLevel[sig] = Math.max(0, intoGift);
+  left -= spentLevel[sig];
   const rest = STAT_IDS.filter((s) => s !== sig);
   rest.forEach((s, i) => {
-    const cap = spendCapFor(charId, s, lv);
+    const room = spendCapFor(charId, s, lv) - start[s] - spentLevel[s];
     const n = i === rest.length - 1 ? left : Math.floor(left / rest.length);
-    spent[s] = Math.min(cap, n);
-    left -= spent[s];
+    spentLevel[s] = Math.max(0, Math.min(room, n));
+    left -= spentLevel[s];
   });
-  if (left > 0) spent[sig] = Math.min(spendCapFor(charId, sig, lv), spent[sig] + left);
-  return { xp: xpAtLevel(lv), spent };
+  return { xp: xpAtLevel(lv), spentStart: start, spentLevel, freeLevelRespec: false };
 }
 
 export function xpAtLevel(level) {

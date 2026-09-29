@@ -10,7 +10,7 @@ import {
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin } from "../data/skins.js";
-import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent } from "../data/growth.js";
+import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { ROSTER_IDS } from "../data/roster.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -57,8 +57,9 @@ function finish(data) {
   const g = { ...emptyGrowth(), ...(data.growth || {}) };
   ROSTER_IDS.forEach((id) => {
     let row = clampGrowth(g[id]);
-    const spentSum = (row.spent.spike + row.spent.touch + row.spent.aim + row.spent.spring) | 0;
-    if (!row.xp && spentSum === 0) row.spent = defaultSpent();
+    const startSum = STAT_IDS.reduce((n, s) => n + (row.spentStart[s] | 0), 0);
+    const lvSum = STAT_IDS.reduce((n, s) => n + (row.spentLevel[s] | 0), 0);
+    if (!row.xp && startSum === 0 && lvSum === 0) row.spentStart = defaultSpent();
     g[id] = normalizeRow(id, row);
   });
   data.growth = g;
@@ -308,10 +309,10 @@ export const SaveSystem = {
 
   growthOf(id) {
     if (!this.data.growth) this.data.growth = emptyGrowth();
-    const before = JSON.stringify(clampGrowth(this.data.growth[id]).spent);
+    const before = JSON.stringify(clampGrowth(this.data.growth[id]));
     const row = normalizeRow(id, this.data.growth[id]);
     this.data.growth[id] = row;
-    if (JSON.stringify(row.spent) !== before) this.persist();
+    if (JSON.stringify(row) !== before) this.persist();
     return sheetFromRow(id, row);
   },
 
@@ -327,22 +328,34 @@ export const SaveSystem = {
   spendGrowth(id, stat) {
     if (!this.isUnlocked(id)) return false;
     const sheet = this.growthOf(id);
-    if (sheet.unspent < 1) return false;
     if ((sheet.spent[stat] | 0) >= (sheet.caps[stat] | 0)) return false;
     const row = clampGrowth(this.data.growth[id]);
-    row.spent[stat] = (row.spent[stat] | 0) + 1;
+    if (sheet.unspentStart > 0) row.spentStart[stat] = (row.spentStart[stat] | 0) + 1;
+    else if (sheet.unspentLevel > 0) row.spentLevel[stat] = (row.spentLevel[stat] | 0) + 1;
+    else return false;
     this.data.growth[id] = normalizeRow(id, row);
     this.persist();
     return true;
   },
 
-  respecGrowth(id) {
+  respecStartGrowth(id) {
     if (!this.isUnlocked(id)) return false;
     const row = clampGrowth(this.data.growth[id]);
-    row.spent = { spike: 0, touch: 0, aim: 0, spring: 0 };
+    row.spentStart = { spike: 0, touch: 0, aim: 0, spring: 0 };
     this.data.growth[id] = normalizeRow(id, row);
     this.persist();
     return true;
+  },
+
+  respecLevelGrowth(id) {
+    if (!this.isUnlocked(id)) return false;
+    const row = clampGrowth(this.data.growth[id]);
+    if (!row.freeLevelRespec) return { ok: false, needFruit: true };
+    row.spentLevel = { spike: 0, touch: 0, aim: 0, spring: 0 };
+    row.freeLevelRespec = false;
+    this.data.growth[id] = normalizeRow(id, row);
+    this.persist();
+    return { ok: true };
   },
 
   equipAvatar(id) {

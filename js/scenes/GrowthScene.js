@@ -52,22 +52,25 @@ export class GrowthScene extends Phaser.Scene {
       align: "center", wordWrap: { width: 240 }
     }).setOrigin(0.5);
     this.ptsText = this.add.text(720, 168, "", {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418"
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008",
+      wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
     this.specialText = this.add.text(720, 196, "", {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7d5cff"
     }).setOrigin(0.5);
 
     this.rows = STAT_IDS.map((stat, i) => {
-      const y = 250 + i * 72;
-      roundPanel(this, 720, y, 640, 64, 0xffb14a, 0xfff6ea);
-      const name = this.add.text(430, y - 10, "", {
-        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
-      }).setOrigin(0, 0.5);
-      const val = this.add.text(430, y + 14, "", {
-        fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
-      }).setOrigin(0, 0.5);
-      const plus = makeButton(this, 980, y, 72, 40, "+", () => {
+      const y = 242 + i * 66;
+      roundPanel(this, 720, y, 640, 58, 0xffb14a, 0xfff6ea);
+      const name = this.add.text(430, y - 11, "", {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#1a1008",
+        stroke: "#fff6ea", strokeThickness: 4
+      }).setOrigin(0, 0.5).setDepth(8);
+      const val = this.add.text(430, y + 13, "", {
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418",
+        stroke: "#fff6ea", strokeThickness: 3
+      }).setOrigin(0, 0.5).setDepth(8);
+      const plus = makeButton(this, 980, y, 72, 38, "+", () => {
         if (SaveSystem.spendGrowth(this.charId, stat)) {
           AudioSystem.ui();
           this.refresh();
@@ -76,12 +79,19 @@ export class GrowthScene extends Phaser.Scene {
       return { stat, name, val, plus };
     });
 
-    this.respecBtn = makeButton(this, 720, 560, 280, 44, t("growth.respec"), () => {
-      if (SaveSystem.respecGrowth(this.charId)) {
+    this.respecStartBtn = makeButton(this, 720, 528, 580, 42, t("growth.respecStart"), () => {
+      if (SaveSystem.respecStartGrowth(this.charId)) {
         AudioSystem.ui();
         this.refresh();
       }
     }, 0xff8ab8);
+    this.respecLevelBtn = makeButton(this, 720, 578, 580, 42, t("growth.respecLevel"), () => {
+      const res = SaveSystem.respecLevelGrowth(this.charId);
+      if (res && res.ok) {
+        AudioSystem.ui();
+        this.refresh();
+      }
+    }, 0x7d5cff);
 
     this.refresh();
     AudioSystem.playMenu();
@@ -101,7 +111,11 @@ export class GrowthScene extends Phaser.Scene {
       n: sheet.gift,
       stat: t("growth.stat." + sheet.giftStat)
     }));
-    this.ptsText.setText(t("growth.unspent", { n: sheet.unspent }));
+    this.ptsText.setText(t("growth.unspent", {
+      n: sheet.unspent,
+      start: sheet.unspentStart,
+      lv: sheet.unspentLevel
+    }));
     this.specialText.setText(sheet.specialReady
       ? t("growth.specialOn")
       : t("growth.specialOff", { n: GROWTH_SPECIAL_LV }));
@@ -114,7 +128,8 @@ export class GrowthScene extends Phaser.Scene {
         cap: sheet.caps[row.stat]
       }));
     });
-    this.respecBtn.text.setText(t("growth.respec"));
+    this.respecStartBtn.text.setFontSize(15).setText(t("growth.respecStart"));
+    this.respecLevelBtn.text.setFontSize(15).setText(sheet.freeLevelRespec ? t("growth.respecLevel") : t("growth.useFruit"));
   }
 
   toggleHint() {
