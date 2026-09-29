@@ -6,6 +6,14 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { BAG_COLS, BAG_SLOTS, ITEMS, itemIconKey } from "../data/items.js";
 
+function itemCopy(id, field, extra) {
+  const row = ITEMS[id];
+  if (row && row.effect === "champSkin") {
+    return t("item.champSkin." + field, { name: charName(row.charId), n: row.set, ...(extra || {}) });
+  }
+  return t("item." + id + "." + field, extra);
+}
+
 function slotList() {
   const cur = SaveSystem.data.currencies || {};
   const rows = [];
@@ -99,10 +107,10 @@ export class BagScene extends Phaser.Scene {
     }
     const key = this.textures.exists(itemIconKey(chosen.id)) ? itemIconKey(chosen.id) : "item-stone";
     keep(this.add.image(panelX, panelY - 170, key).setDisplaySize(96, 96).setDepth(8));
-    keep(this.add.text(panelX, panelY - 96, t("item." + chosen.id + ".name"), {
+    keep(this.add.text(panelX, panelY - 96, itemCopy(chosen.id, "name"), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(8));
-    keep(this.add.text(panelX, panelY - 40, t("item." + chosen.id + ".body"), {
+    keep(this.add.text(panelX, panelY - 40, itemCopy(chosen.id, "body"), {
       fontFamily: UI_FONT, fontSize: "15px", color: "#5a3828", align: "center", wordWrap: { width: 360 }
     }).setOrigin(0.5).setDepth(8));
     keep(this.add.text(panelX, panelY + 40, t("bag.held", { n: chosen.n }), {
@@ -146,6 +154,9 @@ export class BagScene extends Phaser.Scene {
       : t("bag.err." + (res.reason || "no"));
     if (res.ok && id === "stone") this.note = t("bag.usedStone");
     if (res.ok && res.charId) this.note = t("bag.usedFruit", { name: charName(res.charId) });
+    if (res.ok && res.effect === "champSkin") {
+      this.note = t(res.on ? "bag.usedChamp" : "bag.usedChampOff", { name: charName(res.charId) });
+    }
     this.paintGrid();
     const W = this.scale.width;
     const msg = this.add.text(W / 2, 660, this.note, {

@@ -5,6 +5,8 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { paintTabs } from "../ui/sceneTabs.js";
 import { ITEM_IDS, itemIconKey } from "../data/items.js";
+
+const WIKI_ITEMS = ITEM_IDS.filter((id) => id.indexOf("champ-") !== 0);
 import { pinHit } from "../ui/mapPins.js";
 
 export class WikiScene extends Phaser.Scene {
@@ -179,8 +181,8 @@ export class WikiScene extends Phaser.Scene {
     keep(this.add.text(W / 2, 140, t("wiki.itemsSub"), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
     }).setOrigin(0.5).setDepth(41));
-    this.itemPick = this.itemPick || ITEM_IDS[0];
-    ITEM_IDS.forEach((id, i) => {
+    this.itemPick = this.itemPick || WIKI_ITEMS[0];
+    WIKI_ITEMS.forEach((id, i) => {
       const y = 210 + i * 92;
       const g = keep(this.add.graphics().setDepth(41));
       const paint = () => {
@@ -213,7 +215,7 @@ export class WikiScene extends Phaser.Scene {
   paintItemDetail() {
     (this.itemDetail || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
     this.itemDetail = [];
-    const id = this.itemPick || ITEM_IDS[0];
+    const id = this.itemPick || WIKI_ITEMS[0];
     const key = this.textures.exists(itemIconKey(id)) ? itemIconKey(id) : "item-stone";
     const dx = 820;
     const dkeep = (o) => { this.itemDetail.push(o); this.itemLayer.add(o); return o; };

@@ -45,7 +45,8 @@ returns table (
   mmr integer,
   wins integer,
   losses integer,
-  games integer
+  games integer,
+  season_mark jsonb
 )
 language sql
 security definer
@@ -68,7 +69,8 @@ as $$
       p.mmr,
       p.rank_wins as wins,
       p.rank_losses as losses,
-      p.rank_games as games
+      p.rank_games as games,
+      coalesce(p.save_data->'seasonMark', '{}'::jsonb) as season_mark
     from public.profiles p
     where p.display_name is not null
       and length(btrim(p.display_name)) >= 2

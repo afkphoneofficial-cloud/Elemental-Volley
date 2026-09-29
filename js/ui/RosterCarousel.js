@@ -4,7 +4,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { SELECT_PLATE, drawOrbit, drawLock, paintHopFx } from "../fx/SelectHover.js";
-import { texSelect } from "../data/skins.js";
+import { texHeroSelect } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 
 export const CAROUSEL = {
@@ -59,7 +59,7 @@ export class RosterCarousel {
     const scene = this.scene;
     const data = ROSTER[id] || { colors: { main: 0xffb14a } };
     const unlocked = SaveSystem.isUnlocked(id);
-    const key = texSelect(scene, id, SaveSystem.skinOf(id));
+    const key = texHeroSelect(scene, id);
     const plateCol = SELECT_PLATE[id] != null ? SELECT_PLATE[id] : data.colors.main;
     const box = scene.add.container(this.cx, this.cy);
     const plate = scene.add.circle(0, 0, CAROUSEL.plateR, plateCol, 1).setStrokeStyle(3, 0xfff6ea, 0.95);

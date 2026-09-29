@@ -1,14 +1,14 @@
-/** Weekly ranking season: Mon–Sun Bangkok. Rank Mode and Elements Rank are separate boards. */
+import { seasonCycleIndex } from "./seasonCycle.js";
 export const SEASON_PLAY_MIN = 3;
 export const SEASON_PLAY_ETHER = 10;
 export const SEASON_PLACE_51_100_ETHER = 30;
 
 export const SEASON_TABLE = [
-  { id: "1", min: 1, max: 1, shards: 80, plate: true, cheer: true, etherVial: 0, fruit: "top10" },
-  { id: "2-3", min: 2, max: 3, shards: 50, plate: true, cheer: false, etherVial: 0, fruit: "top10" },
-  { id: "4-10", min: 4, max: 10, shards: 30, plate: true, cheer: false, etherVial: 0, fruit: "top10" },
-  { id: "11-50", min: 11, max: 50, shards: 15, plate: false, cheer: false, etherVial: 0 },
-  { id: "51-100", min: 51, max: 100, shards: 0, plate: false, cheer: false, etherVial: SEASON_PLACE_51_100_ETHER },
+  { id: "1", min: 1, max: 1, shards: 80, plate: "champ", cheer: true, etherVial: 0, fruit: "top10" },
+  { id: "2-3", min: 2, max: 3, shards: 50, plate: "runner", cheer: false, etherVial: 0, fruit: "top10" },
+  { id: "4-10", min: 4, max: 10, shards: 30, plate: "frame", cheer: false, etherVial: 0, fruit: "top10" },
+  { id: "11-50", min: 11, max: 50, shards: 15, plate: "", cheer: false, etherVial: 0 },
+  { id: "51-100", min: 51, max: 100, shards: 0, plate: "", cheer: false, etherVial: SEASON_PLACE_51_100_ETHER },
   { id: "play", play: true, matches: SEASON_PLAY_MIN, etherVial: SEASON_PLAY_ETHER }
 ];
 
@@ -21,8 +21,10 @@ function placeRow(place) {
 export function seasonLootBits(board, row) {
   if (!row) return [];
   const bits = [];
-  if (row.cheer) bits.push({ id: "cheer", n: 1, icon: "item-cheer" });
-  if (row.plate) bits.push({ id: "plate", n: 1, icon: "item-plate" });
+  if (row.cheer) bits.push({ id: "cheer", n: 1, icon: "item-cheer-champ" });
+  if (row.plate === "champ") bits.push({ id: "plate", n: 1, icon: "item-plate-champ" });
+  if (row.plate === "runner") bits.push({ id: "plate", n: 1, icon: "item-plate-runner" });
+  if (row.plate === "frame") bits.push({ id: "plate", n: 1, icon: "item-plate-frame" });
   if (row.shards) bits.push({ id: "shard", n: row.shards | 0, icon: "item-shard" });
   if (row.etherVial) bits.push({ id: "ether_vial", n: row.etherVial | 0, icon: "item-ether" });
   if (board === "special" && row.fruit === "top10") bits.push({ id: "bodyfruit", n: 1, icon: "item-fruit" });
@@ -44,6 +46,7 @@ export function seasonPayout(board, place, games) {
       etherVial: row.etherVial | 0,
       etherBar: 0,
       plate: Boolean(row.plate),
+      plateKind: row.plate || "",
       cheer: Boolean(row.cheer),
       fruit
     };
@@ -116,7 +119,9 @@ export function buildSeasonMail(week, pay) {
       etherBar: pay.etherBar | 0,
       fruit: pay.fruit | 0,
       plate: Boolean(pay.plate),
-      cheer: Boolean(pay.cheer)
+      plateKind: pay.plateKind || "",
+      cheer: Boolean(pay.cheer),
+      cycle: seasonCycleIndex(week)
     }
   };
 }

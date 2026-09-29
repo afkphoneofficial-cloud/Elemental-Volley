@@ -8,7 +8,7 @@ import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 import { isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { texSelect } from "../data/skins.js";
+import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
@@ -147,7 +147,7 @@ export class HubScene extends Phaser.Scene {
     this.stoneBox.add(this.stoneText);
 
     const heroId = save.showcaseId || save.starterId || "ignis";
-    const heroKey = texSelect(this, heroId, SaveSystem.skinOf(heroId));
+    const heroKey = texHeroSelect(this, heroId);
     const heroY = 292;
     this.add.circle(W / 2, heroY, 136, 0xffffff, 0.32).setDepth(5);
     this.add.circle(W / 2, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
@@ -305,7 +305,7 @@ export class HubScene extends Phaser.Scene {
     const next = owned[(i + dir + owned.length) % owned.length];
     SaveSystem.setShowcase(next);
     AudioSystem.ui();
-    const key = texSelect(this, next, SaveSystem.skinOf(next));
+    const key = texHeroSelect(this, next);
     if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(252, 252);
     if (this.heroName) this.heroName.setText(charName(next));
     this.heroId = next;
@@ -314,7 +314,7 @@ export class HubScene extends Phaser.Scene {
 
   update(now) {
     if (this.heroAura && this.heroImg) {
-      paintSkinAura(this.heroAura, this.heroImg.x, this.heroY, this.heroId, this.heroSkin, now, 118);
+      paintSkinAura(this.heroAura, this.heroImg.x, this.heroY, this.heroId, champAuraTier(this.heroId, this.heroSkin), now, 118);
     }
     paintHubBoardFx(this, now);
     this.paintEther();

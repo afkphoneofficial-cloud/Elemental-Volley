@@ -8,6 +8,7 @@ import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating,
 import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js";
 import { paintRankTabs } from "../ui/sceneTabs.js";
 import { avatarKey } from "../data/avatars.js";
+import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 
 export class RankScene extends Phaser.Scene {
   constructor() { super("rankinfo"); }
@@ -278,13 +279,24 @@ export class RankScene extends Phaser.Scene {
       const chip = this.add.text(W / 2 - 380, y + 12, boardRankLabel(row.mmr, row.games), {
         fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: muted
       }).setOrigin(0, 0.5).setDepth(8);
-      const mmr = this.add.text(W / 2 + 280, y - 8, String(row.mmr | 0), {
-        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: special ? gold : "#3a2418"
+      const mmr = this.add.text(W / 2 + 280, y, String(row.mmr | 0), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: special ? gold : "#3a2418"
       }).setOrigin(0.5).setDepth(8);
-      const wl = this.add.text(W / 2 + 280, y + 14, t("board.wl", { w: row.wins | 0, l: row.losses | 0 }), {
-        fontFamily: UI_FONT, fontSize: "13px", color: muted
-      }).setOrigin(0.5).setDepth(8);
-      this.listBox.add([panel, av, badge, placeTx, name, chip, mmr, wl]);
+      const rowBits = [panel, av, badge, placeTx, name, chip, mmr];
+      const sess = AuthSystem.session && AuthSystem.session();
+      const mark = liveSeasonMark(row.season_mark) || (sess && row.id === sess.id ? liveSeasonMark(SaveSystem.data.seasonMark) : null);
+      if (mark) {
+        const cyc = seasonCycleOf(mark.cycle | 0);
+        const key = plateKey(mark.kind, cyc);
+        if (key && this.textures.exists(key)) {
+          if (mark.kind === "frame") {
+            rowBits.push(this.add.image(W / 2 - 300, y - 10, key).setDisplaySize(52, 36).setDepth(7));
+          } else {
+            rowBits.push(this.add.image(W / 2 - 380 + name.width + 22, y - 10, key).setDisplaySize(30, 30).setDepth(8));
+          }
+        }
+      }
+      this.listBox.add(rowBits);
     });
   }
 

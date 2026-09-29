@@ -82,8 +82,8 @@ export class SeasonScene extends Phaser.Scene {
 
     const tableW = 1040;
     const tableX = W / 2 - tableW / 2;
-    const headY = 154;
-    const rowH = 72;
+    const headY = 142;
+    const rowH = 64;
     const placeW = 250;
     const headH = 44;
     const rows = SEASON_TABLE;
@@ -146,6 +146,15 @@ export class SeasonScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(8);
       });
     });
+
+    this.add.text(W / 2, headY + tableH + 18, t("season.notePlate"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: muted, align: "center",
+      wordWrap: { width: 1000 }
+    }).setOrigin(0.5, 0).setDepth(8);
+    this.add.text(W / 2, headY + tableH + 48, t("season.noteCheer"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: muted, align: "center",
+      wordWrap: { width: 1000 }
+    }).setOrigin(0.5, 0).setDepth(8);
 
     AudioSystem.playMenu();
   }

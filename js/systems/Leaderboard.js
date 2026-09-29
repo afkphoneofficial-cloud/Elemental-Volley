@@ -1,6 +1,7 @@
 import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
+import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { AudioSystem } from "./AudioSystem.js";
 
@@ -37,23 +38,33 @@ function rankLabel(mmr, games) {
   return t("rank.chip", { name: t("rank.tier." + medal.id), star: starText(medal) });
 }
 
+function markBits(row, youId) {
+  const mark = liveSeasonMark(row.season_mark) || (youId && row.id === youId ? liveSeasonMark(SaveSystem.data.seasonMark) : null);
+  if (!mark) return { cls: "", plate: "" };
+  const src = "assets/sprites/season/" + plateKey(mark.kind, seasonCycleOf(mark.cycle | 0)) + ".png";
+  const plate = src.indexOf(".png") > 0
+    ? `<img class="board-mark" alt="" src="${src}" width="26" height="26" />`
+    : "";
+  return { cls: mark.kind === "frame" ? " framed" : "", plate };
+}
+
 function rowHtml(row, youId) {
   const place = row.place | 0;
   const podium = place === 1 ? "gold" : place === 2 ? "silver" : place === 3 ? "bronze" : "";
   const mine = youId && row.id === youId ? " mine" : "";
   const badgeId = displayBadgeId({ mmr: row.mmr, games: row.games });
   const badge = `<img class="board-badge" alt="" src="${badgeSrc(badgeId)}" width="44" height="44" />`;
+  const mark = markBits(row, youId);
   return `<article class="board-row ${podium}${mine}" data-place="${place}">
     <span class="board-place">${place}</span>
     <img class="board-av" alt="" src="${avSrc(row.avatar_id)}" width="44" height="44" />
     ${badge}
     <div class="board-meta">
-      <p class="board-name">${escapeHtml(row.display_name || "—")}</p>
+      <p class="board-name${mark.cls}">${escapeHtml(row.display_name || "—")}${mark.plate}</p>
       <p class="board-rank">${rankLabel(row.mmr, row.games)}</p>
     </div>
     <div class="board-stats">
       <strong>${row.mmr | 0}</strong>
-      <span>${t("board.wl", { w: row.wins | 0, l: row.losses | 0 })}</span>
     </div>
   </article>`;
 }

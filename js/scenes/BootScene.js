@@ -5,6 +5,7 @@ import { I18n } from "../i18n/I18n.js";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
+import { SEASON_ART } from "../data/seasonCycle.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -37,6 +38,13 @@ export class BootScene extends Phaser.Scene {
     this.load.image("item-ether", "assets/sprites/items/item-ether.png");
     this.load.image("item-fruit", "assets/sprites/items/item-fruit.png");
     this.load.image("item-bag", "assets/sprites/items/item-bag.png");
+    this.load.image("item-plate-champ", "assets/sprites/items/item-plate-champ.png");
+    this.load.image("item-plate-runner", "assets/sprites/items/item-plate-runner.png");
+    this.load.image("item-plate-frame", "assets/sprites/items/item-plate-frame.png");
+    this.load.image("item-cheer-champ", "assets/sprites/items/item-cheer-champ.png");
+    SEASON_ART.forEach((id) => {
+      this.load.image(id, "assets/sprites/season/" + id + ".png");
+    });
     this.load.image("ball-art", "assets/sprites/ball.png");
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
@@ -66,7 +74,17 @@ export class BootScene extends Phaser.Scene {
       if (!this.textures.exists(badgeKey(RANK_CAL_ID))) {
         TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
       }
-      TextureFactory.applyBall(this, "ball-art", "ball");
+      TextureFactory.applyChibi(this, "item-cheer-champ", "item-cheer-champ");
+      TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
+      TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
+      TextureFactory.applyChibi(this, "item-plate-frame", "item-plate-frame");
+      SEASON_ART.forEach((id) => {
+        let dest = id;
+        if (id.indexOf("select-champ-") === 0) {
+          dest = "vis_select_champ_" + id.slice("select-champ-".length).replace("-", "_");
+        }
+        TextureFactory.applyChibi(this, id, dest);
+      });
       TextureFactory.applyChibi(this, "ether-art", "vis_ether");
       FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
       COURTS.forEach((s) => TextureFactory.applyChibi(this, "ref-" + s, "vis_ref_" + s));

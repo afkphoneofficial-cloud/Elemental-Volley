@@ -1,4 +1,6 @@
-export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit"];
+import { CHAMP_ITEMS } from "./seasonCycle.js";
+
+export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit"].concat(Object.keys(CHAMP_ITEMS));
 
 export const ITEMS = {
   stone: {
@@ -24,7 +26,8 @@ export const ITEMS = {
     kind: "use",
     icon: "item-fruit",
     effect: "respecLevel"
-  }
+  },
+  ...CHAMP_ITEMS
 };
 
 export const BAG_COLS = 5;

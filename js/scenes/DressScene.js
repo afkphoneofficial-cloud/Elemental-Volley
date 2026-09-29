@@ -2,6 +2,7 @@ import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { paintFighterTabs } from "../ui/sceneTabs.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { SKIN_TIERS, SKIN_PIECES, skinTier, texSelect, texFace } from "../data/skins.js";
+import { texHeroSelect } from "../data/seasonLooks.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -147,7 +148,7 @@ export class DressScene extends Phaser.Scene {
   previewKey() {
     if (this.view === "l") return texFace(this, this.charId, 2, this.tier);
     if (this.view === "r") return texFace(this, this.charId, 1, this.tier);
-    return texSelect(this, this.charId, this.tier);
+    return texHeroSelect(this, this.charId);
   }
 
   refresh() {

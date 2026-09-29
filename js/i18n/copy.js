@@ -169,7 +169,9 @@ export const COPY = {
       "place4-10": "4 – 10",
       "place11-50": "11 – 50",
       "place51-100": "51 – 100",
-      play: "แข่งครบ 3 แมตช์"
+      play: "แข่งครบ 3 แมตช์",
+      notePlate: "ป้ายแชมป์ซีซั่น ป้ายรอง และกรอบชื่อซีซั่น เปลี่ยนตามซีซั่น โชว์บนกระดานซีซั่นถัดไปและแชทโลก 7 วัน",
+      noteCheer: "ธีมฉลองแต้มเปลี่ยนตามซีซั่น ธาตุละ 1 สัปดาห์ วน 3 เดือน ใช้จากกระเป๋าแล้วชุดแชมป์อยู่กับตัวละครธาตุนั้นถาวร"
     },
     queue: {
       title: "กำลังหาคู่แข่ง",
@@ -266,6 +268,8 @@ export const COPY = {
       used: "ใช้แล้ว",
       usedStone: "แลกเป็นเศษธาตุ 1 ชิ้นแล้ว",
       usedFruit: "คืนแต้มเลเวลของ {name} แล้ว",
+      usedChamp: "ใส่ชุดแชมป์ของ {name} แล้ว",
+      usedChampOff: "ถอดชุดแชมป์ของ {name} แล้ว",
       err: {
         no: "ใช้ชิ้นนี้ไม่ได้",
         none: "ของไม่พอ",
@@ -278,7 +282,8 @@ export const COPY = {
       stone: { name: "หินประหลาด", body: "ได้จากฝึกฝน แลกเป็นเศษธาตุได้ที่ร้านค้า", how: "ชนะโหมดฝึกฝน ตามสกอร์และความยาก แพ้ไม่ได้ก้อน", use: "สะสมแล้วนำไปแลกเศษธาตุที่ร้านค้า อัตรา 1:1" },
       shard: { name: "เศษธาตุ", body: "แลกตัวละครธาตุได้ที่ร้านค้า", how: "ชนะ Rank Mode ตามผลงาน สูงสุด 3 ชิ้นต่อแมตช์ หรือแลกจากหินประหลาดที่ร้าน", use: "ใช้ปลดล็อกตัวละครธาตุในร้านค้า ตัวละ 100 ชิ้น" },
       ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ใช้ได้เฉพาะตอนหลอดยังไม่เต็ม", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลัง 1 ก้อนเมื่อหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้" },
-      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ยังไม่ดรอปจากแมตช์ จะมาจากร้านหรือกิจกรรมภายหลัง", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" }
+      bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ยังไม่ดรอปจากแมตช์ จะมาจากร้านหรือกิจกรรมภายหลัง", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" },
+      champSkin: { name: "ธีมฉลอง {name} ชุด {n}", body: "ชุดแชมป์ซีซั่นของตัวละครธาตุนี้ ของหายาก ใช้แล้วอยู่ถาวร", how: "ได้จากรางวัลอันดับ 1 ของสัปดาห์ธาตุนั้น วนทุก 3 เดือน", use: "กดใช้จากกระเป๋า เพื่อใส่หรือถอดชุดแชมป์บนตัวละครธาตุนั้น โชว์ที่ล็อบบี้" }
     },
     growth: {
       title: "ธาตุกาย",
@@ -821,7 +826,9 @@ export const COPY = {
       "place4-10": "4 – 10",
       "place11-50": "11 – 50",
       "place51-100": "51 – 100",
-      play: "Play 3 matches"
+      play: "Play 3 matches",
+      notePlate: "Champion, runner-up, and season name frames change each season. They show on next week's board and world chat for 7 days.",
+      noteCheer: "Celebration themes rotate by element, one week each, looping every 3 months. Use from the bag; that element's champion outfit stays forever."
     },
     queue: {
       title: "Finding a rival",
@@ -918,6 +925,8 @@ export const COPY = {
       used: "Used",
       usedStone: "Traded for 1 Element Shard",
       usedFruit: "Reset {name}'s level-up points",
+      usedChamp: "Equipped {name}'s champion outfit",
+      usedChampOff: "Removed {name}'s champion outfit",
       err: {
         no: "Cannot use this",
         none: "Not enough",
@@ -930,7 +939,8 @@ export const COPY = {
       stone: { name: "Odd Stones", body: "From training. Trade for Element Shards in the shop.", how: "Win training matches. Amount follows score and difficulty. Losses drop none.", use: "Trade 1:1 for Element Shards in the shop." },
       shard: { name: "Element Shards", body: "Unlock elemental fighters in the shop.", how: "Win Rank Mode, up to 3 per match, or trade Odd Stones in the shop.", use: "Unlock elemental fighters in the shop. 100 shards each." },
       ether_vial: { name: "Ether", body: "Use to restore 1 court charge, only when the pool is not full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the pool is full or this would overflow, the button does nothing." },
-      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Not dropped from matches yet. Shop and events come later.", use: "Use from the bag on a fighter to reclaim spent level-up points." }
+      bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Not dropped from matches yet. Shop and events come later.", use: "Use from the bag on a fighter to reclaim spent level-up points." },
+      champSkin: { name: "{name} celebration set {n}", body: "A rare champion season outfit for this element. Permanent once used.", how: "Place 1 reward on that element's week. The 3-month loop repeats the same sets.", use: "Use from the bag to wear or remove the champion outfit. It shows in the lobby." }
     },
     growth: {
       title: "Element Body",

@@ -1,8 +1,10 @@
 import { AuthSystem } from "./AuthSystem.js";
+import { SaveSystem } from "./SaveSystem.js";
 import { ChatFilter } from "./ChatFilter.js";
 import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
+import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 
 const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "career", "mode", "rank", "menu"]);
 
@@ -38,6 +40,7 @@ export const ChatSystem = {
   toId: null,
   toName: "",
   rows: [],
+  marks: {},
   unread: 0,
   channel: null,
   visible: false,
@@ -193,6 +196,19 @@ export const ChatSystem = {
       div.className = "chat-row" + (me && row.sender_id === me.id ? " mine" : "");
       const who = document.createElement("strong");
       who.textContent = row.sender_name || "—";
+      const mark = liveSeasonMark(this.marks[row.sender_id]);
+      if (mark) {
+        const cyc = seasonCycleOf(mark.cycle | 0);
+        const key = plateKey(mark.kind, cyc);
+        if (key) {
+          const img = document.createElement("img");
+          img.className = "chat-mark";
+          img.alt = "";
+          img.src = "assets/sprites/season/" + key + ".png";
+          who.appendChild(img);
+        }
+        if (mark.kind === "frame") who.classList.add("framed");
+      }
       const body = document.createElement("span");
       body.textContent = row.body || "";
       div.appendChild(who);
@@ -223,9 +239,12 @@ export const ChatSystem = {
         if (!row || this.rows.some((r) => r.id === row.id)) return;
         this.rows.push(row);
         this.trimRows();
-        if (!this.open || !this.visible) this.unread += 1;
-        this.paintChrome();
-        this.paintLog();
+        this.loadMarks(this.rows).then(() => {
+          if (!this.open || !this.visible) this.unread += 1;
+          this.paintChrome();
+          this.paintLog();
+        });
+        return;
       }
     );
     await this.channel.subscribe();
@@ -253,6 +272,7 @@ export const ChatSystem = {
     const { data } = await q;
     this.rows = (data || []).slice().reverse();
     this.trimRows();
+    await this.loadMarks(this.rows);
     this.paintLog();
     if (ui.note && !ui.note.dataset.hold) ui.note.textContent = "";
   },
@@ -288,8 +308,26 @@ export const ChatSystem = {
     if (data && data.id && !this.rows.some((r) => r.id === data.id)) {
       this.rows.push(data);
       this.trimRows();
+      await this.loadMarks(this.rows);
       this.paintLog();
     }
+  },
+
+  async loadMarks(rows) {
+    const ids = [];
+    (rows || []).forEach((row) => {
+      if (row && row.sender_id && ids.indexOf(row.sender_id) < 0) ids.push(row.sender_id);
+    });
+    const me = AuthSystem.session && AuthSystem.session();
+    this.marks = {};
+    if (me) this.marks[me.id] = SaveSystem.data.seasonMark;
+    if (!ids.length) return;
+    const sb = AuthSystem.db ? await AuthSystem.db() : null;
+    if (!sb) return;
+    const { data } = await sb.rpc("public_season_marks", { p_ids: ids });
+    (data || []).forEach((row) => {
+      if (row && row.id) this.marks[row.id] = row.season_mark;
+    });
   },
 
   trimRows() {

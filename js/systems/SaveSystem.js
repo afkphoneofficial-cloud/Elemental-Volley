@@ -16,6 +16,7 @@ import { ITEMS } from "../data/items.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
+import { seasonCycleOf } from "../data/seasonCycle.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -53,7 +54,9 @@ const empty = () => ({
   seasonInbox: [],
   seasonIssued: [],
   seasonSnap: {},
-  seasonBadges: []
+  seasonBadges: [],
+  seasonMark: null,
+  champEquipped: {}
 });
 
 function finish(data) {
@@ -97,6 +100,8 @@ function finish(data) {
   if (!Array.isArray(data.seasonIssued)) data.seasonIssued = [];
   if (!data.seasonSnap || typeof data.seasonSnap !== "object" || Array.isArray(data.seasonSnap)) data.seasonSnap = {};
   if (!Array.isArray(data.seasonBadges)) data.seasonBadges = [];
+  if (!data.seasonMark || typeof data.seasonMark !== "object") data.seasonMark = null;
+  if (!data.champEquipped || typeof data.champEquipped !== "object" || Array.isArray(data.champEquipped)) data.champEquipped = {};
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
     data.showcaseId = data.starterId || data.showcaseId;
   }
@@ -274,6 +279,16 @@ export const SaveSystem = {
       this.data.growth[charId] = normalizeRow(charId, g);
       this.persist();
       return { ok: true, effect: "respecLevel", charId };
+    }
+    if (row.effect === "champSkin") {
+      const charId = row.charId;
+      if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };
+      if (!this.data.champEquipped) this.data.champEquipped = {};
+      const set = row.set | 0;
+      const on = (this.data.champEquipped[charId] | 0) === set;
+      this.data.champEquipped[charId] = on ? 0 : set;
+      this.persist();
+      return { ok: true, effect: "champSkin", charId, on: !on, set };
     }
     return { ok: false, reason: "no" };
   },
@@ -467,6 +482,19 @@ export const SaveSystem = {
     if (p.etherVial) this.addItem("ether_vial", p.etherVial | 0);
     if (p.shards) this.addTokens(p.shards | 0);
     if (p.fruit) this.addItem("bodyfruit", p.fruit | 0);
+    if (p.cheer) {
+      const cyc = seasonCycleOf(p.cycle | 0);
+      this.addItem(cyc.champItem, 1);
+    }
+    if (p.plateKind) {
+      this.data.seasonMark = {
+        week: p.week || "",
+        board: p.board || "",
+        place: p.place | 0,
+        kind: p.plateKind,
+        cycle: p.cycle | 0
+      };
+    }
     if (p.plate || p.cheer) {
       if (!Array.isArray(this.data.seasonBadges)) this.data.seasonBadges = [];
       this.data.seasonBadges.push({

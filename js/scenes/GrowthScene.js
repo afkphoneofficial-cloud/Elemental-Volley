@@ -8,7 +8,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
-import { texSelect } from "../data/skins.js";
+import { texHeroSelect } from "../data/seasonLooks.js";
 import { paintFighterTabs } from "../ui/sceneTabs.js";
 
 function setBtnLive(btn, on) {
@@ -170,7 +170,7 @@ export class GrowthScene extends Phaser.Scene {
     const row = this.viewRow();
     const sheet = sheetFromRow(this.charId, row);
     const dirty = !!this.draft && !growthEqual(this.draft, saved);
-    const key = texSelect(this, this.charId, SaveSystem.skinOf(this.charId));
+    const key = texHeroSelect(this, this.charId);
     if (this.textures.exists(key)) this.hero.setTexture(key);
     this.lvText.setText(t("growth.level", { n: sheet.level, max: GROWTH_MAX_LV }));
     this.xpText.setText(sheet.need

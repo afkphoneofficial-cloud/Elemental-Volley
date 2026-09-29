@@ -709,7 +709,12 @@ html[data-control="pc"] #game {
 }
 
 .chat-row { margin-bottom: 6px; color: #5a3828; }
-.chat-row strong { display: block; color: #c45a16; font-size: 12px; }
+.chat-row strong { display: flex; align-items: center; gap: 6px; color: #c45a16; font-size: 12px; }
+.chat-row strong.framed { box-shadow: inset 0 0 0 2px #e8b84a; border-radius: 8px; padding: 2px 6px; }
+.chat-mark { width: 18px; height: 18px; object-fit: contain; }
+.board-name { display: flex; align-items: center; gap: 6px; }
+.board-name.framed { box-shadow: inset 0 0 0 2px #e8b84a; border-radius: 8px; padding: 2px 6px; }
+.board-mark { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; }
 .chat-row.mine strong { color: #1a7a98; }
 .chat-empty { color: #8a5a38; font-size: 13px; padding: 8px; }
 
