@@ -91,10 +91,6 @@ export class SettingsScene extends Phaser.Scene {
       }, on ? 0x3ad6ff : 0xe8dcc8);
     });
 
-    this.add.text(W / 2, 470, t("settings.credits"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
-    }).setOrigin(0.5);
-
     makeButton(this, W / 2, 540, 300, 50, t("settings.logout"), () => {
       AudioSystem.ui();
       AuthSystem.logout();

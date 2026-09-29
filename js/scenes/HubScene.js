@@ -169,14 +169,14 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
     this.mountPlay(W);
-    makeButton(this, W / 2 - 210, 586, 168, 42, t("hub.navFighter"), () => {
-      AudioSystem.ui();
-      this.scene.start("dress");
-    }, 0xff8ab8);
-    makeButton(this, W / 2, 586, 168, 42, t("hub.navNews"), () => {
+    makeButton(this, W / 2 - 210, 586, 168, 42, t("hub.navNews"), () => {
       AudioSystem.ui();
       this.scene.start("news");
     }, 0x3ad6ff);
+    makeButton(this, W / 2, 586, 168, 42, t("hub.navFighter"), () => {
+      AudioSystem.ui();
+      this.scene.start("dress");
+    }, 0xff8ab8);
     makeButton(this, W / 2 + 210, 586, 168, 42, t("hub.navBoard"), () => {
       AudioSystem.ui();
       this.scene.start("rankinfo", { from: "hub", tab: "pvp" });
