@@ -8,6 +8,7 @@ import { formatEtherWait } from "../systems/Ether.js";
 import { avatarKey } from "../data/avatars.js";
 import { medalFromMmr, isCalibrating, badgeKey } from "../data/ranks.js";
 import { ROSTER_IDS } from "../data/roster.js";
+import { texSelect } from "../data/skins.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
@@ -124,9 +125,7 @@ export class HubScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(21);
 
     const heroId = save.showcaseId || save.starterId || "ignis";
-    const heroKey = this.textures.exists("vis_select_" + heroId)
-      ? "vis_select_" + heroId
-      : "vis_" + heroId;
+    const heroKey = texSelect(this, heroId, SaveSystem.skinOf(heroId));
     const heroY = 292;
     this.add.circle(W / 2, heroY, 136, 0xffffff, 0.32).setDepth(5);
     this.add.circle(W / 2, heroY, 136, 0x000000, 0).setStrokeStyle(4, 0xff6a22, 0.32).setDepth(5);
@@ -142,11 +141,15 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, W / 2 - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, W / 2 + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
 
-    makeButton(this, W / 2, 508, 348, 56, t("hub.play"), () => {
+    makeButton(this, W / 2, 500, 348, 52, t("hub.play"), () => {
       AudioSystem.ui();
       this.scene.start("mode");
     });
-    makeButton(this, W / 2, 572, 280, 44, t("hub.navBoard"), () => {
+    makeButton(this, W / 2, 554, 280, 42, t("hub.navDress"), () => {
+      AudioSystem.ui();
+      this.scene.start("dress");
+    }, 0xff8ab8);
+    makeButton(this, W / 2, 602, 280, 42, t("hub.navBoard"), () => {
       AudioSystem.ui();
       Leaderboard.show();
     }, 0xffb14a);
@@ -185,7 +188,7 @@ export class HubScene extends Phaser.Scene {
     const next = owned[(i + dir + owned.length) % owned.length];
     SaveSystem.setShowcase(next);
     AudioSystem.ui();
-    const key = this.textures.exists("vis_select_" + next) ? "vis_select_" + next : "vis_" + next;
+    const key = texSelect(this, next, SaveSystem.skinOf(next));
     if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(252, 252);
     if (this.heroName) this.heroName.setText(charName(next));
   }

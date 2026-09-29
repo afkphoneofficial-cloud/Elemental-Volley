@@ -6,6 +6,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { SELECT_PLATE, drawOrbit, drawLock, paintHopFx } from "../fx/SelectHover.js";
+import { texSelect } from "../data/skins.js";
 
 const PLATE_R = 118;
 
@@ -50,7 +51,7 @@ export class SelectScene extends Phaser.Scene {
       const x = 190 + i * 300;
       const y = 262;
       const unlocked = SaveSystem.isUnlocked(id);
-      const key = this.textures.exists("vis_select_" + id) ? "vis_select_" + id : "vis_" + id;
+      const key = texSelect(this, id, SaveSystem.skinOf(id));
 
       const plate = this.add.circle(x, y, PLATE_R, SELECT_PLATE[id], 1)
         .setStrokeStyle(3, 0xfff6ea, 0.95)
@@ -119,6 +120,7 @@ export class SelectScene extends Phaser.Scene {
     makeButton(this, W / 2, 620, 280, 52, t(this.pvpMode ? "select.startPvp" : this.exhibitMode ? "select.startExhibit" : "select.start"), () => {
       if (!SaveSystem.isUnlocked(this.pick)) return;
       Session.playerId = this.pick;
+      Session.youSkin = SaveSystem.skinOf(this.pick);
       Session.youSide = Math.random() < 0.5 ? 1 : 2;
       AudioSystem.ui();
       if (this.pvpMode) {

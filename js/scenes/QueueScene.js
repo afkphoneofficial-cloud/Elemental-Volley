@@ -127,7 +127,8 @@ export class QueueScene extends Phaser.Scene {
         avatarId: msg.rival.avatarId || "av01",
         wins: msg.rival.wins | 0,
         mostUsed: msg.rival.mostUsed,
-        difficulty: "normal"
+        difficulty: "normal",
+        skin: msg.rival.skin | 0 || 1
       };
     }
     Session.youSide = msg.youSide === 2 ? 2 : 1;
@@ -160,7 +161,8 @@ export class QueueScene extends Phaser.Scene {
       avatarId: rival.avatarId || "av01",
       wins: rival.wins | 0,
       mostUsed: rival.mostUsed,
-      difficulty: "normal"
+      difficulty: "normal",
+      skin: rival.skin | 0 || 1
     };
     this.status.setText(t("queue.foundLive"));
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(false);

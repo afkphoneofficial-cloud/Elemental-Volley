@@ -27,6 +27,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
+import { texFace, clampSkin } from "../data/skins.js";
 import {
   GAUGE_MAX,
   HOLD_FRAMES,
@@ -55,6 +56,8 @@ export class PlayScene extends Phaser.Scene {
     this.botData = getCharacter(Session.botId);
     this.leftData = this.youSide === 1 ? this.youData : this.botData;
     this.rightData = this.youSide === 1 ? this.botData : this.youData;
+    this.youSkin = clampSkin(this.net ? (Session.youSkin || SaveSystem.skinOf(this.youData.id)) : SaveSystem.skinOf(this.youData.id));
+    this.foeSkin = clampSkin(this.net ? (Session.foeSkin || (Session.rival && Session.rival.skin) || 1) : 1);
     this.score = [0, 0];
     this.p2Serves = this.firstServeIsP2();
     this.matchOver = false;
@@ -197,11 +200,14 @@ export class PlayScene extends Phaser.Scene {
     return this.youSide === 1;
   }
 
+  skinForSide(courtSide) {
+    const youOnLeft = this.youSide === 1;
+    if (courtSide === 1) return youOnLeft ? this.youSkin : this.foeSkin;
+    return youOnLeft ? this.foeSkin : this.youSkin;
+  }
+
   faceKey(id, courtSide) {
-    const want = courtSide === 1 ? "vis_" + id + "_r" : "vis_" + id + "_l";
-    if (this.textures.exists(want)) return want;
-    if (this.textures.exists("vis_" + id)) return "vis_" + id;
-    return "vis_ignis";
+    return texFace(this, id, courtSide, this.skinForSide(courtSide));
   }
 
   buildCourt() {

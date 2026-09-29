@@ -18,6 +18,9 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id + "-left", "assets/sprites/" + id + "-left.png");
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
+      [2, 3, 4, 5].forEach((n) => {
+        this.load.image("select-" + id + "-t" + n, "assets/sprites/skins/select-" + id + "-t" + n + ".png");
+      });
     });
     this.load.image("ether-art", "assets/sprites/ether.png");
     this.load.image("ball-art", "assets/sprites/ball.png");
@@ -59,6 +62,15 @@ export class BootScene extends Phaser.Scene {
         if (!this.textures.exists("vis_" + id + "_l") && this.textures.exists("vis_" + id + "_r")) {
           TextureFactory.mirror(this, "vis_" + id + "_r", "vis_" + id + "_l", true);
         }
+        [2, 3, 4, 5].forEach((n) => {
+          const src = "select-" + id + "-t" + n;
+          TextureFactory.applyChibi(this, src, "vis_select_" + id + "_" + n);
+          TextureFactory.applyChibi(this, src, "vis_" + id + "_" + n);
+          if (this.textures.exists("vis_" + id + "_" + n)) {
+            TextureFactory.copyCanvas(this, "vis_" + id + "_" + n, "vis_" + id + "_" + n + "_r");
+            TextureFactory.mirror(this, "vis_" + id + "_" + n, "vis_" + id + "_" + n + "_l", true);
+          }
+        });
       });
     } catch (e) {
       TextureFactory.build(this);

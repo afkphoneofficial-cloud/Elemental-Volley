@@ -48,6 +48,13 @@ const lastOpp = new Map();
 const recentOpp = new Map();
 const pairHits = new Map();
 
+function clampSkin(n) {
+  n = n | 0;
+  if (n < 1) return 1;
+  if (n > 5) return 5;
+  return n;
+}
+
 function send(ws, msg) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
 }
@@ -60,7 +67,8 @@ function preview(p) {
     fighter: p.fighter,
     mmr: p.mmr | 0,
     wins: p.wins | 0,
-    mostUsed: p.mostUsed || p.fighter
+    mostUsed: p.mostUsed || p.fighter,
+    skin: clampSkin(p.skin)
   };
 }
 
@@ -351,6 +359,8 @@ function startPlay(room) {
     youServe: aServe,
     fighter: room.a.fighter,
     foeFighter: room.b.fighter,
+    youSkin: clampSkin(room.a.skin),
+    foeSkin: clampSkin(room.b.skin),
     rival: preview(room.b),
     host: true,
     mode: room.mode || "pvp"
@@ -363,6 +373,8 @@ function startPlay(room) {
     youServe: !aServe,
     fighter: room.b.fighter,
     foeFighter: room.a.fighter,
+    youSkin: clampSkin(room.b.skin),
+    foeSkin: clampSkin(room.a.skin),
     rival: preview(room.a),
     host: false,
     mode: room.mode || "pvp"
@@ -510,6 +522,8 @@ function goPayload(room, you, foe, host) {
     youServe: youIsA ? aServe : !aServe,
     fighter: you.fighter,
     foeFighter: foe.fighter,
+    youSkin: clampSkin(you.skin),
+    foeSkin: clampSkin(foe.skin),
     rival: preview(foe),
     host: Boolean(host),
     mode: room.mode || "pvp"
@@ -583,6 +597,7 @@ function onHello(ws, user, body) {
     mmr: body.mmr | 0,
     wins: body.wins | 0,
     mostUsed: body.mostUsed || body.fighter || "ignis",
+    skin: clampSkin(body.skin || (prev && prev.skin) || 1),
     state: "idle",
     offerId: null,
     roomId: null,
@@ -602,6 +617,7 @@ function onHello(ws, user, body) {
     if (liveRoom && (liveRoom.a.id === user.id || liveRoom.b.id === user.id)) {
       const oldSeat = liveRoom.a.id === user.id ? liveRoom.a : liveRoom.b;
       p.fighter = oldSeat.fighter || p.fighter;
+      p.skin = clampSkin(oldSeat.skin || p.skin);
       if (liveRoom.a.id === user.id) liveRoom.a = p;
       else liveRoom.b = p;
       p.roomId = liveRoom.id;
@@ -650,6 +666,7 @@ function onMsg(ws, raw) {
       return;
     }
     p.fighter = msg.fighter || p.fighter;
+    p.skin = clampSkin(msg.skin || p.skin);
     p.mmr = msg.mmr | 0;
     p.wins = msg.wins | 0;
     p.avatar = msg.avatar || p.avatar;
@@ -717,6 +734,7 @@ function onMsg(ws, raw) {
   if (msg.t === "exhibit") inviteExhibit(p, msg.friendId);
   if (msg.t === "exhibitVote") {
     if (msg.fighter) p.fighter = msg.fighter;
+    if (msg.skin) p.skin = clampSkin(msg.skin);
     voteExhibit(p, msg.fromId, msg.accept === true);
   }
 }

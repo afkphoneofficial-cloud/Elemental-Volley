@@ -9,6 +9,7 @@ import {
   migrateCosmetics,
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
+import { emptySkins, clampSkin } from "../data/skins.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -29,7 +30,8 @@ const empty = () => ({
   cosmetics: { owned: [], equipped: {} },
   rank: emptyRank(),
   showcaseId: null,
-  friends: []
+  friends: [],
+  skins: emptySkins()
 });
 
 function finish(data) {
@@ -47,6 +49,8 @@ function finish(data) {
   if (!ownedAvatar(data, data.avatarId)) data.avatarId = DEFAULT_AVATAR;
   if (!Array.isArray(data.unlockedAvatars)) data.unlockedAvatars = [];
   migrateCosmetics(data);
+  data.skins = { ...emptySkins(), ...(data.skins || {}) };
+  Object.keys(data.skins).forEach((id) => { data.skins[id] = clampSkin(data.skins[id]); });
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
   if (!Array.isArray(data.friends)) data.friends = [];
   if (!data.showcaseId || !thisUnlock(data, data.showcaseId)) {
@@ -274,6 +278,19 @@ export const SaveSystem = {
   setShowcase(id) {
     if (!this.isUnlocked(id)) return false;
     this.data.showcaseId = id;
+    this.persist();
+    return true;
+  },
+
+  skinOf(id) {
+    const skins = this.data.skins || emptySkins();
+    return clampSkin(skins[id] || 1);
+  },
+
+  setSkin(id, tier) {
+    if (!this.isUnlocked(id)) return false;
+    if (!this.data.skins) this.data.skins = emptySkins();
+    this.data.skins[id] = clampSkin(tier);
     this.persist();
     return true;
   },

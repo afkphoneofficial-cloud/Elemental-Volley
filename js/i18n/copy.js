@@ -47,6 +47,7 @@ export const COPY = {
       navSet: "ตั้งค่า",
       navFriends: "เพื่อน",
       navBoard: "อันดับ",
+      navDress: "แต่งตัว",
       showcaseHint: "แตะหรือกดลูกศรเพื่อสลับตัวที่โชว์",
       chipToken: "ตรา {n}",
       chipPvp: "PVP {n}",
@@ -180,6 +181,15 @@ export const COPY = {
       cheerTitle: "ยินดีด้วย!",
       cheerSub: "{name} คือคู่หูคนแรกของคุณบนเกาะอีเธเรีย",
       continue: "เข้าล็อบบี้"
+    },
+    dress: {
+      title: "ห้องแต่งตัว",
+      sub: "เลือกชุดทั้งตัว แล้วลงสนามชุดนั้นเลย  ·  แตะตัวละครเพื่อดูกระโดด",
+      wear: "ใส่ชุดนี้",
+      using: "กำลังใส่ชุดนี้",
+      locked: "ปลดล็อกตัวละครก่อน",
+      tier: "ชุด {n}",
+      tierLine: "ชุด {n}  ·  {name}"
     },
     career: {
       title: "โปรไฟล์",
@@ -446,6 +456,7 @@ export const COPY = {
       navSet: "Settings",
       navFriends: "Friends",
       navBoard: "Ranks",
+      navDress: "Dress",
       showcaseHint: "Tap or use the arrows to swap the showcase fighter",
       chipToken: "Tokens {n}",
       chipPvp: "PVP {n}",
@@ -579,6 +590,15 @@ export const COPY = {
       cheerTitle: "Welcome aboard!",
       cheerSub: "{name} is your first partner on Etheria Island",
       continue: "Enter the lobby"
+    },
+    dress: {
+      title: "Dressing room",
+      sub: "Pick a full set, then take that look onto the court  ·  Tap the fighter to preview a hop",
+      wear: "Wear this set",
+      using: "Wearing this set",
+      locked: "Unlock this fighter first",
+      tier: "Set {n}",
+      tierLine: "Set {n}  ·  {name}"
     },
     career: {
       title: "Profile",

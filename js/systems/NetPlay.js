@@ -3,6 +3,7 @@ import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
+import { clampSkin } from "../data/skins.js";
 
 const listeners = new Set();
 
@@ -26,6 +27,19 @@ function mostUsed() {
     }
   });
   return best;
+}
+
+function fighterSkin() {
+  const id = Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId;
+  return SaveSystem.skinOf(id);
+}
+
+function applyNetFighters(msg) {
+  if (msg.fighter) Session.playerId = msg.fighter;
+  if (msg.foeFighter) Session.botId = msg.foeFighter;
+  Session.youSkin = clampSkin(msg.youSkin || SaveSystem.skinOf(Session.playerId));
+  Session.foeSkin = clampSkin(msg.foeSkin || (msg.rival && msg.rival.skin) || 1);
+  if (msg.rival && Session.rival) Session.rival.skin = Session.foeSkin;
 }
 
 export const NetPlay = {
@@ -78,6 +92,7 @@ export const NetPlay = {
         name: AuthSystem.displayName() || "player",
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
+        skin: fighterSkin(),
         mmr: rank.mmr | 0,
         wins: rank.wins | 0,
         mostUsed: mostUsed()
@@ -118,8 +133,7 @@ export const NetPlay = {
         Session.youSide = msg.youSide === 2 ? 2 : 1;
         Session.courtId = msg.courtId || "summer";
         Session.youServe = Boolean(msg.youServe);
-        Session.playerId = msg.fighter || Session.playerId;
-        Session.botId = msg.foeFighter || Session.botId;
+        applyNetFighters(msg);
         if (msg.rival) {
           Session.rival = {
             live: true,
@@ -131,16 +145,16 @@ export const NetPlay = {
             avatarId: msg.rival.avatarId || "av01",
             wins: msg.rival.wins | 0,
             mostUsed: msg.rival.mostUsed,
-            difficulty: "normal"
+            difficulty: "normal",
+            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1)
           };
         }
       }
       if (msg.t === "end") {
         if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
-        if (msg.fighter) Session.playerId = msg.fighter;
-        if (msg.foeFighter) Session.botId = msg.foeFighter;
         if (msg.courtId) Session.courtId = msg.courtId;
         if (msg.youSide === 1 || msg.youSide === 2) Session.youSide = msg.youSide;
+        applyNetFighters(msg);
         if (msg.rival) {
           Session.rival = {
             live: true,
@@ -152,7 +166,8 @@ export const NetPlay = {
             avatarId: msg.rival.avatarId || "av01",
             wins: msg.rival.wins | 0,
             mostUsed: msg.rival.mostUsed,
-            difficulty: "normal"
+            difficulty: "normal",
+            skin: clampSkin(msg.foeSkin || msg.rival.skin || 1)
           };
         }
       }
@@ -196,6 +211,7 @@ export const NetPlay = {
       this.send({
         t: "queue",
         fighter: Session.playerId,
+        skin: fighterSkin(),
         mmr: rank.mmr | 0,
         wins: rank.wins | 0,
         avatar: SaveSystem.data.avatarId || "av01",
@@ -217,7 +233,8 @@ export const NetPlay = {
       t: "exhibitVote",
       fromId,
       accept: Boolean(accept),
-      fighter: Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId
+      fighter: Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId,
+      skin: fighterSkin()
     });
   },
 
