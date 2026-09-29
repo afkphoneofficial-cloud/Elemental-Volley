@@ -9,11 +9,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local75" />
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="stylesheet" href="css/styles.css?v=local76" />
+  <style>
+    #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
+  </style>
 </head>
 <body>
+  <div id="boot-splash">
+    <div class="boot-card">
+      <div class="boot-net" aria-hidden="true"></div>
+      <p class="boot-kicker">ELEMENTAL VOLLEY</p>
+      <h1>SPIKE IT !!</h1>
+      <p id="boot-line">กำลังอุ่นตาข่าย…</p>
+      <div class="boot-track"><div id="boot-fill"></div></div>
+      <p id="boot-pct">4%</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var fill = document.getElementById("boot-fill");
+      var pct = document.getElementById("boot-pct");
+      var n = 0.04;
+      window.__evBootSet = function (v) {
+        n = Math.max(n, Math.min(1, v));
+        if (fill) fill.style.width = Math.round(n * 100) + "%";
+        if (pct) pct.textContent = Math.round(n * 100) + "%";
+      };
+      window.setInterval(function () {
+        if (window.__evBootLock) return;
+        if (n < 0.14) window.__evBootSet(n + 0.008);
+      }, 220);
+    })();
+  </script>
   <canvas id="lobby-bg" aria-hidden="true"></canvas>
   <div id="lobby-veil" aria-hidden="true"></div>
   <canvas id="lobby-fg" aria-hidden="true"></canvas>
@@ -118,6 +145,8 @@
     <a class="foot-brand" href="https://afkphone.com" target="_blank" rel="noopener noreferrer">afkphone</a>
   </footer>
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
-  <script type="module" src="js/main.js?v=local86"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="module" src="js/main.js?v=local87"></script>
 </body>
 </html>

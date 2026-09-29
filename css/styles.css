@@ -23,6 +23,104 @@ body {
   justify-content: center;
 }
 
+#boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  background:
+    radial-gradient(900px 520px at 18% 8%, rgba(255, 208, 138, 0.9) 0%, transparent 48%),
+    radial-gradient(800px 480px at 88% 16%, rgba(122, 216, 255, 0.55) 0%, transparent 46%),
+    radial-gradient(700px 420px at 50% 110%, rgba(255, 224, 138, 0.7) 0%, transparent 52%),
+    linear-gradient(180deg, #fff4dc 0%, #ffe8c8 42%, #c8ecff 100%);
+  transition: opacity 0.48s ease, visibility 0.48s ease;
+}
+
+#boot-splash.out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#boot-splash[hidden] {
+  display: none;
+}
+
+.boot-card {
+  width: min(440px, 88vw);
+  padding: 28px 28px 24px;
+  border-radius: 32px;
+  background: #fff6ea;
+  border: 4px solid #ffb14a;
+  box-shadow: 0 16px 0 rgba(58, 36, 24, 0.1), 0 22px 40px rgba(58, 36, 24, 0.18);
+  text-align: center;
+}
+
+.boot-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #c45a16;
+}
+
+.boot-card h1 {
+  margin: 4px 0 14px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #3a2418;
+}
+
+#boot-line {
+  min-height: 28px;
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #5a3828;
+}
+
+.boot-track {
+  height: 14px;
+  border-radius: 999px;
+  background: #ffe8c8;
+  overflow: hidden;
+  border: 2px solid #ffb14a;
+}
+
+#boot-fill {
+  height: 100%;
+  width: 4%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffb14a, #ff6a22 55%, #7d5cff);
+  transition: width 0.22s ease;
+}
+
+#boot-pct {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #7a4a30;
+}
+
+.boot-net {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  border: 4px solid #ffb14a;
+  box-shadow: inset 0 0 0 8px #fff6ea, 0 0 0 6px rgba(125, 92, 255, 0.16);
+  background:
+    radial-gradient(circle at 50% 50%, #ffe08a 0 18%, transparent 19%),
+    repeating-linear-gradient(-18deg, transparent 0 8px, rgba(255, 106, 34, 0.18) 8px 10px);
+  animation: boot-spin 2.4s linear infinite;
+}
+
+@keyframes boot-spin {
+  to { transform: rotate(360deg); }
+}
+
 #lobby-bg {
   position: fixed;
   inset: 0;

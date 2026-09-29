@@ -4,6 +4,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
+import { BootSplash } from "../web/BootSplash.js";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -13,6 +14,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.on("loaderror", () => {});
+    this.load.on("progress", (v) => BootSplash.setProgress(0.16 + v * 0.62));
     IDS.forEach((id) => {
       this.load.image("chibi-" + id, "assets/sprites/" + id + ".png");
       this.load.image("chibi-" + id + "-left", "assets/sprites/" + id + "-left.png");
@@ -46,6 +48,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
+    BootSplash.setProgress(0.8);
     SaveSystem.load();
     I18n.load();
     try {
@@ -114,15 +117,19 @@ export class BootScene extends Phaser.Scene {
         TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
       }
     }
+    BootSplash.setProgress(0.88);
     AuthSystem.init().then(() => {
+      BootSplash.setProgress(0.96);
       I18n.load();
       if (!this.scene.isActive()) return;
+      BootSplash.ready();
       if (AuthSystem.canPlay()) {
         this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
       } else {
         this.scene.start("auth");
       }
     }).catch(() => {
+      BootSplash.ready();
       if (this.scene.isActive()) this.scene.start("auth");
     });
   }

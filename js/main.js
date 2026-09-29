@@ -29,7 +29,9 @@ import { TouchControls } from "./ui/TouchControls.js";
 import { AuthSystem } from "./systems/AuthSystem.js";
 import { NetPlay, mountExhibitInvite } from "./systems/NetPlay.js";
 import { mountLeaderboard } from "./systems/Leaderboard.js";
+import { BootSplash } from "./web/BootSplash.js";
 
+BootSplash.bind();
 AudioSystem.mountDock();
 AudioSystem.playMenu();
 

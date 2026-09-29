@@ -16,7 +16,9 @@ export const COPY = {
       authNameLen: "ชื่อต้องมี 2–12 ตัวอักษร",
       authNameChars: "ใช้ได้เฉพาะไทย อังกฤษ ตัวเลข และ _",
       authNameTaken: "ชื่อนี้มีคนใช้แล้ว",
-      authFail: "ล็อกอินไม่สำเร็จ"
+      authFail: "ล็อกอินไม่สำเร็จ",
+      bootLine1: "กำลังอุ่นตาข่าย…",
+      bootReady: "สนามพร้อมแล้ว"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -508,7 +510,9 @@ export const COPY = {
       authNameLen: "Name must be 2–12 characters",
       authNameChars: "Thai, English, numbers, and _ only",
       authNameTaken: "That name is already taken",
-      authFail: "Sign-in failed"
+      authFail: "Sign-in failed",
+      bootLine1: "Warming the net…",
+      bootReady: "The court is ready."
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
