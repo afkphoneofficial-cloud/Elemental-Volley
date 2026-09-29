@@ -20,15 +20,17 @@ export function mountHubBoardWidgets(scene) {
 function paintWidget(scene, x, y, w, h, kind) {
   const epic = kind === "special";
   const shell = scene.add.graphics().setDepth(8);
-  shell.fillStyle(0x07060c, 0.94);
-  shell.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
   if (epic) {
+    shell.fillStyle(0x07060c, 0.94);
+    shell.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
     shell.lineStyle(4, 0xffd24a, 0.95);
     shell.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
     shell.lineStyle(2, 0x3ad6ff, 0.8);
     shell.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 18);
   } else {
-    shell.lineStyle(3, 0x9b86ff, 0.85);
+    shell.fillStyle(0xfff6ea, 0.96);
+    shell.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    shell.lineStyle(3, 0x9b86ff, 0.7);
     shell.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
     shell.lineStyle(1.5, 0xc8b8ff, 0.55);
     shell.strokeRoundedRect(x - w / 2 + 6, y - h / 2 + 6, w - 12, h - 12, 18);
@@ -58,22 +60,22 @@ function paintWidget(scene, x, y, w, h, kind) {
     fontFamily: UI_FONT,
     fontSize: epic ? "17px" : "16px",
     fontStyle: "900",
-    color: epic ? "#ffe08a" : "#e8dcff",
-    stroke: epic ? "#3a1870" : "#2a1848",
-    strokeThickness: 4,
+    color: epic ? "#ffe08a" : "#3a2418",
+    stroke: epic ? "#3a1870" : "#fff6ea",
+    strokeThickness: epic ? 4 : 0,
     align: "center",
     wordWrap: { width: w - 24 }
   }).setOrigin(0.5).setDepth(11);
 
   const status = scene.add.text(x, titleY + 36, t("board.loading"), {
     fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700",
-    color: epic ? "#c8b8ff" : "#b8a8d8",
+    color: epic ? "#c8b8ff" : "#5a3828",
     align: "center", wordWrap: { width: w - 28 }
   }).setOrigin(0.5).setDepth(11);
 
-  const more = scene.add.text(x, y + h / 2 - 28, t("hub.widgetMore"), {
+  scene.add.text(x, y + h / 2 - 28, t("hub.widgetMore"), {
     fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800",
-    color: epic ? "#ffe08a" : "#d8ccff"
+    color: epic ? "#ffe08a" : "#3a2418"
   }).setOrigin(0.5).setDepth(11);
 
   scene.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(12)
@@ -128,14 +130,14 @@ function fillRows(scene, x, y, w, h, kind, res, status) {
     const ry = top + i * 76;
     const place = row.place | 0;
     const g = scene.add.graphics().setDepth(11);
-    g.fillStyle(0x120e1c, 0.72);
+    g.fillStyle(epic ? 0x120e1c : 0xffe8c8, epic ? 0.72 : 0.72);
     g.fillRoundedRect(x - w / 2 + 16, ry - 32, w - 32, 64, 14);
     const stroke = place === 1 ? 0xe8b84a : place === 2 ? 0xb8c0cc : place === 3 ? 0xd08a58 : (epic ? 0x7d5cff : 0x9b86ff);
     g.lineStyle(2, stroke, 0.8);
     g.strokeRoundedRect(x - w / 2 + 16, ry - 32, w - 32, 64, 14);
     scene.add.text(x - w / 2 + 34, ry, String(place), {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900",
-      color: place === 1 ? "#ffe08a" : "#fff6ea"
+      color: place === 1 ? (epic ? "#ffe08a" : "#c45a16") : (epic ? "#fff6ea" : "#3a2418")
     }).setOrigin(0.5).setDepth(12);
     const avKey = scene.textures.exists(avatarKey(row.avatar_id)) ? avatarKey(row.avatar_id) : avatarKey("av01");
     scene.add.image(x - w / 2 + 62, ry, avKey).setDisplaySize(32, 32).setDepth(12);
@@ -145,10 +147,10 @@ function fillRows(scene, x, y, w, h, kind, res, status) {
     }
     const name = String(row.display_name || "—").slice(0, 10);
     scene.add.text(x - w / 2 + 110, ry - 10, name, {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#fff6ea"
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: epic ? "#fff6ea" : "#3a2418"
     }).setOrigin(0, 0.5).setDepth(12);
     scene.add.text(x - w / 2 + 110, ry + 12, String(row.mmr | 0), {
-      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: epic ? "#ffe08a" : "#c8b8ff"
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: epic ? "#ffe08a" : "#7d5cff"
     }).setOrigin(0, 0.5).setDepth(12);
   });
 }
