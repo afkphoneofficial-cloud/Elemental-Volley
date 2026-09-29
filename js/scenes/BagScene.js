@@ -22,19 +22,33 @@ function itemCopy(id, field) {
 function slotList(tab) {
   const cur = SaveSystem.data.currencies || {};
   const rows = [];
+  const seen = {};
+  const push = (id, n, material) => {
+    if (!id || seen[id]) return;
+    const count = n | 0;
+    if (count <= 0) return;
+    seen[id] = true;
+    stackSlots(id, count).forEach((row) => rows.push({ ...row, material: Boolean(material) }));
+  };
   if (tab === "mat") {
-    const stones = cur.pvp | 0;
-    const shards = cur.tokens | 0;
-    if (stones > 0) stackSlots("stone", stones).forEach((row) => rows.push({ ...row, material: true }));
-    if (shards > 0) stackSlots("shard", shards).forEach((row) => rows.push({ ...row, material: true }));
+    push("stone", cur.pvp | 0, true);
+    push("shard", cur.tokens | 0, true);
     return rows;
   }
   Object.keys(SaveSystem.data.inventory || {}).forEach((id) => {
-    if (bagTabOf(id) !== tab) return;
-    const n = SaveSystem.itemCount(id);
-    if (n > 0 && ITEMS[id]) stackSlots(id, n).forEach((row) => rows.push({ ...row, material: false }));
+    if (bagTabOf(id) !== tab && !(tab === "look" && String(id).indexOf("champ-") === 0)) return;
+    push(id, SaveSystem.itemCount(id), false);
   });
+  if (tab === "look") {
+    (SaveSystem.data.shopLooks && SaveSystem.data.shopLooks.owned || []).forEach((id) => {
+      push(id, Math.max(1, SaveSystem.itemCount(id)), false);
+    });
+  }
   return rows;
+}
+
+function startTab() {
+  return ["look", "use", "mat"].find((id) => slotList(id).length) || "use";
 }
 
 function iconKey(scene, id) {
@@ -67,7 +81,7 @@ export class BagScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
-    this.tab = this.tab || "use";
+    this.tab = this.tab || startTab();
     this.page = 0;
     this.pick = 0;
     this.bits = [];

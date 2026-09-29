@@ -63,7 +63,7 @@ export const SHOP_GOODS = [
 
 export function bagTabOf(id) {
   const row = ITEMS[id];
-  if (!row) return "";
+  if (!row) return String(id).indexOf("champ-") === 0 ? "look" : "";
   if (row.effect === "champSkin" || row.effect === "shopLook") return "look";
   if (row.kind === "material") return "mat";
   return "use";
