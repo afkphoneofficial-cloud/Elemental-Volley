@@ -188,14 +188,13 @@ export class ExploreScene extends Phaser.Scene {
     const cleared = SaveSystem.isTrainCleared(stage.id);
     const vis = this.textures.exists("vis_" + stage.char) ? "vis_" + stage.char : "vis_ignis";
     const diff = t("select.diff" + stage.diff[0].toUpperCase() + stage.diff.slice(1));
-    let body = t("explore.stageBody");
-    if (!open) body = t("explore.stageLocked");
-    else if (cleared) body = t("explore.stageCleared");
+    let body = t("explore.story." + stage.id);
+    if (!open) body += "\n\n" + t("explore.stageLocked");
     this.buildPopup({
       chip: open ? "#c45a16" : "#6a6070",
       status: cleared ? t("explore.statusCleared") : open ? t("explore.statusOpen") : t("explore.statusLock"),
       title: t("explore.stageTitle", { name: charName(stage.char), diff }),
-      region: t("explore.stageRegion", { n: stage.rank }),
+      region: t("explore.place." + stage.id),
       body,
       vis,
       go: open ? () => this.startTrain(stage) : null,
@@ -224,9 +223,9 @@ export class ExploreScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     const cardW = 560;
-    const cardH = info.go ? 400 : 360;
+    const cardH = info.go ? 440 : 380;
     const y0 = H / 2 - cardH / 2;
-    const headerH = info.vis ? 132 : (info.region ? 108 : 92);
+    const headerH = info.vis ? 158 : (info.region ? 108 : 92);
     const viewW = cardW - 72;
     const viewH = cardH - headerH - (info.go ? 72 : 28);
     const viewX = W / 2 - viewW / 2;
