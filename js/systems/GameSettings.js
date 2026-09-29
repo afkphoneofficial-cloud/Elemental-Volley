@@ -30,7 +30,7 @@ export function defaultSettings() {
     cameraShake: true,
     lobbyMotion: true,
     timeZone: "Bangkok",
-    hubMenuOpen: true
+    hubMenuOpen: false
   };
 }
 
