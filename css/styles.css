@@ -710,6 +710,59 @@ html[data-control="pc"] #game {
 
 #chat-dock.open #chat-panel { display: block; }
 
+#online-chip {
+  position: fixed;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 16px 0 12px;
+  border-radius: 16px;
+  border: 2px solid rgba(200, 255, 58, 0.9);
+  background: #1f9a52;
+  color: #fff6ea;
+  font-family: "Kanit", "Segoe UI", sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  pointer-events: none;
+  transform: scale(var(--chat-scale, 1));
+  transform-origin: left bottom;
+  box-shadow: 0 6px 16px rgba(58, 36, 24, 0.12);
+}
+
+#online-chip[hidden] { display: none; }
+
+.online-ico {
+  width: 28px;
+  height: 28px;
+  position: relative;
+  flex: 0 0 28px;
+}
+
+.online-ico::before,
+.online-ico::after {
+  content: "";
+  position: absolute;
+  background: #fff6ea;
+  border-radius: 50%;
+}
+
+.online-ico::before {
+  width: 12px;
+  height: 12px;
+  left: 8px;
+  top: 2px;
+}
+
+.online-ico::after {
+  width: 22px;
+  height: 14px;
+  left: 3px;
+  bottom: 1px;
+  border-radius: 11px 11px 4px 4px;
+}
+
 .chat-tabs {
   display: flex;
   gap: 6px;

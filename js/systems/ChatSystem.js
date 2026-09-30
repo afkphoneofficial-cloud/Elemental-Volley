@@ -4,7 +4,7 @@ import { ChatFilter } from "./ChatFilter.js";
 import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
-import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
+import { Presence } from "./Presence.js";
 
 const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "mode", "rank", "menu", "topup", "pass"]);
 
@@ -76,6 +76,7 @@ export const ChatSystem = {
     this.paintChrome();
     this.layout();
     this.watchScenes();
+    Presence.on(() => this.paintChrome());
     return this;
   },
 
@@ -88,10 +89,11 @@ export const ChatSystem = {
         key = live && live.sys ? live.sys.settings.key : "";
       }
       this.setVisible(SHOW.has(key) && typeof AuthSystem.canPlay === "function" && AuthSystem.canPlay());
-    if (this.visible && this.open && Date.now() - (this.pollAt || 0) > 6000) {
-      this.pollAt = Date.now();
-      this.reload();
-    }
+      Presence.tick();
+      if (this.visible && this.open && Date.now() - (this.pollAt || 0) > 6000) {
+        this.pollAt = Date.now();
+        this.reload();
+      }
     };
     setInterval(tick, 500);
     tick();
@@ -150,6 +152,8 @@ export const ChatSystem = {
     if (this.tab === "friends") this.paintFriends();
     const send = ui.form.querySelector("button");
     if (send) send.textContent = t("chat.send");
+    const onlineLab = document.getElementById("online-label");
+    if (onlineLab) onlineLab.textContent = t("hub.online", { n: Presence.n });
   },
 
   paintFriends() {
@@ -356,6 +360,8 @@ export const ChatSystem = {
     ui.dock.classList.toggle("on-hub", onHub);
     ui.dock.style.width = Math.round(CHAT_PANEL_W * scale) + "px";
     ui.dock.style.setProperty("--chat-scale", String(scale));
+    const chip = document.getElementById("online-chip");
+    if (chip) chip.hidden = !show || onHub;
     if (onHub) {
       const btnLeft = 1280 / 2 - HUB_CHAT_BTN.w / 2;
       const btnBottom = 720 - HUB_NAV.y + HUB_CHAT_BTN.h / 2;
@@ -369,6 +375,14 @@ export const ChatSystem = {
     ui.dock.style.left = (r.left + (cx - HUB_NAV.w / 2) * scale) + "px";
     ui.dock.style.bottom = (window.innerHeight - r.bottom + (HUB_NAV.y + HUB_NAV.h / 2 + 10) * scale) + "px";
     if (!this.open) ui.dock.style.width = Math.round(HUB_NAV.w * scale) + "px";
+    if (chip && show && !onHub) {
+      const gap = 12;
+      const navX = hubNavX(0, 1280);
+      const dockLeft = navX - HUB_NAV.w / 2;
+      chip.style.left = (r.left + (dockLeft + 164 + gap) * scale) + "px";
+      chip.style.bottom = (window.innerHeight - r.bottom + (HUB_NAV.y + HUB_NAV.h / 2 + 10) * scale) + "px";
+      chip.style.setProperty("--chat-scale", String(scale));
+    }
   }
 };
 

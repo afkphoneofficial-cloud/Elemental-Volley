@@ -5,6 +5,7 @@ export const TextureFactory = {
     this.weatherBits(scene);
     this.jumpForms(scene);
     this.currencyIcons(scene);
+    this.onlineIcon(scene);
     ["ignis", "aqua", "volt", "terra"].forEach((id) => this.fighter(scene, id));
     ["summer", "rain", "spring", "winter"].forEach((s) => this.refFallback(scene, s));
   },
@@ -456,5 +457,17 @@ export const TextureFactory = {
       g.generateTexture("item-powder", 48, 48);
       g.destroy();
     }
+  },
+
+  onlineIcon(scene) {
+    if (scene.textures.exists("vis_icon_online")) return;
+    const g = scene.make.graphics({ add: false });
+    g.fillStyle(0xfff6ea, 1);
+    g.fillCircle(18, 20, 9);
+    g.fillCircle(38, 22, 11);
+    g.fillEllipse(18, 40, 22, 16);
+    g.fillEllipse(38, 44, 28, 18);
+    g.generateTexture("vis_icon_online", 56, 56);
+    g.destroy();
   }
 };

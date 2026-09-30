@@ -12,6 +12,8 @@ export const HUB_PASS_H = 75;
 export const HUB_PASS_W = 248;
 export const HUB_DAILY_W = 114;
 export const HUB_CLOCK_W = 200;
+export const HUB_CHAT = { w: 72, h: 72, gap: 12 };
+export const HUB_ONLINE_W = 208;
 export const HUB_CHIP_PAD = 28;
 export const HUB_CHIPS = { pvp: 108, tok: 96, ether: 108, coin: 108, gap: 12 };
 
