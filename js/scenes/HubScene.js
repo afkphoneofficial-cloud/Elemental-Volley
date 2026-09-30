@@ -19,6 +19,8 @@ import { mountHubMenu } from "../ui/hubMenu.js";
 import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
+import { PASS, monthId, passLookOf } from "../data/monthPass.js";
+import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -134,6 +136,7 @@ export class HubScene extends Phaser.Scene {
     this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
     this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
     this.mountClock(W);
+    this.mountPassBanner(W);
     mountHubMenu(this);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
@@ -236,6 +239,46 @@ export class HubScene extends Phaser.Scene {
       this.scene.start("settings", { from: "hub", tab: "general" });
     });
     this.paintClock();
+  }
+
+  mountPassBanner(W) {
+    const clockLeft = W / 2 - 100;
+    const w = 300;
+    const h = 100;
+    const x = clockLeft - 16 - w / 2;
+    const y = 52;
+    const look = passLookOf(monthId());
+    const bought = SaveSystem.hasMonthPass();
+    const claim = bought && !SaveSystem.passClaimedToday();
+    const icon = look && this.textures.exists(shopLookVis(look.id, "select"))
+      ? shopLookVis(look.id, "select")
+      : (this.textures.exists("item-powder") ? "item-powder" : "item-shard");
+    const g = this.add.graphics().setDepth(28);
+    const draw = (hot) => {
+      g.clear();
+      g.fillStyle(hot ? 0xffe0b0 : 0xfff6ea, 0.98);
+      g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+      g.lineStyle(3, claim ? 0x3ad6ff : 0xff8ab8, hot ? 1 : 0.92);
+      g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+    };
+    draw(false);
+    this.add.image(x - 86, y, icon).setDisplaySize(88, 88).setDepth(29);
+    this.add.text(x + 42, y - 22, t("pass.short"), {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(29);
+    this.add.text(x + 42, y + 10, look ? shopLookLabel(look, I18n.lang) : t("pass.title"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#4a2810"
+    }).setOrigin(0.5).setDepth(29);
+    this.add.text(x + 42, y + 32, claim ? t("pass.claim") : (bought ? t("pass.bought") : t("pass.buy", { n: PASS.thb })), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: claim ? "#0a6a88" : "#c45a16"
+    }).setOrigin(0.5).setDepth(29);
+    const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30);
+    zone.on("pointerover", () => draw(true));
+    zone.on("pointerout", () => draw(false));
+    zone.on("pointerdown", () => {
+      AudioSystem.ui();
+      this.scene.start("pass", { from: "hub" });
+    });
   }
 
   paintClock() {
