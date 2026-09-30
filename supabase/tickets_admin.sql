@@ -527,7 +527,7 @@ revoke all on function public.admin_overview(text) from public;
 revoke all on function public.admin_players(text, text, integer) from public;
 revoke all on function public.admin_grant(text, uuid, int, int, int, int, int) from public;
 revoke all on function public.admin_set_ban(text, uuid, boolean, text) from public;
-revoke all on function public.admin_mail(text, uuid, text, text, text, text) from public;
+drop function if exists public.admin_mail(text, uuid, text, text, text, text);
 revoke all on function public.admin_mail(text, uuid, text, text, text, text, boolean) from public;
 revoke all on function public.admin_rank(text) from public;
 revoke all on function public.admin_purchases(text) from public;
