@@ -6,7 +6,7 @@ import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 
-const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "mode", "rank", "menu"]);
+const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "mode", "rank", "menu", "topup", "pass"]);
 
 function els() {
   return {

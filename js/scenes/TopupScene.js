@@ -5,6 +5,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { t } from "../i18n/I18n.js";
 import { TOPUP_PACKS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
+import { PASS } from "../data/monthPass.js";
 
 export class TopupScene extends Phaser.Scene {
   constructor() { super("topup"); }
@@ -21,8 +22,12 @@ export class TopupScene extends Phaser.Scene {
     paintWalletBar(this, "topup");
     makeButton(this, 96, 40, 132, 40, t("nav.back"), () => {
       AudioSystem.ui();
-      this.scene.start(this.from === "hub" ? "hub" : "shop");
+      this.scene.start(this.from === "hub" ? "hub" : this.from === "pass" ? "pass" : "shop");
     }, 0x7d5cff);
+    makeButton(this, 268, 40, 156, 40, t("pass.short"), () => {
+      AudioSystem.ui();
+      this.scene.start("pass", { from: "topup" });
+    }, 0xff8ab8);
 
     this.add.text(W / 2, 40, t("topup.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
@@ -42,11 +47,28 @@ export class TopupScene extends Phaser.Scene {
       align: "center", wordWrap: { width: 860 }
     }).setOrigin(0.5);
 
+    const passBox = this.add.graphics();
+    passBox.fillStyle(0xfff6ea, 0.96);
+    passBox.fillRoundedRect(W / 2 - 460, 214, 920, 72, 18);
+    passBox.lineStyle(2, 0xff8ab8, 0.8);
+    passBox.strokeRoundedRect(W / 2 - 460, 214, 920, 72, 18);
+    this.add.text(W / 2 - 200, 250, t("pass.title") + "  ·  " + t("pass.buy", { n: PASS.thb }), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008"
+    }).setOrigin(0.5);
+    makeButton(this, W / 2 + 280, 250, 200, 40, t("topup.pass"), () => {
+      AudioSystem.ui();
+      this.scene.start("pass", { from: "topup" });
+    }, 0xff8ab8);
+    this.add.zone(W / 2, 250, 920, 72).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+      AudioSystem.ui();
+      this.scene.start("pass", { from: "topup" });
+    });
+
     TOPUP_PACKS.forEach((pack, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const x = W / 2 - 310 + col * 310;
-      const y = 300 + row * 168;
+      const y = 348 + row * 150;
       const g = this.add.graphics();
       g.fillStyle(0xfff6ea, 0.96);
       g.fillRoundedRect(x - 140, y - 70, 280, 140, 20);

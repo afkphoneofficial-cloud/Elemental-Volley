@@ -36,6 +36,10 @@ export class ShopScene extends Phaser.Scene {
     const W = this.scale.width;
     paintWalletBar(this, "shop");
     makeButton(this, 96, 40, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, 268, 40, 156, 40, t("pass.short"), () => {
+      AudioSystem.ui();
+      this.scene.start("pass", { from: "shop" });
+    }, 0xff8ab8);
     this.add.text(W / 2, 40, t("shop.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);

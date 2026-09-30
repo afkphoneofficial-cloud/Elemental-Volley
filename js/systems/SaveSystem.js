@@ -18,6 +18,7 @@ import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
+import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -59,7 +60,8 @@ const empty = () => ({
   seasonMark: null,
   champEquipped: {},
   shopLooks: emptyShopLooks(),
-  topupLog: []
+  topupLog: [],
+  passMonths: {}
 });
 
 function stackN(raw) {
@@ -184,6 +186,7 @@ function finish(data) {
     worn: { ...looks.worn, ...(rawLooks.worn || {}) }
   };
   if (!Array.isArray(data.topupLog)) data.topupLog = [];
+  if (!data.passMonths || typeof data.passMonths !== "object" || Array.isArray(data.passMonths)) data.passMonths = {};
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -323,6 +326,90 @@ export const SaveSystem = {
     this.recordTopup({ kind: "try", packId: "try", powder: 3000, bonus: 0, thb: 0 }, false);
     this.persist();
     return 3000;
+  },
+
+  passRow(id) {
+    const key = id || monthId();
+    if (!this.data.passMonths || typeof this.data.passMonths !== "object") this.data.passMonths = {};
+    if (!this.data.passMonths[key] || typeof this.data.passMonths[key] !== "object") {
+      this.data.passMonths[key] = { bought: 0, at: 0, lookId: "", lookAsPowder: false, claimed: {} };
+    }
+    if (!this.data.passMonths[key].claimed || typeof this.data.passMonths[key].claimed !== "object") {
+      this.data.passMonths[key].claimed = {};
+    }
+    return this.data.passMonths[key];
+  },
+
+  hasMonthPass(id) {
+    return (this.passRow(id).bought | 0) > 0;
+  },
+
+  passClaimedToday() {
+    const id = monthId();
+    if (!this.hasMonthPass(id)) return false;
+    return Boolean(this.passRow(id).claimed[dayKey()]);
+  },
+
+  giveShopLook(id) {
+    const row = lookRow(id);
+    if (!row) return false;
+    if (!this.data.shopLooks) this.data.shopLooks = emptyShopLooks();
+    if ((this.data.shopLooks.owned || []).indexOf(id) < 0) this.data.shopLooks.owned.push(id);
+    if (!this.data.inventory) this.data.inventory = {};
+    this.data.inventory[id] = Math.max(this.data.inventory[id] | 0, 1);
+    return true;
+  },
+
+  buyMonthPass() {
+    const id = monthId();
+    const row = this.passRow(id);
+    if ((row.bought | 0) > 0) {
+      this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.dupBuyPowder;
+      row.bought = (row.bought | 0) + 1;
+      this.recordTopup({ kind: "pass-dup", packId: "pass-" + id, powder: PASS.dupBuyPowder, thb: PASS.thb }, false);
+      this.persist();
+      return { ok: true, dup: true, powder: PASS.dupBuyPowder, lookId: row.lookId, lookAsPowder: true };
+    }
+    const look = passLookOf(id);
+    const lookId = look ? look.id : "";
+    let lookAsPowder = false;
+    if (lookId && this.ownedShopLook(lookId)) {
+      this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.ownedLookPowder;
+      lookAsPowder = true;
+    } else if (lookId) {
+      this.giveShopLook(lookId);
+      if (look && this.isUnlocked(look.charId)) this.wearShopLook(lookId);
+    }
+    this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.instantPowder;
+    row.bought = 1;
+    row.at = Date.now();
+    row.lookId = lookId;
+    row.lookAsPowder = lookAsPowder;
+    this.recordTopup({
+      kind: "pass",
+      packId: "pass-" + id,
+      powder: PASS.instantPowder + (lookAsPowder ? PASS.ownedLookPowder : 0),
+      thb: PASS.thb
+    }, false);
+    this.persist();
+    return { ok: true, dup: false, powder: PASS.instantPowder, lookId, lookAsPowder };
+  },
+
+  claimPassDay() {
+    const id = monthId();
+    if (!this.hasMonthPass(id)) return { ok: false, reason: "need" };
+    const key = dayKey();
+    const row = this.passRow(id);
+    if (row.claimed[key]) return { ok: false, reason: "done" };
+    const vial = vialDayOn();
+    row.claimed[key] = { powder: PASS.dailyPowder, vial: vial ? PASS.vialN : 0 };
+    this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.dailyPowder;
+    if (vial) {
+      if (!this.data.inventory) this.data.inventory = {};
+      this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + PASS.vialN;
+    }
+    this.persist();
+    return { ok: true, powder: PASS.dailyPowder, vial: vial ? PASS.vialN : 0 };
   },
 
   addTokens(amount) {
