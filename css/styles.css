@@ -504,6 +504,39 @@ html[data-control="pc"] #game {
   right: max(10px, env(safe-area-inset-right));
 }
 
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  #vol-dock {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 6px;
+    border-radius: 22px;
+    max-width: 46px;
+  }
+  #vol-dock .vol-ico {
+    width: 1.15em;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 1;
+  }
+  #vol-steps {
+    flex-direction: column;
+    gap: 6px;
+  }
+  #lang-dock {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 22px;
+  }
+  #lang-dock button {
+    min-width: 44px;
+    padding: 8px 6px;
+  }
+}
+
 #touch-pad {
   position: absolute;
   inset: 0;
