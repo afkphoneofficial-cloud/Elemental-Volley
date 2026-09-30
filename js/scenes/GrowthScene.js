@@ -34,20 +34,25 @@ function bindHold(scene, zone, fn) {
   scene.events.once("shutdown", stop);
 }
 
-function paintStatBar(g, x, y, w, h, total, lock) {
+function paintStatBar(g, x, y, w, h, spent, lock, giftN) {
   const r = 9;
-  const totW = w * Math.max(0, Math.min(1, (total | 0) / STAT_CAP));
+  const spentW = w * Math.max(0, Math.min(1, (spent | 0) / STAT_CAP));
   const lockW = w * Math.max(0, Math.min(1, (lock | 0) / STAT_CAP));
+  const giftW = w * Math.max(0, Math.min(1, (giftN | 0) / STAT_CAP));
   g.clear();
   g.fillStyle(0x3a2418, 0.14);
   g.fillRoundedRect(x, y - h / 2, w, h, r);
-  if (totW > 0.5) {
+  if (spentW > 0.5) {
     g.fillStyle(0xffb14a, 1);
-    g.fillRoundedRect(x, y - h / 2, totW, h, r);
+    g.fillRoundedRect(x, y - h / 2, spentW, h, r);
   }
   if (lockW > 0.5) {
+    g.fillStyle(0xff8ab8, 0.38);
+    g.fillRoundedRect(x + w - lockW, y - h / 2, lockW, h, r);
+  }
+  if (giftW > 0.5) {
     g.fillStyle(0xff8ab8, 1);
-    g.fillRoundedRect(x, y - h / 2, lockW, h, r);
+    g.fillRoundedRect(x + w - giftW, y - h / 2, giftW, h, r);
   }
   g.lineStyle(2, 0xff8ab8, 0.55);
   g.strokeRoundedRect(x, y - h / 2, w, h, r);
@@ -130,6 +135,16 @@ export class GrowthScene extends Phaser.Scene {
       bindHold(this, plus.bg, () => this.nudge(stat, 1, true));
       return { stat, name, barG, barLabel, plus, minus };
     });
+
+    this.giftAsk = makeButton(this, 418, 454, 36, 32, "?", () => {
+      this.hintPart = 2;
+      this.paintHint();
+    }, 0xff8ab8);
+    this.giftAsk.text.setFontSize(16);
+    this.giftHint = this.add.text(446, 454, "", {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#9a3a58",
+      wordWrap: { width: 560 }
+    }).setOrigin(0, 0.5);
 
     this.confirmBtn = makeButton(this, 560, 498, 250, 40, t("growth.confirm"), () => {
       this.commitDraft();
@@ -230,9 +245,10 @@ export class GrowthScene extends Phaser.Scene {
       const spent = sheet.spent[item.stat] | 0;
       const total = sheet.totals[item.stat] | 0;
       item.name.setText(t("growth.stat." + item.stat));
-      paintStatBar(item.barG, 530, item.barLabel.y, 340, 20, spent + lock, lock);
+      paintStatBar(item.barG, 530, item.barLabel.y, 340, 20, spent, lock, lock ? (sheet.gift | 0) : 0);
       item.barLabel.setText(t("growth.statFill", { n: total, max: STAT_CAP }));
     });
+    this.giftHint.setText(t("growth.giftBarHint"));
     this.respecStartBtn.text.setFontSize(15).setText(t("growth.respecStart"));
     this.respecLevelBtn.text.setFontSize(15).setText(sheet.freeLevelRespec ? t("growth.respecLevel") : t("growth.useFruit"));
     this.confirmBtn.text.setText(t("growth.confirm"));
