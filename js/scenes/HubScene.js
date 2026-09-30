@@ -131,6 +131,7 @@ export class HubScene extends Phaser.Scene {
       .on("pointerdown", () => this.cycleShowcase(1));
     makeButton(this, heroX - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, heroX + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
+    this.mountHubShop(W);
 
     this.mountPlay(W);
 
@@ -155,6 +156,34 @@ export class HubScene extends Phaser.Scene {
       this.paintDailyChip();
     };
     document.addEventListener("visibilitychange", this._onVis);
+  }
+
+  mountHubShop(W) {
+    const x = W - 28 - 236 - 72;
+    const y = 300;
+    const bw = 86;
+    const bh = 96;
+    const g = this.add.graphics().setDepth(28);
+    const draw = (hot) => {
+      g.clear();
+      g.fillStyle(hot ? 0xffe0b0 : 0xfff6ea, 0.98);
+      g.fillRoundedRect(x - bw / 2, y - bh / 2, bw, bh, 20);
+      g.lineStyle(3, 0xff8a3a, hot ? 1 : 0.9);
+      g.strokeRoundedRect(x - bw / 2, y - bh / 2, bw, bh, 20);
+    };
+    draw(false);
+    const ik = this.textures.exists("vis_icon_shop") ? "vis_icon_shop" : (this.textures.exists("icon-shop") ? "icon-shop" : "item-shard");
+    this.add.image(x, y - 12, ik).setDisplaySize(46, 46).setDepth(29);
+    this.add.text(x, y + 32, t("hub.navShop"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(29);
+    const zone = this.add.zone(x, y, bw, bh).setInteractive({ useHandCursor: true }).setDepth(30);
+    zone.on("pointerover", () => draw(true));
+    zone.on("pointerout", () => draw(false));
+    zone.on("pointerdown", () => {
+      AudioSystem.ui();
+      this.scene.start("shop", { from: "hub" });
+    });
   }
 
   mountPlay(W) {
