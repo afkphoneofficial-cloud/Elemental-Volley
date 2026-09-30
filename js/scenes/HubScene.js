@@ -12,6 +12,7 @@ import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local213";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local215";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
@@ -158,6 +159,7 @@ export class HubScene extends Phaser.Scene {
       this.paintDailyChip();
     };
     document.addEventListener("visibilitychange", this._onVis);
+    this.time.delayedCall(280, () => WelcomePop.tryShow());
   }
 
   mountHubShop(W) {
@@ -558,6 +560,7 @@ export class HubScene extends Phaser.Scene {
         this.hubDay = today;
         SaveSystem.notePlayDay();
         this.paintDailyChip();
+        WelcomePop.tryShow();
       }
     }
     if (this.playDraw) {
@@ -581,6 +584,7 @@ export class HubScene extends Phaser.Scene {
     if (this._onVis) document.removeEventListener("visibilitychange", this._onVis);
     ChatSystem.bindHub(null);
     Leaderboard.hide();
+    WelcomePop.hide();
   }
 
   layoutChip(box, icon, text) {

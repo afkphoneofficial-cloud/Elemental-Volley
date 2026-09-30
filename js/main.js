@@ -8,7 +8,8 @@ import { applyContrast } from "./systems/GameSettings.js";
 import { BootScene } from "./scenes/BootScene.js?v=local206";
 import { AuthScene } from "./scenes/AuthScene.js";
 import { MenuScene } from "./scenes/MenuScene.js";
-import { HubScene } from "./scenes/HubScene.js?v=local213";
+import { HubScene } from "./scenes/HubScene.js?v=local215";
+import { WelcomePop } from "./systems/WelcomePop.js?v=local215";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local206";
 import { ShopScene } from "./scenes/ShopScene.js?v=local205";
@@ -71,6 +72,7 @@ I18n.mountToggle();
 mountLobbyStage();
 TouchControls.mount();
 ChatSystem.mount();
+WelcomePop.mount();
 mountExhibitInvite();
 mountLeaderboard();
 NetPlay.on((msg) => {

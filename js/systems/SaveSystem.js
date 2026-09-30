@@ -65,7 +65,8 @@ const empty = () => ({
   passMonths: {},
   dailyLogin: emptyDaily(),
   ballFx: "",
-  gear: {}
+  gear: {},
+  welcomeDay: ""
 });
 
 function stackN(raw) {
@@ -199,6 +200,7 @@ function finish(data) {
   if (data.dailyLogin.lastClaim && !data.dailyLogin.claimed[data.dailyLogin.lastClaim]) {
     data.dailyLogin.claimed[data.dailyLogin.lastClaim] = 1;
   }
+  if (typeof data.welcomeDay !== "string") data.welcomeDay = "";
   if (typeof data.ballFx !== "string") data.ballFx = "";
   if (!data.gear || typeof data.gear !== "object" || Array.isArray(data.gear)) data.gear = {};
   ROSTER_IDS.forEach((id) => {
