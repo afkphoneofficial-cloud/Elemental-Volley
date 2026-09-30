@@ -17,11 +17,11 @@ import {
   toScreenX,
   toScreenY
 } from "../gameplay/ArcadeEngine.js";
-import { HitFx, ELEMENT_FX } from "../fx/HitFx.js";
+import { HitFx, ELEMENT_FX } from "../fx/HitFx.js?v=local198";
 import { syncJumpForm } from "../fx/JumpForm.js?v=local196";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
-import { UltCutIn } from "../fx/UltCutIn.js";
+import { UltCutIn } from "../fx/UltCutIn.js?v=local198";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
@@ -73,6 +73,7 @@ export class PlayScene extends Phaser.Scene {
     this.worldRate = 1;
     this.ultFreezeLeft = 0;
     this.justUlted = false;
+    this.ultGrand = false;
     this.net = Session.net === true;
     this.netHost = this.net && Session.netHost === true;
     this.readyFrames = this.net ? 0 : 25;
@@ -928,7 +929,7 @@ export class PlayScene extends Phaser.Scene {
       }
     }
     if (this.fx && this.fx.pop) {
-      if (usedUlt && this.fx.ultPop) this.fx.ultPop(toScreenX(a.x), toScreenY(a.y), data.id);
+      if (usedUlt && this.fx.ultPop) this.fx.ultPop(toScreenX(a.x), toScreenY(a.y), data.id, this.ultGrand);
       else this.fx.pop(toScreenX(a.x), toScreenY(a.y), data.id, power);
     }
     const pal = ELEMENT_FX[data.id] || ELEMENT_FX.ignis;
@@ -1163,8 +1164,9 @@ export class PlayScene extends Phaser.Scene {
     this.ultArmed = false;
     this.enterHold = 0;
     this.enterDownAt = 0;
-    this.ultCut.show(courtSide, ult.id, this.faceKey(ult.id, courtSide));
-    this.cameras.main.flash(70, 255, 236, 210);
+    this.ultGrand = (courtSide === this.youSide) && SaveSystem.grandUlt(ult.id);
+    this.ultCut.show(courtSide, ult.id, this.faceKey(ult.id, courtSide), this.ultGrand);
+    this.cameras.main.flash(this.ultGrand ? 110 : 70, 255, 236, 210);
     const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };
     this.showBanner(names[ult.id] || "ULTIMATE", "#ffe08a");
     if (ult.id === "ignis") shakeCam(this.cameras.main, 280, 0.01);
@@ -1242,7 +1244,7 @@ export class PlayScene extends Phaser.Scene {
     if (this.boltTrail.length > 10) this.boltTrail.shift();
     const pts = this.boltTrail;
     if (pts.length < 2) return;
-    this.bolt.lineStyle(7, 0xe8ff3a, 0.4);
+    this.bolt.lineStyle(this.ultGrand ? 12 : 7, 0xe8ff3a, this.ultGrand ? 0.55 : 0.4);
     this.bolt.beginPath();
     this.bolt.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < pts.length; i += 1) this.bolt.lineTo(pts[i].x, pts[i].y);
@@ -1255,9 +1257,16 @@ export class PlayScene extends Phaser.Scene {
     }
     this.bolt.strokePath();
     this.bolt.fillStyle(0xffffcc, 1);
-    this.bolt.fillCircle(x, y, 9);
+    this.bolt.fillCircle(x, y, this.ultGrand ? 14 : 9);
     this.bolt.fillStyle(0xe8ff3a, 0.65);
-    this.bolt.fillCircle(x, y, 16);
+    this.bolt.fillCircle(x, y, this.ultGrand ? 26 : 16);
+    if (this.ultGrand) {
+      this.bolt.lineStyle(2, 0xffffff, 0.8);
+      for (let i = 0; i < 4; i += 1) {
+        const ang = (this.time.now / 80) + i * 1.57;
+        this.bolt.lineBetween(x, y, x + Math.cos(ang) * 34, y + Math.sin(ang) * 34);
+      }
+    }
   }
 
   drawFlame(ball) {
@@ -1274,13 +1283,18 @@ export class PlayScene extends Phaser.Scene {
     for (let i = 0; i < pts.length; i += 1) {
       const p = pts[i];
       const u = (i + 1) / pts.length;
+      const g = this.ultGrand ? 1.7 : 1;
       this.flame.fillStyle(0xff6a22, 0.18 + u * 0.45);
-      this.flame.fillCircle(p.x, p.y, 8 + u * 16);
+      this.flame.fillCircle(p.x, p.y, (8 + u * 16) * g);
       this.flame.fillStyle(0xffe08a, 0.2 + u * 0.5);
-      this.flame.fillCircle(p.x, p.y, 4 + u * 8);
+      this.flame.fillCircle(p.x, p.y, (4 + u * 8) * g);
     }
     this.flame.fillStyle(0xfff4e8, 0.95);
-    this.flame.fillCircle(x, y, 10);
+    this.flame.fillCircle(x, y, this.ultGrand ? 16 : 10);
+    if (this.ultGrand) {
+      this.flame.fillStyle(0xff3300, 0.28);
+      this.flame.fillCircle(x, y + 6, 28);
+    }
     this.ball.setTint(0xff6a22);
   }
 
@@ -1292,7 +1306,7 @@ export class PlayScene extends Phaser.Scene {
       const bx = toScreenX(a.ball.x);
       const by = toScreenY(a.ball.y);
       this.wetRing.setPosition(bx, by);
-      this.wetRing.setScale(1.15 + Math.sin(this.time.now / 120) * 0.2);
+      this.wetRing.setScale((this.ultGrand ? 1.55 : 1.15) + Math.sin(this.time.now / 120) * (this.ultGrand ? 0.32 : 0.2));
       this.wetRing.setAlpha(0.75);
       this.ball.setTint(0x66e8ff);
       const tw = this.time.now / 160;
@@ -1353,7 +1367,7 @@ export class PlayScene extends Phaser.Scene {
     if (UltState.wetVictim === 1 && UltState.wetPoints > 0 && !p2) {
       this.statusTag2.setText(t("play.slip")).setColor("#7ae8ff").setPosition(toScreenX(a.player2.x), toScreenY(a.player2.y) - 70);
     }
-    if (MATCH_FX.stone || MATCH_FX.stuck) this.ball.setTint(0xc07830);
+    if (MATCH_FX.stone || MATCH_FX.stuck) this.ball.setTint(this.ultGrand ? 0xffc070 : 0xc07830);
     if (MATCH_FX.stuck && !this.stuckShook) {
       shakeCam(this.cameras.main, 280, 0.012);
       this.stuckShook = true;

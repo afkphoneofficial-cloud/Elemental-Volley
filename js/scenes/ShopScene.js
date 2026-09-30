@@ -9,6 +9,7 @@ import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
+import { ULT_ORBS } from "../data/ultOrb.js?v=local198";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
@@ -351,14 +352,16 @@ export class ShopScene extends Phaser.Scene {
   }
 
   paintEffects() {
-    const cells = this.slots(BALL_FX.length);
-    BALL_FX.forEach((row, i) => {
-      const armed = SaveSystem.wearingBall(row.id);
+    const goods = BALL_FX.map((row) => ({ ...row, fxKind: "ball" })).concat(ULT_ORBS.map((row) => ({ ...row, fxKind: "orb" })));
+    const cells = this.slots(goods.length);
+    goods.forEach((row, i) => {
+      const armed = row.fxKind === "orb" ? SaveSystem.wearingOrb(row.id) : SaveSystem.wearingBall(row.id);
       const have = SaveSystem.itemCount(row.id);
+      const icon = this.textures.exists(row.tex) ? row.tex : "ball";
       this.paintCard(cells[i].x, cells[i].y, {
         title: t("item." + row.id + ".name"),
         sub: row.char ? t("shop.fxFor", { name: I18n.charName(row.char) }) : t("shop.fxForAll"),
-        icon: this.textures.exists(row.tex) ? row.tex : "ball",
+        icon,
         hint: "",
         stroke: row.ring,
         accent: row.color,
@@ -376,8 +379,8 @@ export class ShopScene extends Phaser.Scene {
           }
           openShopBuy(this, {
             title: t("item." + row.id + ".name"),
-            icon: this.textures.exists(row.tex) ? row.tex : "ball",
-            kind: t("shop.kindFx"),
+            icon,
+            kind: t(row.fxKind === "orb" ? "shop.kindOrb" : "shop.kindFx"),
             owned: have,
             body: t("item." + row.id + ".body"),
             priceIcon: "item-powder",
@@ -388,10 +391,10 @@ export class ShopScene extends Phaser.Scene {
             after: (qty) => this.bought(t("item." + row.id + ".name"), qty)
           });
         },
-        zoom: () => {
+        zoom: row.fxKind === "ball" ? () => {
           AudioSystem.ui();
           openBallPreview(this, row.id);
-        }
+        } : null
       });
     });
   }

@@ -8,6 +8,7 @@ import { BootSplash } from "../web/BootSplash.js";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
+import { ULT_ORBS } from "../data/ultOrb.js?v=local198";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -62,6 +63,9 @@ export class BootScene extends Phaser.Scene {
     BALL_FX.forEach((row) => {
       this.load.image(row.tex, row.src);
     });
+    ULT_ORBS.forEach((row) => {
+      this.load.image(row.tex + "-art", row.src);
+    });
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
       this.load.image("court-" + s, "assets/sprites/court-" + s + ".png");
@@ -89,6 +93,9 @@ export class BootScene extends Phaser.Scene {
     try {
       TextureFactory.build(this);
       TextureFactory.applyBall(this, "ball-art", "ball");
+      ULT_ORBS.forEach((row) => {
+        TextureFactory.applyChibi(this, row.tex + "-art", row.tex);
+      });
       RANK_TIERS.forEach((row) => {
         if (!this.textures.exists(badgeKey(row.id))) {
           TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);

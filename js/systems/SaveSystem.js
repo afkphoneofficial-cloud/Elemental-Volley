@@ -12,7 +12,7 @@ import {
 import { emptySkins, clampSkin, skinNeedLv } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
-import { ITEMS } from "../data/items.js?v=local197";
+import { ITEMS } from "../data/items.js?v=local198";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
@@ -730,6 +730,15 @@ export const SaveSystem = {
       this.persist();
       return { ok: true, effect: "ballFx", on: true, charId };
     }
+    if (row.effect === "ultFx") {
+      if (this.itemCount(id) <= 0) return { ok: false, reason: "none" };
+      const charId = ctx && ctx.charId;
+      if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };
+      if (row.char && row.char !== charId) return { ok: false, reason: "elem" };
+      this.gearOf(charId).ult = row.ultFx || id;
+      this.persist();
+      return { ok: true, effect: "ultFx", on: true, charId };
+    }
     return { ok: false, reason: "no" };
   },
 
@@ -811,6 +820,28 @@ export const SaveSystem = {
     if (!id) return false;
     if (this.data.ballFx === id) return true;
     return ROSTER_IDS.some((charId) => this.gearOf(charId).ball === id);
+  },
+
+  armedUlt(charId) {
+    if (!charId) return "";
+    return this.gearOf(charId).ult || "";
+  },
+
+  wearingOrb(id) {
+    if (!id) return false;
+    return ROSTER_IDS.some((charId) => this.gearOf(charId).ult === id);
+  },
+
+  grandUlt(charId) {
+    const row = ITEMS[this.armedUlt(charId)];
+    return Boolean(row && row.effect === "ultFx" && (!row.char || row.char === charId));
+  },
+
+  clearUlt(charId) {
+    if (charId) this.gearOf(charId).ult = "";
+    else ROSTER_IDS.forEach((id) => { this.gearOf(id).ult = ""; });
+    this.persist();
+    return { ok: true };
   },
 
   clearBallFx(charId) {

@@ -31,7 +31,7 @@ export class UltCutIn {
     this.scene.tweens.killTweensOf(this.root);
   }
 
-  show(side, charId, faceKey) {
+  show(side, charId, faceKey, grand) {
     this.clear();
     const pal = ELEMENT_FX[charId] || ELEMENT_FX.ignis;
     const left = side === 1;
@@ -63,7 +63,7 @@ export class UltCutIn {
     glass.lineTo(40, -110);
     glass.strokePath();
 
-    const glow = this.scene.add.circle(0, 8, 88, tint, 0.28);
+    const glow = this.scene.add.circle(0, 8, grand ? 128 : 88, tint, grand ? 0.42 : 0.28);
     const face = this.scene.add.image(left ? -8 : 8, 4, faceKey).setDisplaySize(168, 168);
     if (!left) face.setFlipX(false);
 
@@ -75,13 +75,14 @@ export class UltCutIn {
     beam.fillTriangle(dir * 48, -4, dir * 48, 16, dir * 130, 6);
 
     const title = this.scene.add.text(0, -118, NAMES[charId] || "ULTIMATE", {
-      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#fff6ea",
+      fontFamily: UI_FONT, fontSize: grand ? "26px" : "22px", fontStyle: "900", color: "#fff6ea",
       stroke: "#120810", strokeThickness: 6
     }).setOrigin(0.5);
 
     this.root.add([glow, glass, beam, face, title]);
 
-    for (let i = 0; i < 7; i += 1) {
+    const nChip = grand ? 14 : 7;
+    for (let i = 0; i < nChip; i += 1) {
       const chip = this.scene.add.triangle(
         x + (left ? -1 : 1) * (20 + i * 12),
         y + (i % 2 === 0 ? -40 : 36),
@@ -116,7 +117,7 @@ export class UltCutIn {
     this.scene.tweens.add({
       targets: this.root,
       alpha: 0,
-      delay: 380,
+      delay: grand ? 520 : 380,
       duration: 140,
       onComplete: () => this.root.setVisible(false)
     });

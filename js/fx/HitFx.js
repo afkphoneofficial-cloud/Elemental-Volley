@@ -54,10 +54,16 @@ export class HitFx {
     });
   }
 
-  ultPop(x, y, charId) {
+  ultPop(x, y, charId, grand) {
     this.pop(x, y, charId, true);
     if (this.burst && wantFx()) {
-      try { this.burst.emitParticleAt(x, y, 36); } catch (e) {}
+      try { this.burst.emitParticleAt(x, y, grand ? 72 : 36); } catch (e) {}
     }
+    if (!grand) return;
+    const pal = ELEMENT_FX[charId] || ELEMENT_FX.ignis;
+    const ring = this.scene.add.circle(x, y, 22, pal.smash[0], 0).setStrokeStyle(6, pal.smash[0], 0.95).setDepth(9);
+    const ring2 = this.scene.add.circle(x, y, 16, pal.tints[1], 0).setStrokeStyle(4, pal.tints[1], 0.85).setDepth(9);
+    this.scene.tweens.add({ targets: ring, radius: 96, alpha: 0, duration: 420, onComplete: () => ring.destroy() });
+    this.scene.tweens.add({ targets: ring2, radius: 140, alpha: 0, duration: 560, onComplete: () => ring2.destroy() });
   }
 }

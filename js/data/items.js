@@ -1,8 +1,9 @@
 import { CHAMP_ITEMS } from "./seasonCycle.js";
 import { SHOP_LOOKS, shopLookOf, shopLookVis } from "./costumeShop.js";
 import { BALL_FX, BALL_FX_ITEMS } from "./ballFx.js?v=local196";
+import { ULT_ORBS, ULT_ORB_ITEMS } from "./ultOrb.js?v=local198";
 
-export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS), BALL_FX.map((row) => row.id));
+export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS), BALL_FX.map((row) => row.id), ULT_ORBS.map((row) => row.id));
 
 export const LOOK_ITEMS = {};
 SHOP_LOOKS.forEach((row) => {
@@ -49,7 +50,8 @@ export const ITEMS = {
   },
   ...CHAMP_ITEMS,
   ...LOOK_ITEMS,
-  ...BALL_FX_ITEMS
+  ...BALL_FX_ITEMS,
+  ...ULT_ORB_ITEMS
 };
 
 ITEM_IDS.push(...Object.keys(LOOK_ITEMS));

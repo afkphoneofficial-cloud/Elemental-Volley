@@ -3,7 +3,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, charName, I18n } from "../i18n/I18n.js";
-import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots, wearCharOf, wearKindOf, wearKindRank } from "../data/items.js?v=local197";
+import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots, wearCharOf, wearKindOf, wearKindRank } from "../data/items.js?v=local198";
 import { shopLookLabel, shopLookOf } from "../data/costumeShop.js";
 import { openRename, hideRename } from "../ui/renameOverlay.js";
 import { ROSTER_IDS } from "../data/roster.js";
@@ -59,7 +59,7 @@ function slotList(tab, sort, filter) {
       const set = SaveSystem.data.champEquipped[charId] | 0;
       if (set >= 1 && set <= 3) push("champ-" + charId + "-" + set, Math.max(1, SaveSystem.itemCount("champ-" + charId + "-" + set)), false);
     });
-    if (filter === "ult" || filter === "sfx") return [];
+    if (filter === "sfx") return [];
     const filtered = filter ? rows.filter((row) => wearKindOf(row.id) === filter) : rows;
     filtered.sort((a, b) => {
       if (sort === "char") {
@@ -90,7 +90,10 @@ function iconKey(scene, id) {
   const key = itemIconKey(id);
   if (scene.textures.exists(key)) return key;
   const row = ITEMS[id];
-  if (row && row.effect === "ballFx" && scene.textures.exists("ball")) return "ball";
+  if (row && (row.effect === "ballFx" || row.effect === "ultFx") && scene.textures.exists("ball")) {
+    if (row.effect === "ultFx" && scene.textures.exists(row.icon)) return row.icon;
+    if (row.effect === "ballFx") return scene.textures.exists(row.icon) ? row.icon : "ball";
+  }
   if (row && row.charId && scene.textures.exists("vis_select_" + row.charId)) return "vis_select_" + row.charId;
   return "item-stone";
 }
@@ -194,7 +197,7 @@ export class BagScene extends Phaser.Scene {
     const size = 92;
     const gap = 10;
     const x0 = 488 + size / 2;
-    const y0 = this.tab === "look" ? 188 : 168;
+    const y0 = this.tab === "look" ? 248 : 168;
 
     slots.forEach((row, i) => {
       const col = i % BAG_COLS;
@@ -241,7 +244,7 @@ export class BagScene extends Phaser.Scene {
     }
 
     const panelX = 1056;
-    const panelY = 560;
+    const panelY = 628;
     const pg = keep(this.add.graphics().setDepth(6));
     pg.fillStyle(0xfff6ea, 0.98);
     pg.fillRoundedRect(panelX - 196, panelY - 88, 392, 176, 18);
@@ -260,7 +263,7 @@ export class BagScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418", wordWrap: { width: 240 }
     }).setOrigin(0.5, 0).setDepth(8));
     const fxRow = ITEMS[chosen.id];
-    if (fxRow && fxRow.effect === "ballFx") {
+    if (fxRow && (fxRow.effect === "ballFx" || fxRow.effect === "ultFx")) {
       keep(this.add.text(panelX + 28, panelY - 20, fxRow.char ? t("shop.fxFor", { name: charName(fxRow.char) }) : t("shop.fxForAll"), {
         fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5, 0).setDepth(8));
@@ -275,7 +278,9 @@ export class BagScene extends Phaser.Scene {
 
     const wear = isWear(chosen.id);
     const ballFx = ITEMS[chosen.id] && ITEMS[chosen.id].effect === "ballFx";
-    const armed = ballFx && SaveSystem.armedBallFx(this.dressChar) === chosen.id;
+    const ultFx = ITEMS[chosen.id] && ITEMS[chosen.id].effect === "ultFx";
+    const armed = (ballFx && SaveSystem.armedBallFx(this.dressChar) === chosen.id)
+      || (ultFx && SaveSystem.armedUlt(this.dressChar) === chosen.id);
     const useX = wear || armed ? panelX - 70 : panelX;
     const useW = wear || armed ? 128 : 200;
     const use = makeButton(this, useX, panelY + 58, useW, 38, armed ? t("shop.using") : t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
@@ -365,7 +370,7 @@ export class BagScene extends Phaser.Scene {
   tapGear(kind) {
     AudioSystem.ui();
     this.charOpen = false;
-    if (kind === "ult" || kind === "sfx") {
+    if (kind === "sfx") {
       this.flash(t("bag.gearSoon"), false);
       return;
     }
@@ -401,16 +406,16 @@ export class BagScene extends Phaser.Scene {
     const kind = wearKindOf(id);
     const ctx = id === "bodyfruit"
       ? { charId: this.useChar }
-      : (kind === "ball" ? { charId: this.dressChar } : {});
+      : ((kind === "ball" || kind === "ult") ? { charId: this.dressChar } : {});
     const res = SaveSystem.useItem(id, ctx);
     let note = res.ok ? t("bag.used") : t("bag.err." + (res.reason || "no"));
     if (res.ok && id === "stone") note = t("bag.usedStone");
     if (res.ok && res.charId && res.effect === "respecLevel") note = t("bag.usedFruit", { name: charName(res.charId) });
-    if (res.ok && (res.effect === "champSkin" || res.effect === "shopLook")) {
-      note = t("bag.usedChamp", { name: charName(res.charId) });
+    if (res.ok && id === "namestone") note = t("bag.usedRename");
+    if (res.ok && (res.effect === "champSkin" || res.effect === "shopLook" || res.effect === "ballFx" || res.effect === "ultFx")) {
+      note = t("bag.wornOn");
       if (res.charId) this.dressChar = res.charId;
     }
-    if (res.ok && res.effect === "ballFx") note = t("bag.usedBall");
     this.paintGrid();
     this.flash(note, res.ok);
   }
@@ -422,14 +427,19 @@ export class BagScene extends Phaser.Scene {
       const onChar = ROSTER_IDS.find((charId) => SaveSystem.armedBallFx(charId) === id) || this.dressChar;
       SaveSystem.clearBallFx(onChar);
       this.paintGrid();
-      this.flash(t("bag.usedBallOff"), true);
+      this.flash(t("bag.takenOff"), true);
+      return;
+    }
+    if (row && row.effect === "ultFx") {
+      const onChar = ROSTER_IDS.find((charId) => SaveSystem.armedUlt(charId) === id) || this.dressChar;
+      SaveSystem.clearUlt(onChar);
+      this.paintGrid();
+      this.flash(t("bag.takenOff"), true);
       return;
     }
     const charId = (row && row.charId) || wearCharOf(id) || this.dressChar;
     const res = SaveSystem.unequipOutfit(charId);
-    const note = res.ok
-      ? t("bag.usedChampOff", { name: charName(charId) })
-      : t("bag.err." + (res.reason || "no"));
+    const note = res.ok ? t("bag.takenOff") : t("bag.err." + (res.reason || "no"));
     this.paintGrid();
     this.flash(note, res.ok);
   }
