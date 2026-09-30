@@ -1267,6 +1267,11 @@ html[data-control="pc"] #game {
   border-bottom-color: #0a2540;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  #site-legal,
+  #site-stripe { display: none !important; }
+}
+
 #maint-overlay {
   position: fixed;
   inset: 0;
