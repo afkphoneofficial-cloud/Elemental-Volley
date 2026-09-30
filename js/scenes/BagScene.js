@@ -10,10 +10,10 @@ import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect } from "../data/seasonLooks.js";
 
 const GEAR_SLOTS = [
-  { id: "look", x: -148, y: -78 },
-  { id: "ball", x: -148, y: 78 },
-  { id: "ult", x: 148, y: -78 },
-  { id: "sfx", x: 148, y: 78 }
+  { id: "look", x: -148, y: -64 },
+  { id: "ball", x: -148, y: 64 },
+  { id: "ult", x: 148, y: -64 },
+  { id: "sfx", x: 148, y: 64 }
 ];
 
 function itemCopy(id, field) {
@@ -143,6 +143,7 @@ export class BagScene extends Phaser.Scene {
     this.pick = 0;
     this.wearSort = "slot";
     this.gearSlot = "";
+    this.focusId = "";
     this.charOpen = false;
     this.bits = [];
     this.paintGrid();
@@ -163,6 +164,7 @@ export class BagScene extends Phaser.Scene {
         this.tab = row.id;
         this.page = 0;
         this.pick = 0;
+        this.focusId = "";
         this.charOpen = false;
         this.paintGrid();
       }, on ? row.color : 0xc8bdd8);
@@ -188,6 +190,13 @@ export class BagScene extends Phaser.Scene {
 
     const all = slotList(this.tab, this.wearSort, this.tab === "look" ? this.gearSlot : "");
     const pages = Math.max(1, Math.ceil(all.length / BAG_SLOTS) || 1);
+    if (this.focusId) {
+      const idx = all.findIndex((row) => row && row.id === this.focusId);
+      if (idx >= 0) {
+        this.page = Math.floor(idx / BAG_SLOTS);
+        this.pick = idx % BAG_SLOTS;
+      }
+    }
     if (this.page >= pages) this.page = pages - 1;
     const start = this.page * BAG_SLOTS;
     const slots = all.slice(start, start + BAG_SLOTS);
@@ -220,6 +229,8 @@ export class BagScene extends Phaser.Scene {
         .on("pointerdown", () => {
           AudioSystem.ui();
           this.pick = i;
+          this.focusId = row ? row.id : "";
+          if (row && this.tab === "look") this.gearSlot = wearKindOf(row.id) || this.gearSlot;
           this.paintGrid();
         }));
     });
@@ -229,12 +240,14 @@ export class BagScene extends Phaser.Scene {
         AudioSystem.ui();
         this.page = Math.max(0, this.page - 1);
         this.pick = 0;
+        this.focusId = "";
         this.paintGrid();
       }, 0xff6a22);
       const next = makeButton(this, 1124, 88, 56, 34, "›", () => {
         AudioSystem.ui();
         this.page = Math.min(pages - 1, this.page + 1);
         this.pick = 0;
+        this.focusId = "";
         this.paintGrid();
       }, 0xff6a22);
       this.bits.push(prev.gfx, prev.text, prev.bg, next.gfx, next.text, next.bg);
@@ -243,33 +256,33 @@ export class BagScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(8));
     }
 
-    const panelX = 1056;
-    const panelY = 628;
+    const panelX = 230;
+    const panelY = 624;
     const pg = keep(this.add.graphics().setDepth(6));
     pg.fillStyle(0xfff6ea, 0.98);
-    pg.fillRoundedRect(panelX - 196, panelY - 88, 392, 176, 18);
+    pg.fillRoundedRect(24, 552, 412, 144, 22);
     pg.lineStyle(3, 0xff6a22, 0.8);
-    pg.strokeRoundedRect(panelX - 196, panelY - 88, 392, 176, 18);
+    pg.strokeRoundedRect(24, 552, 412, 144, 22);
 
     const chosen = slots[this.pick];
     if (!chosen) {
       keep(this.add.text(panelX, panelY, t("bag.slotEmpty"), {
-        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#8a5a38", align: "center", wordWrap: { width: 340 }
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#8a5a38", align: "center", wordWrap: { width: 360 }
       }).setOrigin(0.5).setDepth(8));
       return;
     }
-    keep(this.add.image(panelX - 140, panelY - 12, iconKey(this, chosen.id)).setDisplaySize(64, 64).setDepth(8));
-    keep(this.add.text(panelX + 28, panelY - 48, itemCopy(chosen.id, "name"), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418", wordWrap: { width: 240 }
+    keep(this.add.image(panelX - 148, panelY - 8, iconKey(this, chosen.id)).setDisplaySize(56, 56).setDepth(8));
+    keep(this.add.text(panelX + 20, panelY - 52, itemCopy(chosen.id, "name"), {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: "#3a2418", wordWrap: { width: 280 }
     }).setOrigin(0.5, 0).setDepth(8));
     const fxRow = ITEMS[chosen.id];
     if (fxRow && (fxRow.effect === "ballFx" || fxRow.effect === "ultFx")) {
-      keep(this.add.text(panelX + 28, panelY - 20, fxRow.char ? t("shop.fxFor", { name: charName(fxRow.char) }) : t("shop.fxForAll"), {
-        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
+      keep(this.add.text(panelX + 20, panelY - 26, fxRow.char ? t("shop.fxFor", { name: charName(fxRow.char) }) : t("shop.fxForAll"), {
+        fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5, 0).setDepth(8));
     }
-    keep(this.add.text(panelX + 28, panelY + 8, t("bag.held", { n: chosen.n }), {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#7a4a30"
+    keep(this.add.text(panelX + 20, panelY - 4, t("bag.held", { n: chosen.n }), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5, 0).setDepth(8));
 
     if (chosen.material) return;
@@ -283,22 +296,22 @@ export class BagScene extends Phaser.Scene {
       || (ultFx && SaveSystem.armedUlt(this.dressChar) === chosen.id);
     const useX = wear || armed ? panelX - 70 : panelX;
     const useW = wear || armed ? 128 : 200;
-    const use = makeButton(this, useX, panelY + 58, useW, 38, armed ? t("shop.using") : t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
+    const use = makeButton(this, useX, panelY + 42, useW, 36, armed ? t("shop.using") : t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
     this.bits.push(use.gfx, use.text, use.bg);
     if (wear || armed) {
-      const off = makeButton(this, panelX + 78, panelY + 58, 128, 38, t("bag.unequip"), () => this.tryOff(chosen.id), 0xff6a22);
+      const off = makeButton(this, panelX + 78, panelY + 42, 128, 36, t("bag.unequip"), () => this.tryOff(chosen.id), 0xff6a22);
       this.bits.push(off.gfx, off.text, off.bg);
     }
   }
 
   paintDress(keep) {
     const cx = 230;
-    const cy = 360;
+    const cy = 268;
     const g = keep(this.add.graphics().setDepth(5));
     g.fillStyle(0xfff6ea, 0.98);
-    g.fillRoundedRect(24, 72, 412, 616, 22);
+    g.fillRoundedRect(24, 72, 412, 456, 22);
     g.lineStyle(3, 0xff8ab8, 0.9);
-    g.strokeRoundedRect(24, 72, 412, 616, 22);
+    g.strokeRoundedRect(24, 72, 412, 456, 22);
 
     const chars = unlockedChars();
     const drop = makeButton(this, cx, 108, 240, 36, "▾  " + charName(this.dressChar), () => {
@@ -311,13 +324,10 @@ export class BagScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#8a5a38"
     }).setOrigin(0.5).setDepth(8));
 
-    const plate = keep(this.add.circle(cx, cy, 108, 0xffe8c8, 1).setStrokeStyle(4, 0xfff6ea, 0.95).setDepth(6));
+    const plate = keep(this.add.circle(cx, cy, 92, 0xffe8c8, 1).setStrokeStyle(4, 0xfff6ea, 0.95).setDepth(6));
     void plate;
     const key = texHeroSelect(this, this.dressChar);
-    keep(this.add.image(cx, cy + 6, key).setDisplaySize(200, 200).setDepth(10));
-    keep(this.add.text(cx, cy + 128, charName(this.dressChar), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(11));
+    keep(this.add.image(cx, cy + 4, key).setDisplaySize(168, 168).setDepth(10));
 
     GEAR_SLOTS.forEach((slot) => {
       const x = cx + slot.x;
@@ -336,7 +346,7 @@ export class BagScene extends Phaser.Scene {
           fontFamily: UI_FONT, fontSize: "26px", fontStyle: "800", color: "#d8b090"
         }).setOrigin(0.5).setDepth(8));
       }
-      keep(this.add.text(x, y + 58, t("bag.slot" + slot.id.charAt(0).toUpperCase() + slot.id.slice(1)), {
+      keep(this.add.text(x, y + 54, t("bag.slot" + slot.id.charAt(0).toUpperCase() + slot.id.slice(1)), {
         fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
       }).setOrigin(0.5).setDepth(8));
       keep(this.add.zone(x, y, 88, 88).setInteractive({ useHandCursor: true }).setDepth(12)
@@ -375,15 +385,15 @@ export class BagScene extends Phaser.Scene {
       return;
     }
     this.tab = "look";
-    this.gearSlot = this.gearSlot === kind ? "" : kind;
+    this.gearSlot = kind;
+    this.focusId = gearItem(this.dressChar, kind) || "";
     this.page = 0;
     this.pick = 0;
     this.paintGrid();
   }
 
   flash(note, ok) {
-    const W = this.scale.width;
-    const msg = this.add.text(W / 2, 680, note, {
+    const msg = this.add.text(860, 680, note, {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: ok ? "#1a7a48" : "#c45a16"
     }).setOrigin(0.5).setDepth(40);
     this.time.delayedCall(1600, () => { if (msg && msg.destroy) msg.destroy(); });

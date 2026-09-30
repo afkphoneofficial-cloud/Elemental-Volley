@@ -133,6 +133,7 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, heroX - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, heroX + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
     this.mountHubShop(W);
+    this.mountHubBag(W);
 
     this.mountPlay(W);
 
@@ -160,8 +161,18 @@ export class HubScene extends Phaser.Scene {
   }
 
   mountHubShop(W) {
-    const x = W - 28 - 236 - 72;
-    const y = 300;
+    this.mountHubSideBtn(W - 28 - 236 - 72, 300, "vis_icon_shop", "icon-shop", "item-shard", t("hub.navShop"), 0xff8a3a, () => {
+      this.scene.start("shop", { from: "hub" });
+    });
+  }
+
+  mountHubBag() {
+    this.mountHubSideBtn(28 + 236 + 72, 300, "item-bag", "item-bag", "item-shard", t("hub.navBag"), 0xffb14a, () => {
+      this.scene.start("bag");
+    });
+  }
+
+  mountHubSideBtn(x, y, iconA, iconB, iconC, label, stroke, go) {
     const bw = 86;
     const bh = 96;
     const g = this.add.graphics().setDepth(28);
@@ -169,13 +180,13 @@ export class HubScene extends Phaser.Scene {
       g.clear();
       g.fillStyle(hot ? 0xffe0b0 : 0xfff6ea, 0.98);
       g.fillRoundedRect(x - bw / 2, y - bh / 2, bw, bh, 20);
-      g.lineStyle(3, 0xff8a3a, hot ? 1 : 0.9);
+      g.lineStyle(3, stroke, hot ? 1 : 0.9);
       g.strokeRoundedRect(x - bw / 2, y - bh / 2, bw, bh, 20);
     };
     draw(false);
-    const ik = this.textures.exists("vis_icon_shop") ? "vis_icon_shop" : (this.textures.exists("icon-shop") ? "icon-shop" : "item-shard");
+    const ik = this.textures.exists(iconA) ? iconA : (this.textures.exists(iconB) ? iconB : iconC);
     this.add.image(x, y - 12, ik).setDisplaySize(46, 46).setDepth(29);
-    this.add.text(x, y + 32, t("hub.navShop"), {
+    this.add.text(x, y + 32, label, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(29);
     const zone = this.add.zone(x, y, bw, bh).setInteractive({ useHandCursor: true }).setDepth(30);
@@ -183,7 +194,7 @@ export class HubScene extends Phaser.Scene {
     zone.on("pointerout", () => draw(false));
     zone.on("pointerdown", () => {
       AudioSystem.ui();
-      this.scene.start("shop", { from: "hub" });
+      go();
     });
   }
 
