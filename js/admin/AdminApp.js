@@ -184,7 +184,7 @@ export async function bootAdmin() {
       showDesk(true);
       await refresh();
     } catch (e) {
-      setMsg("ad-msg", "เข้าไม่ได้ — ตรวจ ID/รหัส หรือรัน tickets_admin.sql", true);
+      setMsg("ad-msg", e.message || "เข้าไม่ได้", true);
     }
   });
   document.querySelectorAll("[data-tab]").forEach((btn) => {

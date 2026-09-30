@@ -20,7 +20,7 @@ create table if not exists public.admin_auth (
 
 insert into public.admin_auth (login, pass_hash)
 values ('isle-keeper', crypt('WedPatch#2026', gen_salt('bf')))
-on conflict (login) do nothing;
+on conflict (login) do update set pass_hash = excluded.pass_hash;
 
 create table if not exists public.admin_sessions (
   token text primary key,
@@ -89,7 +89,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
   select exists (
     select 1 from public.admin_sessions
@@ -101,7 +101,7 @@ create or replace function public.admin_login(p_login text, p_pass text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   tok text;
@@ -111,7 +111,7 @@ begin
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'auth');
   end if;
-  if row_auth.pass_hash <> crypt(p_pass, row_auth.pass_hash) then
+  if row_auth.pass_hash <> crypt(btrim(p_pass), row_auth.pass_hash) then
     return jsonb_build_object('ok', false, 'reason', 'auth');
   end if;
   tok := encode(gen_random_bytes(24), 'hex');
@@ -126,7 +126,7 @@ create or replace function public.ticket_create(p_category text, p_body text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   me uuid := auth.uid();
@@ -159,7 +159,7 @@ create or replace function public.ticket_attach(p_ticket uuid, p_path text, p_by
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   me uuid := auth.uid();
@@ -192,7 +192,7 @@ create or replace function public.ticket_reply(p_ticket uuid, p_body text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   me uuid := auth.uid();
@@ -219,7 +219,7 @@ create or replace function public.admin_overview(p_token text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   out jsonb;
@@ -247,7 +247,7 @@ create or replace function public.admin_players(p_token text, p_q text default '
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   q text := lower(btrim(coalesce(p_q, '')));
@@ -295,7 +295,7 @@ create or replace function public.admin_grant(p_token text, p_user uuid, p_powde
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   s jsonb;
@@ -329,7 +329,7 @@ create or replace function public.admin_set_ban(p_token text, p_user uuid, p_ban
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
@@ -350,7 +350,7 @@ create or replace function public.admin_mail(p_token text, p_user uuid, p_title_
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
@@ -374,7 +374,7 @@ create or replace function public.admin_rank(p_token text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
@@ -400,7 +400,7 @@ create or replace function public.admin_purchases(p_token text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
@@ -427,7 +427,7 @@ create or replace function public.admin_tickets(p_token text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
@@ -458,7 +458,7 @@ create or replace function public.admin_ticket_reply(p_token text, p_ticket uuid
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   uid uuid;
@@ -495,7 +495,7 @@ create or replace function public.admin_ticket_success(p_token text, p_ticket uu
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not public.admin_ok(p_token) then
