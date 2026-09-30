@@ -8,7 +8,7 @@ import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
-import { mountMailboxHud } from "../ui/MailboxHud.js";
+import { mountMailboxHud } from "../ui/MailboxHud.js?v=local226";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local213";

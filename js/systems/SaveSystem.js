@@ -1121,6 +1121,12 @@ export const SaveSystem = {
     const i = list.findIndex((row) => row.id === raw || row.id === id);
     if (i < 0) return { ok: false, reason: "no" };
     const mail = list[i];
+    if (mail.claimed) {
+      mail.unread = false;
+      mail.readAt = mail.readAt || Date.now();
+      this.persist();
+      return { ok: true };
+    }
     const p = mail.payload || {};
     const bar = p.etherBar | 0;
     const vials = p.etherVial | 0;
@@ -1158,10 +1164,39 @@ export const SaveSystem = {
         cheer: Boolean(p.cheer)
       });
     }
+    mail.claimed = true;
+    mail.unread = false;
+    mail.readAt = Date.now();
+    this.data.seasonInbox = list;
+    this.persist();
+    return { ok: true };
+  },
+
+  removeSeasonMail(id) {
+    const raw = String(id || "").replace(/^local:/, "");
+    const list = this.data.seasonInbox || [];
+    const i = list.findIndex((row) => row.id === raw || row.id === id);
+    if (i < 0) return { ok: false, reason: "no" };
     list.splice(i, 1);
     this.data.seasonInbox = list;
     this.persist();
     return { ok: true };
+  },
+
+  purgeReadMail() {
+    const keep = 3 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const list = this.data.seasonInbox || [];
+    const next = list.filter((row) => {
+      if (row.unread !== false && !row.claimed) return true;
+      const at = row.readAt | 0;
+      if (!at) return true;
+      return now - at < keep;
+    });
+    if (next.length !== list.length) {
+      this.data.seasonInbox = next;
+      this.persist();
+    }
   },
 
   setRank(rank) {

@@ -13,11 +13,14 @@ create table if not exists public.mail (
   payload jsonb not null default '{}'::jsonb,
   unread boolean not null default true,
   archived boolean not null default false,
+  read_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 create index if not exists mail_user_box_idx
   on public.mail (user_id, archived, created_at desc);
+
+alter table public.mail add column if not exists read_at timestamptz;
 
 create table if not exists public.friend_requests (
   id uuid primary key default gen_random_uuid(),
@@ -257,8 +260,9 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'cloud');
   end if;
   update public.mail
-    set unread = false, archived = true
-    where id = p_mail_id and user_id = me;
+    set unread = false,
+        read_at = coalesce(read_at, now())
+    where id = p_mail_id and user_id = me and archived = false;
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'missing');
   end if;
@@ -335,10 +339,59 @@ begin
 end;
 $$;
 
+create or replace function public.delete_mail(p_mail_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+begin
+  if me is null then
+    return jsonb_build_object('ok', false, 'reason', 'cloud');
+  end if;
+  update public.mail
+    set unread = false,
+        archived = true,
+        read_at = coalesce(read_at, now())
+    where id = p_mail_id and user_id = me and unread = false;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'unread');
+  end if;
+  return jsonb_build_object('ok', true, 'reason', 'dropped');
+end;
+$$;
+
+create or replace function public.purge_read_mail()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  n int := 0;
+begin
+  if me is null then
+    return jsonb_build_object('ok', false, 'reason', 'cloud');
+  end if;
+  delete from public.mail
+    where user_id = me
+      and unread = false
+      and read_at is not null
+      and read_at < now() - interval '3 days';
+  get diagnostics n = row_count;
+  return jsonb_build_object('ok', true, 'dropped', n);
+end;
+$$;
+
 revoke all on function public.player_card(uuid) from public;
 revoke all on function public.send_friend_invite(uuid) from public;
 revoke all on function public.respond_friend_mail(uuid, boolean) from public;
 revoke all on function public.archive_mail(uuid) from public;
+revoke all on function public.delete_mail(uuid) from public;
+revoke all on function public.purge_read_mail() from public;
 revoke all on function public.list_my_friends() from public;
 revoke all on function public.list_pending_out() from public;
 revoke all on function public.unfriend(uuid) from public;
@@ -346,6 +399,8 @@ revoke all on function public.unfriend(uuid) from public;
 grant execute on function public.send_friend_invite(uuid) to authenticated;
 grant execute on function public.respond_friend_mail(uuid, boolean) to authenticated;
 grant execute on function public.archive_mail(uuid) to authenticated;
+grant execute on function public.delete_mail(uuid) to authenticated;
+grant execute on function public.purge_read_mail() to authenticated;
 grant execute on function public.list_my_friends() to authenticated;
 grant execute on function public.list_pending_out() to authenticated;
 grant execute on function public.unfriend(uuid) to authenticated;

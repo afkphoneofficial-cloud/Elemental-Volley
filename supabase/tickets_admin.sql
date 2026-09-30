@@ -521,12 +521,14 @@ language plpgsql
 security definer
 set search_path = public, extensions
 as $$
+declare
+  uid uuid;
 begin
   if not public.admin_ok(p_token) then
     return jsonb_build_object('ok', false, 'reason', 'auth');
   end if;
-  perform 1 from public.tickets where id = p_ticket;
-  if not found then
+  select user_id into uid from public.tickets where id = p_ticket;
+  if uid is null then
     return jsonb_build_object('ok', false, 'reason', 'no');
   end if;
   begin
@@ -538,6 +540,16 @@ begin
   end;
   delete from public.ticket_files where ticket_id = p_ticket;
   update public.tickets set status = 'success', updated_at = now() where id = p_ticket;
+  insert into public.mail (user_id, kind, title_th, title_en, body_th, body_en, payload)
+  values (
+    uid,
+    'ticket',
+    'Ticket ปิดแล้ว',
+    'Ticket closed',
+    'แอดมินปิด Ticket ของคุณเป็นสำเร็จแล้ว เปิดปุ่ม Ticket ที่ล็อบบี้ได้ถ้ายังมีข้อความค้าง',
+    'Staff marked your ticket as success. Open Ticket in the lobby if you still need the thread.',
+    jsonb_build_object('ticketId', p_ticket, 'status', 'success')
+  );
   return jsonb_build_object('ok', true);
 end;
 $$;
@@ -574,6 +586,85 @@ grant execute on function public.admin_ticket_success(text, uuid) to anon, authe
 grant execute on function public.ticket_create(text, text) to authenticated;
 grant execute on function public.ticket_attach(uuid, text, integer) to authenticated;
 grant execute on function public.ticket_reply(uuid, text) to authenticated;
+
+alter table public.mail add column if not exists read_at timestamptz;
+
+create or replace function public.archive_mail(p_mail_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  me uuid := auth.uid();
+begin
+  if me is null then
+    return jsonb_build_object('ok', false, 'reason', 'cloud');
+  end if;
+  update public.mail
+    set unread = false,
+        read_at = coalesce(read_at, now())
+    where id = p_mail_id and user_id = me and archived = false;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'missing');
+  end if;
+  return jsonb_build_object('ok', true, 'reason', 'read');
+end;
+$$;
+
+create or replace function public.delete_mail(p_mail_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  me uuid := auth.uid();
+begin
+  if me is null then
+    return jsonb_build_object('ok', false, 'reason', 'cloud');
+  end if;
+  update public.mail
+    set unread = false,
+        archived = true,
+        read_at = coalesce(read_at, now())
+    where id = p_mail_id and user_id = me and unread = false;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'unread');
+  end if;
+  return jsonb_build_object('ok', true, 'reason', 'dropped');
+end;
+$$;
+
+create or replace function public.purge_read_mail()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  me uuid := auth.uid();
+  n int := 0;
+begin
+  if me is null then
+    return jsonb_build_object('ok', false, 'reason', 'cloud');
+  end if;
+  delete from public.mail
+    where user_id = me
+      and unread = false
+      and read_at is not null
+      and read_at < now() - interval '3 days';
+  get diagnostics n = row_count;
+  return jsonb_build_object('ok', true, 'dropped', n);
+end;
+$$;
+
+revoke all on function public.archive_mail(uuid) from public;
+revoke all on function public.delete_mail(uuid) from public;
+revoke all on function public.purge_read_mail() from public;
+grant execute on function public.archive_mail(uuid) to authenticated;
+grant execute on function public.delete_mail(uuid) to authenticated;
+grant execute on function public.purge_read_mail() to authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

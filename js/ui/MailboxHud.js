@@ -119,9 +119,13 @@ export function paintMailbox(scene) {
       }, 0xff8ab8, z + 8);
       scene.mailBits.push(ok.bg, ok.text, ok.gfx, no.bg, no.text, no.gfx);
     } else {
-      const done = makeButton(scene, panelX + 58, cy + 22, 88, 26, season ? t("mail.claim") : t("mail.ok"), async () => {
+      const needClaim = season && !row.claimed;
+      const canDrop = !row.unread && (!season || row.claimed);
+      const label = needClaim ? t("mail.claim") : (canDrop ? t("mail.drop") : t("mail.ok"));
+      const tint = needClaim ? 0xc8ff3a : (canDrop ? 0xff8ab8 : 0x3ad6ff);
+      const done = makeButton(scene, panelX + 58, cy + 22, 88, 26, label, async () => {
         AudioSystem.ui();
-        const res = await Mailbox.archive(row.id);
+        const res = canDrop ? await Mailbox.remove(row.id) : await Mailbox.archive(row.id);
         if (!res.ok && res.reason === "full") {
           const hint = scene.add.text(panelX, y + 248, t("mail.etherHint"), {
             fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#c45a16",
@@ -132,7 +136,7 @@ export function paintMailbox(scene) {
           return;
         }
         if (scene.sys && scene.sys.isActive()) paintMailbox(scene);
-      }, season ? 0xc8ff3a : 0x3ad6ff, z + 8);
+      }, tint, z + 8);
       scene.mailBits.push(done.bg, done.text, done.gfx);
     }
   });

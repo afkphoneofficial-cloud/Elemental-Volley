@@ -9,7 +9,8 @@ function localMails() {
     ...row,
     id: String(row.id || "").startsWith("local:") ? row.id : "local:" + row.id,
     kind: "season",
-    unread: row.unread !== false
+    unread: row.unread !== false && !row.claimed,
+    claimed: Boolean(row.claimed)
   }));
 }
 
@@ -30,6 +31,7 @@ export const Mailbox = {
 
   async refresh() {
     SaveSystem.settleSeasonMails();
+    SaveSystem.purgeReadMail();
     const local = localMails();
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) {
@@ -37,11 +39,21 @@ export const Mailbox = {
       this.unread = this.items.filter((m) => m.unread).length;
       return { ok: false, reason: "cloud" };
     }
-    const { data, error } = await sb.from("mail")
-      .select("id, kind, title_th, title_en, body_th, body_en, payload, unread, created_at")
+    await sb.rpc("purge_read_mail");
+    let { data, error } = await sb.from("mail")
+      .select("id, kind, title_th, title_en, body_th, body_en, payload, unread, read_at, created_at")
       .eq("archived", false)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(40);
+    if (error) {
+      const retry = await sb.from("mail")
+        .select("id, kind, title_th, title_en, body_th, body_en, payload, unread, created_at")
+        .eq("archived", false)
+        .order("created_at", { ascending: false })
+        .limit(40);
+      data = retry.data;
+      error = retry.error;
+    }
     if (error) {
       this.items = local;
       this.unread = this.items.filter((m) => m.unread).length;
@@ -74,6 +86,20 @@ export const Mailbox = {
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) return { ok: false, reason: "cloud" };
     const { data, error } = await sb.rpc("archive_mail", { p_mail_id: id });
+    if (error) return { ok: false, reason: "cloud", detail: error.message };
+    await this.refresh();
+    return data || { ok: true };
+  },
+
+  async remove(id) {
+    if (String(id).startsWith("local:")) {
+      const res = SaveSystem.removeSeasonMail(id);
+      await this.refresh();
+      return res;
+    }
+    const sb = AuthSystem.db ? await AuthSystem.db() : null;
+    if (!sb) return { ok: false, reason: "cloud" };
+    const { data, error } = await sb.rpc("delete_mail", { p_mail_id: id });
     if (error) return { ok: false, reason: "cloud", detail: error.message };
     await this.refresh();
     return data || { ok: true };

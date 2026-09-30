@@ -113,6 +113,7 @@ export const COPY = {
       accept: "ยอมรับ",
       decline: "ปฏิเสธ",
       ok: "อ่านแล้ว",
+      drop: "ลบ",
       claim: "รับของ",
       etherHint: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น — ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม"
     },
@@ -1020,6 +1021,7 @@ export const COPY = {
       accept: "Accept",
       decline: "Decline",
       ok: "Got it",
+      drop: "Delete",
       claim: "Claim",
       etherHint: "Can't claim — the Ether pool is full or this would overflow. Use it only when the pool isn't full."
     },
