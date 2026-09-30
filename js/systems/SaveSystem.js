@@ -58,7 +58,8 @@ const empty = () => ({
   seasonBadges: [],
   seasonMark: null,
   champEquipped: {},
-  shopLooks: emptyShopLooks()
+  shopLooks: emptyShopLooks(),
+  topupLog: []
 });
 
 function stackN(raw) {
@@ -182,6 +183,7 @@ function finish(data) {
     owned: Array.isArray(rawLooks.owned) ? rawLooks.owned.filter((id) => typeof id === "string") : [],
     worn: { ...looks.worn, ...(rawLooks.worn || {}) }
   };
+  if (!Array.isArray(data.topupLog)) data.topupLog = [];
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -300,10 +302,25 @@ export const SaveSystem = {
     this.persist();
   },
 
+  recordTopup(row, persist) {
+    if (!Array.isArray(this.data.topupLog)) this.data.topupLog = [];
+    this.data.topupLog.unshift({
+      id: "tu" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+      at: Date.now(),
+      kind: row && row.kind ? row.kind : "pack",
+      packId: (row && row.packId) || "",
+      powder: (row && row.powder) | 0,
+      bonus: (row && row.bonus) | 0,
+      thb: (row && row.thb) | 0
+    });
+    if (persist !== false) this.persist();
+  },
+
   grantTryPowder() {
     if (this.data.tryCostumePowder) return 0;
     this.data.tryCostumePowder = true;
     this.data.currencies.premium = (this.data.currencies.premium | 0) + 3000;
+    this.recordTopup({ kind: "try", packId: "try", powder: 3000, bonus: 0, thb: 0 }, false);
     this.persist();
     return 3000;
   },
