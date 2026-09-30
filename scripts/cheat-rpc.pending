@@ -1,0 +1,7 @@
+Before live (2026-10-10, Bangkok) this file means save JSON is still client-trusted for coins, shards, PvP stones, inventory, and cosmetics.
+
+Powder is server-clamped. Shop looks and farm currencies are not.
+
+Need RPCs: match/season payouts, coin/shard/stone writes, costume/item grants. Do not take owned looks from the client blob.
+
+When that is shipped, tell the agent. It will delete this file and stop reminding.
