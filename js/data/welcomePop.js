@@ -1,7 +1,7 @@
 export const WELCOME_SLIDES = [
   {
     id: "home",
-    img: "assets/welcome/welcome-hero.jpg",
+    img: "assets/welcome/welcome-hero.jpg?v=local218",
     tabTh: "ต้อนรับ",
     tabEn: "Hello",
     capTh: "ยินดีต้อนรับสู่ Elemental Volley : Spike It !!",
