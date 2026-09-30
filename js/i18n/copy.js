@@ -290,7 +290,8 @@ export const COPY = {
         full: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม",
         char: "เลือกตัวละครก่อน",
         free: "ตัวนี้ยังรีเซ็ตเลเวลฟรีได้อยู่ ใช้ปุ่มในหน้าธาตุกายก่อน",
-        coins: "เหรียญเกาะไม่พอ"
+        coins: "เหรียญเกาะไม่พอ",
+        elem: "ใช้ได้เฉพาะตัวละครธาตุนั้น"
       }
     },
     item: {
@@ -299,11 +300,11 @@ export const COPY = {
       ether_vial: { name: "เอเธอร์", body: "ใช้แล้วเติมพลังลงสนาม 1 ก้อน ใช้ได้เฉพาะตอนหลอดยังไม่เต็ม", how: "Rank Mode และแรงก์ธาตุ มีโอกาส 15% ต่อแมตช์ ชนะหรือแพ้ก็ได้", use: "เติมพลัง 1 ก้อนเมื่อหลอดยังไม่เต็ม ถ้าเต็มหรือกดแล้วจะล้นจะกดไม่ได้" },
       bodyfruit: { name: "ผลคืนกาย", body: "ใช้กับตัวละครที่รีเซ็ตแต้มเลเวลฟรีไปแล้ว เพื่อคืนแต้มจากเลเวล", how: "ซื้อด้วยเหรียญเกาะ 200 ที่แท็บไอเท็มใช้งาน หรือแลกด้วยผงอีเธเรีย 50 ที่แท็บแลกเปลี่ยน หรือรางวัลท็อป 10 ของแรงก์ธาตุ", use: "กดใช้จากกระเป๋า เลือกตัวละคร เพื่อคืนแต้มที่ได้จากการอัพเลเวล" },
       namestone: { name: "ศิลาเปลี่ยนนาม", body: "ใช้แล้วเปลี่ยนชื่อโปรไฟล์ได้หนึ่งครั้ง", how: "ซื้อด้วยผงอีเธเรีย 100 ที่แท็บไอเท็มในร้านค้า", use: "กดใช้จากกระเป๋า แล้วใส่ชื่อใหม่ 2–12 ตัว" },
-      ball_ember: { name: "ลูกเปลว", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นเปลวแทนลูกปกติ ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
-      ball_mist: { name: "ลูกไอน้ำ", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นไอน้ำแทนลูกปกติ ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
-      ball_volt: { name: "ลูกสายฟ้า", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นสายฟ้าแทนลูกปกติ ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
-      ball_terra: { name: "ลูกมอส", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นมอสแทนลูกปกติ ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
-      ball_star: { name: "ลูกดาว", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นดาวแทนลูกปกติ ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
+      ball_ember: { name: "ลูกเปลว", body: "ตอนคุณเสิร์ฟด้วยอิกนิส ลูกจะเป็นเปลวแทนลูกปกติ ใช้ได้อิกนิสเท่านั้น ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเมื่อปลดล็อกอิกนิสแล้ว เพื่อติดตอนคุณเสิร์ฟ" },
+      ball_mist: { name: "ลูกไอน้ำ", body: "ตอนคุณเสิร์ฟด้วยอควา ลูกจะเป็นไอน้ำแทนลูกปกติ ใช้ได้อควาเท่านั้น ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเมื่อปลดล็อกอควาแล้ว เพื่อติดตอนคุณเสิร์ฟ" },
+      ball_volt: { name: "ลูกสายฟ้า", body: "ตอนคุณเสิร์ฟด้วยวอลต์ ลูกจะเป็นสายฟ้าแทนลูกปกติ ใช้ได้วอลต์เท่านั้น ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเมื่อปลดล็อกวอลต์แล้ว เพื่อติดตอนคุณเสิร์ฟ" },
+      ball_terra: { name: "ลูกมอส", body: "ตอนคุณเสิร์ฟด้วยเทอร์รา ลูกจะเป็นมอสแทนลูกปกติ ใช้ได้เทอร์ราเท่านั้น ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเมื่อปลดล็อกเทอร์ราแล้ว เพื่อติดตอนคุณเสิร์ฟ" },
+      ball_star: { name: "ลูกดาว", body: "ตอนคุณเสิร์ฟ ลูกจะเป็นดาวแทนลูกปกติ ใช้ได้ทุกตัวละคร ไม่ทำงานถ้าอีกฝ่ายเสิร์ฟ", how: "ซื้อที่แท็บเอฟเฟกต์ด้วยผงอีเธเรีย", use: "กดใช้จากกระเป๋าเพื่อติดเอฟเฟกต์ตอนคุณเสิร์ฟ" },
       coin: { name: "เหรียญเกาะ", body: "เงินในเกม ใช้ซื้อไอเท็มใช้งานที่ร้าน", how: "ดรอปทุกโหมดยกเว้นกระชับมิตร ชนะได้มากกว่าแพ้", use: "ใช้ที่ร้านค้า แทบไอเท็มใช้งาน" },
       champSkin: { name: "ธีมฉลอง {name} ชุด {n}", body: "ชุดแชมป์ซีซั่นของตัวละครธาตุนี้ ของหายาก ใช้แล้วอยู่ถาวร", how: "ได้จากรางวัลอันดับ 1 ของสัปดาห์ธาตุนั้น วนทุก 3 เดือน", use: "กดใช้จากกระเป๋า เพื่อใส่หรือถอดชุดแชมป์บนตัวละครธาตุนั้น โชว์ที่ล็อบบี้" }
     },
@@ -485,6 +486,9 @@ export const COPY = {
       fxHit: "ตีธรรมดา",
       fxSmash: "ตบแรง",
       fxUlt: "ตบอันติ",
+      fxUltNote: "ตอนตบอันติ ลูกจะเปลี่ยนตามอันติของตัวละครที่คุณใช้งาน ไม่มีตัวอย่างในแว่นนี้",
+      fxFor: "สำหรับ {name} เท่านั้น",
+      fxForAll: "ใช้ได้ทุกตัวละคร",
       buyUnlockBody: "ยืนยันแล้วจะปลดล็อกตัวละครนี้ด้วยเศษธาตุ",
       buyCheerBody: "ยืนยันแล้วจะปลดล็อกธีมฉลองแต้มนี้",
       bought: "การซื้อสำเร็จ\nคุณได้รับ {name} x{n}",
@@ -1122,7 +1126,8 @@ export const COPY = {
         full: "Can't use. Ether is full or this would overflow — only when the pool isn't full.",
         char: "Pick a fighter first",
         free: "This fighter still has a free level reset. Use the Element Body button first.",
-        coins: "Not enough Isle Coins"
+        coins: "Not enough Isle Coins",
+        elem: "Only that element's fighter can use this"
       }
     },
     item: {
@@ -1131,11 +1136,11 @@ export const COPY = {
       ether_vial: { name: "Ether", body: "Use to restore 1 court charge, only when the pool is not full.", how: "15% drop from Rank Mode and Element Rank, win or lose.", use: "Fills 1 court charge. If the pool is full or this would overflow, the button does nothing." },
       bodyfruit: { name: "Bodyfruit", body: "Use on a fighter who already spent their free level reset, to reclaim level-up points.", how: "Buy for 200 Isle Coins on Usables, trade 50 Etheria Powder on Trade, or Element Rank top 10.", use: "Use from the bag on a fighter to reclaim spent level-up points." },
       namestone: { name: "Name Seal", body: "Use once to change your profile name.", how: "Buy with 100 Etheria Powder on the shop Usables tab.", use: "Use from the bag, then enter a new 2–12 character name." },
-      ball_ember: { name: "Ember Ball", body: "When you serve, the ball uses an ember effect instead of the default. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
-      ball_mist: { name: "Mist Ball", body: "When you serve, the ball uses a mist effect instead of the default. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
-      ball_volt: { name: "Volt Ball", body: "When you serve, the ball uses a volt effect instead of the default. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
-      ball_terra: { name: "Moss Ball", body: "When you serve, the ball uses a moss effect instead of the default. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
-      ball_star: { name: "Star Ball", body: "When you serve, the ball uses a star effect instead of the default. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
+      ball_ember: { name: "Ember Ball", body: "When you serve as Ignis, the ball uses an ember effect. Ignis only. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag after unlocking Ignis to arm it for your serves." },
+      ball_mist: { name: "Mist Ball", body: "When you serve as Aqua, the ball uses a mist effect. Aqua only. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag after unlocking Aqua to arm it for your serves." },
+      ball_volt: { name: "Volt Ball", body: "When you serve as Volt, the ball uses a volt effect. Volt only. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag after unlocking Volt to arm it for your serves." },
+      ball_terra: { name: "Moss Ball", body: "When you serve as Terra, the ball uses a moss effect. Terra only. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag after unlocking Terra to arm it for your serves." },
+      ball_star: { name: "Star Ball", body: "When you serve, the ball uses a star effect. Any fighter. Off when they serve.", how: "Buy on the Effects tab with Etheria Powder.", use: "Use from the bag to arm it for your serves." },
       coin: { name: "Isle Coins", body: "The in-match currency. Spend it on usable shop items.", how: "Drops in every mode except Exhibition. Wins pay more than losses.", use: "Spend in the shop Usables tab." },
       champSkin: { name: "{name} celebration set {n}", body: "A rare champion season outfit for this element. Permanent once used.", how: "Place 1 reward on that element's week. The 3-month loop repeats the same sets.", use: "Use from the bag to wear or remove the champion outfit. It shows in the lobby." }
     },
@@ -1317,6 +1322,9 @@ export const COPY = {
       fxHit: "Normal hit",
       fxSmash: "Power spike",
       fxUlt: "Ult smash",
+      fxUltNote: "On an ult smash the ball follows that fighter's ultimate. This preview has no sample.",
+      fxFor: "For {name} only",
+      fxForAll: "Works for every fighter",
       buyUnlockBody: "Confirm to unlock this fighter with Element Shards.",
       buyCheerBody: "Confirm to unlock this cheer theme.",
       bought: "Purchase complete\nYou received {name} x{n}",

@@ -18,7 +18,7 @@ import {
   toScreenY
 } from "../gameplay/ArcadeEngine.js";
 import { HitFx, ELEMENT_FX } from "../fx/HitFx.js";
-import { syncJumpForm } from "../fx/JumpForm.js";
+import { syncJumpForm } from "../fx/JumpForm.js?v=local196";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
 import { UltCutIn } from "../fx/UltCutIn.js";
@@ -32,7 +32,7 @@ import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
-import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local195";
+import { ballFxOf, ballFxFitsChar, drawArmedBallFx } from "../data/ballFx.js?v=local196";
 import {
   GAUGE_MAX,
   MATCH_FX,
@@ -1005,7 +1005,9 @@ export class PlayScene extends Phaser.Scene {
 
   paintArmedBall(ball) {
     if (!this.ballFxG) return;
-    const row = this.youServing() ? ballFxOf(SaveSystem.armedBallFx()) : null;
+    const youId = this.youSide === 1 ? this.leftData.id : this.rightData.id;
+    const armed = ballFxOf(SaveSystem.armedBallFx());
+    const row = this.youServing() && ballFxFitsChar(armed, youId) ? armed : null;
     const tex = row && this.textures.exists(row.tex) ? row.tex : "ball";
     if (this.ball.texture.key !== tex) this.ball.setTexture(tex);
     if (this.trail1.texture.key !== tex) this.trail1.setTexture(tex);

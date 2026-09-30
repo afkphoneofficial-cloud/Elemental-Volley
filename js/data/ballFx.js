@@ -1,11 +1,11 @@
 /** Visual-only serve-ball cosmetics. No physics. Compact twinkle glints, not auras. */
 
 export const BALL_FX = [
-  { id: "ball_ember", price: 45, color: 0xff6a22, ring: 0xffb14a, kind: "ember", tex: "vis_ball_ember", art: "ball-ember-art", src: "assets/sprites/balls/ball_ember.png" },
-  { id: "ball_mist", price: 45, color: 0x3ad6ff, ring: 0x7ae8ff, kind: "mist", tex: "vis_ball_mist", art: "ball-mist-art", src: "assets/sprites/balls/ball_mist.png" },
-  { id: "ball_volt", price: 45, color: 0xffe08a, ring: 0x7d5cff, kind: "volt", tex: "vis_ball_volt", art: "ball-volt-art", src: "assets/sprites/balls/ball_volt.png" },
-  { id: "ball_terra", price: 45, color: 0x7ad06a, ring: 0xc07830, kind: "terra", tex: "vis_ball_terra", art: "ball-terra-art", src: "assets/sprites/balls/ball_terra.png" },
-  { id: "ball_star", price: 70, color: 0xfff6ea, ring: 0xff8ab8, kind: "star", tex: "vis_ball_star", art: "ball-star-art", src: "assets/sprites/balls/ball_star.png" }
+  { id: "ball_ember", char: "ignis", price: 45, color: 0xff6a22, ring: 0xffb14a, kind: "ember", tex: "vis_ball_ember", art: "ball-ember-art", src: "assets/sprites/balls/ball_ember.png" },
+  { id: "ball_mist", char: "aqua", price: 45, color: 0x3ad6ff, ring: 0x7ae8ff, kind: "mist", tex: "vis_ball_mist", art: "ball-mist-art", src: "assets/sprites/balls/ball_mist.png" },
+  { id: "ball_volt", char: "volt", price: 45, color: 0xffe08a, ring: 0x7d5cff, kind: "volt", tex: "vis_ball_volt", art: "ball-volt-art", src: "assets/sprites/balls/ball_volt.png" },
+  { id: "ball_terra", char: "terra", price: 45, color: 0x7ad06a, ring: 0xc07830, kind: "terra", tex: "vis_ball_terra", art: "ball-terra-art", src: "assets/sprites/balls/ball_terra.png" },
+  { id: "ball_star", char: "", price: 70, color: 0xfff6ea, ring: 0xff8ab8, kind: "star", tex: "vis_ball_star", art: "ball-star-art", src: "assets/sprites/balls/ball_star.png" }
 ];
 
 export const BALL_FX_ITEMS = {};
@@ -15,7 +15,8 @@ BALL_FX.forEach((row) => {
     kind: "use",
     icon: row.tex,
     effect: "ballFx",
-    ballFx: row.id
+    ballFx: row.id,
+    char: row.char || ""
   };
 });
 
@@ -26,6 +27,12 @@ export function ballFxOf(id) {
 export function ballFxTex(id) {
   const row = ballFxOf(id);
   return row ? row.tex : "";
+}
+
+export function ballFxFitsChar(row, charId) {
+  if (!row) return false;
+  if (!row.char) return true;
+  return row.char === charId;
 }
 
 export function drawArmedBallFx(g, x, y, r, row, now, style) {

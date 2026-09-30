@@ -144,22 +144,19 @@ export function syncJumpForm(scene, slot, player, sprite, form, gfx, charId, now
       gfx.fillStyle(0xe8ff3a, 0.45);
       gfx.fillCircle(x, y, 28);
       sparkles(gfx, x, y, now, 14, 0xffffaa, 40);
-    } else {
-      const top = Math.max(groundY - 130, Math.min(y, groundY - 18));
-      const h = Math.max(18, Math.min(130, groundY - top));
-      gfx.fillStyle(0x3a2210, 0.55);
-      gfx.fillCircle(x, groundY + 4, 18);
-      gfx.fillStyle(0x6b3e1e, 1);
-      gfx.fillRect(x - 26, top, 52, h);
-      gfx.fillStyle(0xa06a32, 1);
-      gfx.fillRect(x - 16, top + 6, 32, Math.max(8, h - 6));
-      gfx.fillStyle(0x4e8a32, 1);
-      gfx.fillCircle(x - 16, top + 2, 12);
-      gfx.fillCircle(x + 16, top, 14);
-      gfx.fillCircle(x, top - 8, 13);
-      gfx.fillStyle(0x8fd35a, 0.85);
-      gfx.fillCircle(x + 6, top + 4, 7);
-      sparkles(gfx, x, top, now, 8, 0xc8ff3a, 26);
+    } else if (charId === "terra") {
+      form.setTexture("jump-earth");
+      form.setVisible(true);
+      form.setPosition(x, y);
+      const pulse = 1 + Math.sin(now / 48) * 0.16;
+      form.setDisplaySize(size * 0.58 * pulse, size * 0.78 * pulse);
+      form.setAngle(Math.sin(now / 90) * 10);
+      form.setAlpha(1);
+      gfx.fillStyle(0xc07830, 0.2);
+      gfx.fillCircle(x, y, 36 + Math.sin(now / 50) * 6);
+      gfx.fillStyle(0x7ad06a, 0.35);
+      gfx.fillCircle(x, y, 20);
+      sparkles(gfx, x, y, now, 10, 0xc8ff3a, 32);
     }
     return;
   }

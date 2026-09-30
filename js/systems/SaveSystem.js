@@ -12,7 +12,7 @@ import {
 import { emptySkins, clampSkin, skinNeedLv } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
-import { ITEMS } from "../data/items.js";
+import { ITEMS } from "../data/items.js?v=local196";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
@@ -692,6 +692,7 @@ export const SaveSystem = {
     }
     if (row.effect === "ballFx") {
       if (this.itemCount(id) <= 0) return { ok: false, reason: "none" };
+      if (row.char && !this.isUnlocked(row.char)) return { ok: false, reason: "elem" };
       this.data.ballFx = row.ballFx || id;
       this.persist();
       return { ok: true, effect: "ballFx", on: true };

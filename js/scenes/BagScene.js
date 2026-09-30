@@ -3,7 +3,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, charName, I18n } from "../i18n/I18n.js";
-import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots } from "../data/items.js";
+import { BAG_COLS, BAG_SLOTS, BAG_TABS, ITEMS, bagTabOf, itemIconKey, stackSlots } from "../data/items.js?v=local196";
 import { shopLookLabel, shopLookOf } from "../data/costumeShop.js";
 import { openRename, hideRename } from "../ui/renameOverlay.js";
 
@@ -191,6 +191,12 @@ export class BagScene extends Phaser.Scene {
     keep(this.add.text(panelX, panelY - 96, itemCopy(chosen.id, "name"), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(8));
+    const fxRow = ITEMS[chosen.id];
+    if (fxRow && fxRow.effect === "ballFx") {
+      keep(this.add.text(panelX, panelY - 68, fxRow.char ? t("shop.fxFor", { name: charName(fxRow.char) }) : t("shop.fxForAll"), {
+        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16"
+      }).setOrigin(0.5).setDepth(8));
+    }
     keep(this.add.text(panelX, panelY - 40, t("bag.held", { n: chosen.n }), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0.5).setDepth(8));

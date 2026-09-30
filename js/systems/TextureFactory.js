@@ -125,7 +125,7 @@ export const TextureFactory = {
       const isBg = (i) => {
         const r = px[i], g = px[i + 1], b = px[i + 2], a = px[i + 3];
         if (a < 12) return true;
-        if (r >= 170 && b >= 90 && g <= 145 && (r - g) >= 40) return true;
+        if (r >= 70 && g <= 55 && b >= 28 && (r - g) >= 40 && r >= b) return true;
         const mn = Math.min(r, g, b), mx = Math.max(r, g, b);
         const sat = mx - mn;
         if (mn > 226 && sat < 32) return true;
@@ -431,6 +431,15 @@ export const TextureFactory = {
     water.fillCircle(18, 16, 5);
     water.generateTexture("jump-water", 48, 48);
     water.destroy();
+    const earth = scene.make.graphics({ add: false });
+    earth.fillStyle(0xc07830, 1);
+    earth.fillEllipse(24, 28, 34, 40);
+    earth.fillStyle(0x7ad06a, 1);
+    earth.fillEllipse(24, 24, 22, 28);
+    earth.fillStyle(0xe8ff9a, 1);
+    earth.fillCircle(20, 18, 5);
+    earth.generateTexture("jump-earth", 48, 48);
+    earth.destroy();
   },
 
   currencyIcons(scene) {

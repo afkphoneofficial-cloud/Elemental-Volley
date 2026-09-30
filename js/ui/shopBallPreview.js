@@ -1,7 +1,7 @@
 import { makeButton, UI_FONT } from "./Ui.js";
-import { t } from "../i18n/I18n.js";
+import { t, I18n } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local195";
+import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local196";
 
 export function closeBallPreview(scene) {
   if (scene._ballPrevTw && scene._ballPrevTw.stop) scene._ballPrevTw.stop();
@@ -43,13 +43,20 @@ export function openBallPreview(scene, fxId) {
   const title = scene.add.text(cx, cy - 238, t("item." + row.id + ".name"), {
     fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
   }).setOrigin(0.5);
-  const hint = scene.add.text(cx, cy - 208, t("shop.fxPrevHint"), {
-    fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#7a4a30"
+  const lock = scene.add.text(cx, cy - 208, row.char ? t("shop.fxFor", { name: I18n.charName(row.char) }) : t("shop.fxForAll"), {
+    fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
+  }).setOrigin(0.5);
+  const hint = scene.add.text(cx, cy - 186, t("shop.fxPrevHint"), {
+    fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#7a4a30"
   }).setOrigin(0.5);
 
   const fxG = scene.add.graphics();
   const trail = scene.add.graphics();
   const ball = scene.add.image(cx - 180, cy + 40, tex).setDisplaySize(64, 64);
+  const note = scene.add.text(cx, cy - 20, t("shop.fxUltNote"), {
+    fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418",
+    align: "center", wordWrap: { width: 460 }
+  }).setOrigin(0.5).setVisible(false);
   const modeLab = scene.add.text(cx, cy + 122, "", {
     fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#0a6a88"
   }).setOrigin(0.5);
@@ -81,12 +88,19 @@ export function openBallPreview(scene, fxId) {
     pts.length = 0;
     trail.clear();
     fxG.clear();
+    if (mode === "ult") {
+      ball.setVisible(false);
+      note.setVisible(true);
+      return;
+    }
+    note.setVisible(false);
+    ball.setVisible(true);
     const s = size[mode] || 62;
     ball.setDisplaySize(s, s);
     ball.setPosition(x0, yFloor);
     ball.setAngle(0);
-    const dur = mode === "ult" ? 380 : mode === "smash" ? 520 : 880;
-    const peak = mode === "hit" ? 118 : mode === "smash" ? 52 : 28;
+    const dur = mode === "smash" ? 520 : 880;
+    const peak = mode === "hit" ? 118 : 52;
     const dummy = { u: 0 };
     scene._ballPrevTw = scene.tweens.add({
       targets: dummy,
@@ -98,7 +112,7 @@ export function openBallPreview(scene, fxId) {
         const x = x0 + (x1 - x0) * u;
         const y = yFloor - Math.sin(u * Math.PI) * peak;
         ball.setPosition(x, y);
-        ball.angle += mode === "ult" ? 22 : mode === "smash" ? 14 : 7;
+        ball.angle += mode === "smash" ? 14 : 7;
         drawTrail(x, y, mode);
         drawArmedBallFx(fxG, x, y, s / 2, row, scene.time.now, mode);
       },
@@ -129,7 +143,7 @@ export function openBallPreview(scene, fxId) {
   }, 0xff8a3a, D + 4);
 
   root.add([
-    dim, panel, court, title, hint, trail, fxG, ball, modeLab,
+    dim, panel, court, title, lock, hint, trail, fxG, ball, note, modeLab,
     hit.gfx, hit.text, hit.bg, smash.gfx, smash.text, smash.bg,
     ult.gfx, ult.text, ult.bg, close.gfx, close.text, close.bg
   ]);

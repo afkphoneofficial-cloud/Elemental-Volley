@@ -1,6 +1,6 @@
 import { CHAMP_ITEMS } from "./seasonCycle.js";
 import { SHOP_LOOKS, shopLookVis } from "./costumeShop.js";
-import { BALL_FX, BALL_FX_ITEMS } from "./ballFx.js";
+import { BALL_FX, BALL_FX_ITEMS } from "./ballFx.js?v=local196";
 
 export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS), BALL_FX.map((row) => row.id));
 

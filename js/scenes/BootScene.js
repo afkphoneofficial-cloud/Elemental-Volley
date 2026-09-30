@@ -1,4 +1,4 @@
-import { TextureFactory } from "../systems/TextureFactory.js";
+import { TextureFactory } from "../systems/TextureFactory.js?v=local196";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
@@ -7,7 +7,7 @@ import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
-import { BALL_FX } from "../data/ballFx.js?v=local195";
+import { BALL_FX } from "../data/ballFx.js?v=local196";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];

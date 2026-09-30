@@ -8,12 +8,12 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
-import { BALL_FX } from "../data/ballFx.js?v=local195";
+import { BALL_FX } from "../data/ballFx.js?v=local196";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
-import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local195";
+import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local196";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
 const CARD_W = 196;
@@ -135,6 +135,12 @@ export class ShopScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#6a4030",
       align: "center", wordWrap: { width: w - 18 }
     }).setOrigin(0.5).setDepth(8);
+    if (spec.sub) {
+      this.add.text(x, y - h / 2 + 40, spec.sub, {
+        fontFamily: UI_FONT, fontSize: "11px", fontStyle: "700", color: "#c45a16",
+        align: "center", wordWrap: { width: w - 16 }
+      }).setOrigin(0.5).setDepth(8);
+    }
 
     const ix = x;
     const iy = y + 10;
@@ -351,6 +357,7 @@ export class ShopScene extends Phaser.Scene {
       const have = SaveSystem.itemCount(row.id);
       this.paintCard(cells[i].x, cells[i].y, {
         title: t("item." + row.id + ".name"),
+        sub: row.char ? t("shop.fxFor", { name: I18n.charName(row.char) }) : t("shop.fxForAll"),
         icon: this.textures.exists(row.tex) ? row.tex : "ball",
         hint: "",
         stroke: row.ring,
