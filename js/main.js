@@ -5,7 +5,7 @@ import { I18n } from "./i18n/I18n.js?v=local231";
 import { mountLobbyStage } from "./web/LobbyStage.js";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
-import { BootScene } from "./scenes/BootScene.js?v=local230";
+import { BootScene } from "./scenes/BootScene.js?v=local231";
 import { AuthScene } from "./scenes/AuthScene.js";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
 import { HubScene } from "./scenes/HubScene.js?v=local230";
