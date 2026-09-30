@@ -8,6 +8,12 @@ export const SHOP_TABS = [
   { id: "trade", color: 0xc8ff3a }
 ];
 
+export const EFFECT_SUBS = [
+  { id: "ball", color: 0xff6a22 },
+  { id: "orb", color: 0x7d5cff },
+  { id: "sfx", color: 0xff8ab8 }
+];
+
 /** Soft match coin. Exhibition never drops it. */
 export function matchCoins(mode, win, youScore, foeScore) {
   if (mode === "exhibit") return 0;

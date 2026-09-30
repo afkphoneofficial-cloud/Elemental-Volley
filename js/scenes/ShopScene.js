@@ -7,7 +7,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
-import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
+import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS, EFFECT_SUBS } from "../data/shopCatalog.js?v=local203";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
 import { ULT_ORBS } from "../data/ultOrb.js?v=local198";
 import { paintWalletBar } from "../ui/walletBar.js";
@@ -31,6 +31,7 @@ export class ShopScene extends Phaser.Scene {
     this.tab = (data && data.tab) || "fighters";
     this.costumeTier = (data && data.costumeTier) || "mist";
     this.costumePage = Math.max(0, (data && data.costumePage) | 0);
+    this.effectSub = ["ball", "orb", "sfx"].indexOf(data && data.effectSub) >= 0 ? data.effectSub : "ball";
     this.note = (data && data.note) || "";
   }
 
@@ -56,7 +57,7 @@ export class ShopScene extends Phaser.Scene {
       id: row.id,
       label: t("shop.tab." + row.id),
       color: row.color,
-      go: () => this.scene.start("shop", { tab: row.id, costumeTier: this.costumeTier, costumePage: 0 })
+      go: () => this.scene.start("shop", { tab: row.id, costumeTier: this.costumeTier, costumePage: 0, effectSub: this.effectSub })
     })), this.tab);
 
     if (this.tab === "fighters") this.paintFighters();
@@ -81,6 +82,7 @@ export class ShopScene extends Phaser.Scene {
       tab: this.tab,
       costumeTier: this.costumeTier,
       costumePage: this.costumePage,
+      effectSub: this.effectSub,
       note: note || ""
     });
   }
@@ -212,7 +214,7 @@ export class ShopScene extends Phaser.Scene {
       const on = tier.id === this.costumeTier;
       makeButton(this, 92, 168 + i * 52, 148, 44, costumeTierLabel(tier, I18n.lang), () => {
         AudioSystem.ui();
-        this.scene.start("shop", { tab: "cosmetics", costumeTier: tier.id, costumePage: 0 });
+        this.scene.start("shop", { tab: "cosmetics", costumeTier: tier.id, costumePage: 0, effectSub: this.effectSub });
       }, on ? (tier.color || 0xffb14a) : 0xc8bdd8);
     });
     const tier = COSTUME_TIERS.find((row) => row.id === this.costumeTier) || COSTUME_TIERS[0];
@@ -300,7 +302,8 @@ export class ShopScene extends Phaser.Scene {
         this.scene.start("shop", {
           tab: "cosmetics",
           costumeTier: this.costumeTier,
-          costumePage: (this.costumePage + pages - 1) % pages
+          costumePage: (this.costumePage + pages - 1) % pages,
+          effectSub: this.effectSub
         });
       }, 0x4aa6e8);
       this.add.text(px, py, t("shop.page", { n: this.costumePage + 1, m: pages }), {
@@ -311,7 +314,8 @@ export class ShopScene extends Phaser.Scene {
         this.scene.start("shop", {
           tab: "cosmetics",
           costumeTier: this.costumeTier,
-          costumePage: (this.costumePage + 1) % pages
+          costumePage: (this.costumePage + 1) % pages,
+          effectSub: this.effectSub
         });
       }, 0x4aa6e8);
     }
@@ -354,8 +358,24 @@ export class ShopScene extends Phaser.Scene {
   }
 
   paintEffects() {
-    const goods = BALL_FX.map((row) => ({ ...row, fxKind: "ball" })).concat(ULT_ORBS.map((row) => ({ ...row, fxKind: "orb" })));
-    const cells = this.slots(goods.length);
+    EFFECT_SUBS.forEach((sub, i) => {
+      const on = sub.id === this.effectSub;
+      makeButton(this, 92, 168 + i * 52, 148, 44, t("shop.fxTab." + sub.id), () => {
+        AudioSystem.ui();
+        this.scene.start("shop", { tab: "effect", costumeTier: this.costumeTier, costumePage: 0, effectSub: sub.id });
+      }, on ? sub.color : 0xc8bdd8);
+    });
+    if (this.effectSub === "sfx") {
+      this.add.text(this.scale.width / 2 + 70, 360, t("shop.sfxSoon"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#8a5a38", align: "center", wordWrap: { width: 640 }
+      }).setOrigin(0.5);
+      return;
+    }
+    const goods = (this.effectSub === "orb" ? ULT_ORBS : BALL_FX).map((row) => ({
+      ...row,
+      fxKind: this.effectSub === "orb" ? "orb" : "ball"
+    }));
+    const cells = this.slots(goods.length, 176, 4);
     goods.forEach((row, i) => {
       const have = SaveSystem.itemCount(row.id);
       const icon = this.textures.exists(row.tex) ? row.tex : "ball";
