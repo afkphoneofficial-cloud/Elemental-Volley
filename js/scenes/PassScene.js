@@ -26,6 +26,10 @@ export class PassScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start(this.from === "topup" ? "topup" : this.from === "hub" ? "hub" : "shop", { from: this.from === "topup" ? "shop" : this.from, tab: "cosmetics" });
     }, 0x7d5cff);
+    makeButton(this, 248, 40, 132, 40, t("shop.title"), () => {
+      AudioSystem.ui();
+      this.scene.start("shop", { from: "pass", tab: "cosmetics" });
+    }, 0xff8ab8);
     this.add.text(W / 2, 40, t("pass.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(8);

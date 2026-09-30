@@ -23,6 +23,7 @@ export class ShopScene extends Phaser.Scene {
   constructor() { super("shop"); }
 
   init(data) {
+    this.from = (data && data.from) || "hub";
     this.tab = (data && data.tab) || "fighters";
     this.costumeTier = (data && data.costumeTier) || "mist";
     this.costumePage = Math.max(0, (data && data.costumePage) | 0);
@@ -35,7 +36,10 @@ export class ShopScene extends Phaser.Scene {
     drawGrid(this);
     const W = this.scale.width;
     paintWalletBar(this, "shop");
-    makeButton(this, 96, 40, 132, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
+    makeButton(this, 96, 40, 132, 40, t("nav.back"), () => {
+      AudioSystem.ui();
+      this.scene.start(this.from === "pass" ? "pass" : "hub", this.from === "pass" ? { from: "shop" } : undefined);
+    }, 0x7d5cff);
     makeButton(this, 268, 40, 156, 40, t("pass.short"), () => {
       AudioSystem.ui();
       this.scene.start("pass", { from: "shop" });

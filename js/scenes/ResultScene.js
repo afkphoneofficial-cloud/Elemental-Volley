@@ -12,6 +12,9 @@ import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local172";
+import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js";
+import { texHeroSelect } from "../data/seasonLooks.js";
 
 const SEASON_FX = {
   summer: { burst: [0xffe08a, 0xff6a22, 0xffffff], glow: 0xff8a3a },
@@ -73,9 +76,20 @@ export class ResultScene extends Phaser.Scene {
       this.etherVial = got.vial | 0;
     }
     this.xpLevel = 0;
+    this.xpBefore = null;
+    this.xpShow = { lv: 1, into: 0, need: 1 };
+    this.xpLeft = 0;
+    this.xpPlayed = false;
+    this.xpSlide = null;
+    this.xpUpHold = 0;
+    const youId = this.payload.youId || Session.playerId;
+    this.youId = youId;
     if (pay.xp) {
-      const sheet = SaveSystem.addGrowthXp(this.payload.youId || Session.playerId, pay.xp);
+      const pre = SaveSystem.growthOf(youId);
+      this.xpBefore = { level: pre.level | 0, into: pre.into | 0, need: pre.need | 0 };
+      const sheet = SaveSystem.addGrowthXp(youId, pay.xp);
       this.xpLevel = sheet.level;
+      this.xpShow = { lv: this.xpBefore.level, into: this.xpBefore.into, need: this.xpBefore.need };
     }
     this.hasLoot = hasMatchLoot(pay) || this.bonus > 0 || this.etherBar > 0 || this.etherVial > 0 || this.coinGain > 0;
     if (this.botMode && this.win && Session.trainStage) SaveSystem.clearTrainStage(Session.trainStage);
@@ -211,34 +225,148 @@ export class ResultScene extends Phaser.Scene {
     card.lineStyle(4, pal.glow, 0.9);
     card.strokeRoundedRect(W / 2 - 360, 88, 720, 430, 28);
     this.keep(g, card);
-    this.lootTitle = this.keep(g, this.add.text(W / 2, 140, "", {
+    this.lootTitle = this.keep(g, this.add.text(W / 2, 128, "", {
       fontFamily: UI_FONT, fontSize: "36px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5).setDepth(8));
-    this.lootSub = this.keep(g, this.add.text(W / 2, 186, "", {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#7a4a30", align: "center", wordWrap: { width: 620 }
+    this.lootSub = this.keep(g, this.add.text(W / 2, 168, "", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#7a4a30", align: "center", wordWrap: { width: 620 }
     }).setOrigin(0.5).setDepth(8));
-    this.lootStone = this.keep(g, this.add.text(W / 2, 268, "", {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#7d5cff"
-    }).setOrigin(0.5).setDepth(8));
-    this.lootShard = this.keep(g, this.add.text(W / 2, 318, "", {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#c45a16"
-    }).setOrigin(0.5).setDepth(8));
-    this.lootCoin = this.keep(g, this.add.text(W / 2, 348, "", {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#c45a16"
-    }).setOrigin(0.5).setDepth(8));
-    this.lootXp = this.keep(g, this.add.text(W / 2, 368, "", {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a48"
-    }).setOrigin(0.5).setDepth(8));
-    this.lootEther = this.keep(g, this.add.text(W / 2, 418, "", {
-      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a7a98"
-    }).setOrigin(0.5).setDepth(8));
-    this.lootBag = this.keep(g, this.add.text(W / 2, 460, "", {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#8a5a38", align: "center", wordWrap: { width: 600 }
-    }).setOrigin(0.5).setDepth(8));
+    const gift = {
+      stones: (this.pvpGain | 0) + (this.bonus | 0),
+      shards: this.shardGain | 0,
+      coins: this.coinGain | 0,
+      vial: (this.etherVial | 0) + (this.etherBar | 0)
+    };
+    paintGiftIcons(this, W / 2, 232, gift, { size: 52, gap: 84, depth: 8, fontSize: "16px" }).forEach((o) => this.keep(g, o));
+
+    this.xpRowY = 392;
+    const heroKey = texHeroSelect(this, this.youId || "ignis");
+    this.xpHero = this.keep(g, this.add.image(W / 2 - 248, this.xpRowY, heroKey).setDisplaySize(72, 72).setDepth(8));
+    this.xpLvTx = this.keep(g, this.add.text(W / 2 - 188, this.xpRowY - 22, "", {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0, 0.5).setDepth(8));
+    this.xpPlusTx = this.keep(g, this.add.text(W / 2 + 248, this.xpRowY - 22, "", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#146b32"
+    }).setOrigin(1, 0.5).setDepth(8));
+    this.xpBarX = W / 2 - 188;
+    this.xpBarY = this.xpRowY + 14;
+    this.xpBarW = 436;
+    this.xpBarH = 22;
+    this.xpTrack = this.keep(g, this.add.graphics().setDepth(8));
+    this.xpFill = this.keep(g, this.add.rectangle(this.xpBarX + 3, this.xpBarY, 4, this.xpBarH - 6, 0x3ad6ff).setOrigin(0, 0.5).setDepth(9));
+    this.xpBarTx = this.keep(g, this.add.text(W / 2 + 30, this.xpBarY, "", {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(10));
+    this.xpUpTx = this.keep(g, this.add.text(W / 2, 318, "", {
+      fontFamily: UI_FONT, fontSize: "34px", fontStyle: "900", color: "#ff6a22",
+      stroke: "#fff6ea", strokeThickness: 8
+    }).setOrigin(0.5).setDepth(12).setAlpha(0));
+    const showXp = (this.xpGain | 0) > 0;
+    [this.xpHero, this.xpLvTx, this.xpPlusTx, this.xpTrack, this.xpFill, this.xpBarTx, this.xpUpTx].forEach((o) => {
+      if (o && o.setVisible) o.setVisible(showXp);
+    });
+    this.paintXpBar();
     this.lootBackBtn = makeButton(this, W / 2, 548, 300, 50, t("result.lootToVerdict"), () => this.showPage("verdict"), 0xff6a22);
     this.keep(g, this.lootBackBtn.gfx);
     this.keep(g, this.lootBackBtn.text);
     this.keep(g, this.lootBackBtn.bg);
+  }
+
+  paintXpBar() {
+    if (!this.xpTrack || !this.xpFill) return;
+    const need = Math.max(0, this.xpShow.need | 0);
+    const into = Math.max(0, this.xpShow.into);
+    const ratio = need > 0 ? Math.max(0, Math.min(1, into / need)) : 1;
+    this.xpTrack.clear();
+    this.xpTrack.fillStyle(0x3a2418, 0.18);
+    this.xpTrack.fillRoundedRect(this.xpBarX, this.xpBarY - this.xpBarH / 2, this.xpBarW, this.xpBarH, 11);
+    this.xpTrack.lineStyle(2, 0xc45a16, 0.7);
+    this.xpTrack.strokeRoundedRect(this.xpBarX, this.xpBarY - this.xpBarH / 2, this.xpBarW, this.xpBarH, 11);
+    this.xpFill.setDisplaySize(Math.max(4, (this.xpBarW - 6) * ratio), this.xpBarH - 6);
+    if (this.xpLvTx) this.xpLvTx.setText(t("result.xpLv", { n: this.xpShow.lv }));
+    if (this.xpPlusTx) this.xpPlusTx.setText(this.xpGain ? "+" + this.xpGain + " XP" : "");
+    if (this.xpBarTx) {
+      this.xpBarTx.setText(need > 0 ? Math.floor(into) + " / " + need : t("result.xpLv", { n: this.xpShow.lv }));
+    }
+  }
+
+  playXpGain() {
+    if (this.xpPlayed || !(this.xpGain | 0) || !this.xpBefore) return;
+    this.xpPlayed = true;
+    this.xpLeft = this.xpGain | 0;
+    this.xpShow = { lv: this.xpBefore.level, into: this.xpBefore.into, need: this.xpBefore.need };
+    this.xpSlide = null;
+    this.xpUpHold = 0;
+    this.paintXpBar();
+    this.stepXpGain();
+  }
+
+  stepXpGain() {
+    const need = this.xpShow.need | 0;
+    if (this.xpLeft <= 0 || need <= 0 || this.xpShow.lv >= GROWTH_MAX_LV) {
+      this.xpSlide = null;
+      this.paintXpBar();
+      return;
+    }
+    const room = need - this.xpShow.into;
+    const take = Math.min(this.xpLeft, room);
+    if (take <= 0) {
+      this.xpSlide = null;
+      this.paintXpBar();
+      return;
+    }
+    this.xpSlide = {
+      from: this.xpShow.into,
+      to: this.xpShow.into + take,
+      t: 0,
+      dur: Math.max(420, Math.min(1100, take * 12)),
+      take,
+      fillUp: take >= room && this.xpShow.lv < GROWTH_MAX_LV
+    };
+  }
+
+  flashLevelUp() {
+    AudioSystem.ui();
+    if (!this.xpUpTx) return;
+    this.xpUpTx.setText(t("result.levelUp"));
+    this.xpUpTx.setAlpha(1).setScale(1.08);
+  }
+
+  update(_time, delta) {
+    const dt = (typeof delta === "number" && delta > 0) ? delta : 16.67;
+    if (this.xpUpHold > 0) {
+      this.xpUpHold -= dt;
+      if (this.xpUpTx) this.xpUpTx.setScale(1 + Math.sin(this.xpUpHold / 80) * 0.04);
+      if (this.xpUpHold <= 0) {
+        if (this.xpUpTx) this.xpUpTx.setAlpha(0);
+        this.xpShow.lv += 1;
+        this.xpShow.into = 0;
+        this.xpShow.need = xpToNext(this.xpShow.lv);
+        this.paintXpBar();
+        this.stepXpGain();
+      }
+      return;
+    }
+    if (!this.xpSlide) return;
+    this.xpSlide.t += dt;
+    const k = Math.min(1, this.xpSlide.t / this.xpSlide.dur);
+    const ease = 0.5 - 0.5 * Math.cos(Math.PI * k);
+    this.xpShow.into = this.xpSlide.from + (this.xpSlide.to - this.xpSlide.from) * ease;
+    this.paintXpBar();
+    if (k < 1) return;
+    const slide = this.xpSlide;
+    this.xpSlide = null;
+    this.xpLeft -= slide.take;
+    if (slide.fillUp) {
+      this.xpShow.into = slide.to;
+      this.paintXpBar();
+      this.flashLevelUp();
+      this.xpUpHold = 720;
+    } else {
+      this.xpShow.into = slide.to;
+      this.paintXpBar();
+      this.stepXpGain();
+    }
   }
 
   buildStats(W, H, pal) {
@@ -295,13 +423,7 @@ export class ResultScene extends Phaser.Scene {
     this.bits.verdict.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "verdict"); });
     this.bits.stats.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "stats"); });
     this.bits.loot.forEach((o) => { if (o && o.setVisible) o.setVisible(page === "loot"); });
-    if (page === "loot") {
-      if (this.lootStone) this.lootStone.setVisible(this.pvpGain > 0);
-      if (this.lootShard) this.lootShard.setVisible(this.shardGain > 0);
-      if (this.lootCoin) this.lootCoin.setVisible(this.coinGain > 0);
-      if (this.lootXp) this.lootXp.setVisible(this.xpGain > 0);
-      if (this.lootEther) this.lootEther.setVisible(this.etherBar > 0 || this.etherVial > 0);
-    }
+    if (page === "loot") this.playXpGain();
     const showNav = true;
     if (this.againBtn && this.againBtn.bg) {
       [this.againBtn, this.shopBtn, this.hubBtn].forEach((b) => {
@@ -338,11 +460,6 @@ export class ResultScene extends Phaser.Scene {
       const bits = [];
       if (this.exhibitMode) bits.push(t("result.lootFun"));
       else if (!this.hasLoot) bits.push(t("result.lootNone"));
-      else bits.push(t("result.total", {
-        pvp: SaveSystem.data.currencies.pvp,
-        tokens: SaveSystem.data.currencies.tokens,
-        coins: SaveSystem.data.currencies.coins | 0
-      }));
       if (this.pvpMode && this.rankAfter) {
         const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
         if (this.rankCal) bits.push(t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - SaveSystem.data.rank.games) }));
@@ -356,43 +473,7 @@ export class ResultScene extends Phaser.Scene {
     }
     if (this.lootTitle) this.lootTitle.setText(t("result.lootTitle"));
     if (this.lootSub) this.lootSub.setText(t("result.lootSub"));
-    if (this.lootStone) {
-      this.lootStone.setText(this.pvpGain ? t("result.lootStone", { n: this.pvpGain }) + (this.bonus ? t("result.firstWin", { n: this.bonus }) : "") : "");
-    }
-    if (this.lootShard) this.lootShard.setText(this.shardGain ? t("result.lootShard", { n: this.shardGain }) : "");
-    if (this.lootCoin) this.lootCoin.setText(this.coinGain ? t("result.lootCoin", { n: this.coinGain }) : "");
-    if (this.lootXp) {
-      this.lootXp.setText(this.xpGain ? t("result.lootXp", {
-        name: charName(youId),
-        n: this.xpGain,
-        lv: this.xpLevel
-      }) : "");
-    }
-    if (this.lootEther) {
-      const bits = [];
-      if (this.etherBar) bits.push(t("result.lootEther", { n: this.etherBar }));
-      if (this.etherVial) bits.push(t("result.lootVial", { n: this.etherVial }));
-      this.lootEther.setText(bits.join("   ·   "));
-    }
-    if (this.page === "loot") {
-      let y = 236;
-      const put = (node, on) => {
-        if (!node) return;
-        node.setVisible(on);
-        if (on) { node.setY(y); y += 38; }
-      };
-      put(this.lootStone, this.pvpGain > 0);
-      put(this.lootShard, this.shardGain > 0);
-      put(this.lootCoin, this.coinGain > 0);
-      put(this.lootXp, this.xpGain > 0);
-      put(this.lootEther, this.etherBar > 0 || this.etherVial > 0);
-      if (this.lootBag) this.lootBag.setY(Math.min(y + 8, 478));
-    }
-    if (this.lootBag) this.lootBag.setText(t("result.total", {
-      pvp: SaveSystem.data.currencies.pvp,
-      tokens: SaveSystem.data.currencies.tokens,
-      coins: SaveSystem.data.currencies.coins | 0
-    }));
+    this.paintXpBar();
     if (this.lootBtn && this.lootBtn.text) this.lootBtn.text.setText(t("result.lootOpen"));
     if (this.lootBackBtn && this.lootBackBtn.text) this.lootBackBtn.text.setText(t("result.lootToVerdict"));
     if (this.statsBtn && this.statsBtn.text) this.statsBtn.text.setText(t("result.statsBtn"));
