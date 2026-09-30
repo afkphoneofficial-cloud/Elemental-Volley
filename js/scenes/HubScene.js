@@ -16,7 +16,7 @@ import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
 import { mountHubMenu } from "../ui/hubMenu.js?v=local197";
-import { mountHubNav } from "../ui/hubNavStrip.js?v=local179";
+import { mountHubNav } from "../ui/hubNavStrip.js?v=local213";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local179";
