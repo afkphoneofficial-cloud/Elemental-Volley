@@ -3,6 +3,7 @@
 export const SHOP_TABS = [
   { id: "fighters", color: 0xff6a22 },
   { id: "cosmetics", color: 0xff8ab8 },
+  { id: "effect", color: 0x7d5cff },
   { id: "items", color: 0x3ad6ff },
   { id: "trade", color: 0xc8ff3a }
 ];

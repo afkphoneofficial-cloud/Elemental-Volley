@@ -214,11 +214,16 @@ export class BagScene extends Phaser.Scene {
     }
 
     const wear = isWear(chosen.id);
-    const useX = wear ? panelX - 78 : panelX;
-    const useW = wear ? 140 : 220;
-    const use = makeButton(this, useX, panelY + 210, useW, 44, t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
+    const ballFx = ITEMS[chosen.id] && ITEMS[chosen.id].effect === "ballFx";
+    const armed = ballFx && SaveSystem.armedBallFx() === chosen.id;
+    const useX = wear || armed ? panelX - 78 : panelX;
+    const useW = wear || armed ? 140 : 220;
+    const use = makeButton(this, useX, panelY + 210, useW, 44, armed ? t("shop.using") : t("bag.use"), () => this.tryUse(chosen.id), 0x7d5cff);
     this.bits.push(use.gfx, use.text, use.bg);
     if (wear) {
+      const off = makeButton(this, panelX + 78, panelY + 210, 140, 44, t("shop.buyCancel"), () => this.tryOff(chosen.id), 0xff6a22);
+      this.bits.push(off.gfx, off.text, off.bg);
+    } else if (armed) {
       const off = makeButton(this, panelX + 78, panelY + 210, 140, 44, t("shop.buyCancel"), () => this.tryOff(chosen.id), 0xff6a22);
       this.bits.push(off.gfx, off.text, off.bg);
     }
@@ -254,6 +259,7 @@ export class BagScene extends Phaser.Scene {
     if (res.ok && (res.effect === "champSkin" || res.effect === "shopLook")) {
       note = t("bag.usedChamp", { name: charName(res.charId) });
     }
+    if (res.ok && res.effect === "ballFx") note = t("bag.usedBall");
     this.paintGrid();
     this.flash(note, res.ok);
   }
@@ -261,6 +267,12 @@ export class BagScene extends Phaser.Scene {
   tryOff(id) {
     AudioSystem.ui();
     const row = ITEMS[id];
+    if (row && row.effect === "ballFx") {
+      SaveSystem.clearBallFx();
+      this.paintGrid();
+      this.flash(t("bag.usedBallOff"), true);
+      return;
+    }
     const charId = row && row.charId;
     const res = SaveSystem.unequipOutfit(charId);
     const note = res.ok

@@ -23,7 +23,8 @@ import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLay
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local181";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local190";
+import { openRewardPop } from "../ui/rewardPop.js?v=local190";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -492,13 +493,10 @@ export class HubScene extends Phaser.Scene {
 
   openGiftNote(gift) {
     if (!gift) return;
-    const W = this.scale.width;
-    const wide = !!(gift.lookId || gift.lookDup);
-    const tall = gift.lookId ? 110 : 84;
-    const bg = this.add.rectangle(W / 2, 400, wide ? 280 : 240, tall, 0xfff6ea, 0.98).setDepth(160);
-    bg.setStrokeStyle(2, 0xffb14a, 0.9);
-    const bits = [bg, ...paintGiftIcons(this, W / 2, gift.lookId ? 386 : 392, gift, { size: 36, gap: 56, depth: 161, fontSize: "13px" })];
-    this.time.delayedCall(1800, () => bits.forEach((o) => { if (o && o.destroy) o.destroy(); }));
+    const sub = gift.lookDup
+      ? t("daily.lookDup")
+      : (gift.lookId ? t("daily.lookGot") : t("daily.gotDay"));
+    openRewardPop(this, { gift, sub });
   }
 
   openInfoNote(text) {

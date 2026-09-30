@@ -7,7 +7,8 @@ const TOPUP_PACKS: Record<string, { thb: number; powder: number }> = {
   p149: { thb: 149, powder: 350 },
   p299: { thb: 299, powder: 750 },
   p499: { thb: 499, powder: 1350 },
-  p999: { thb: 999, powder: 3000 }
+  p999: { thb: 999, powder: 3000 },
+  pass: { thb: 59, powder: 0 }
 };
 
 function corsHeaders(req: Request) {

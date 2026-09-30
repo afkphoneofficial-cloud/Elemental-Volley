@@ -1,7 +1,8 @@
 import { CHAMP_ITEMS } from "./seasonCycle.js";
 import { SHOP_LOOKS, shopLookVis } from "./costumeShop.js";
+import { BALL_FX, BALL_FX_ITEMS } from "./ballFx.js";
 
-export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS));
+export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS), BALL_FX.map((row) => row.id));
 
 export const LOOK_ITEMS = {};
 SHOP_LOOKS.forEach((row) => {
@@ -47,7 +48,8 @@ export const ITEMS = {
     effect: "rename"
   },
   ...CHAMP_ITEMS,
-  ...LOOK_ITEMS
+  ...LOOK_ITEMS,
+  ...BALL_FX_ITEMS
 };
 
 ITEM_IDS.push(...Object.keys(LOOK_ITEMS));

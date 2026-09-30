@@ -4,12 +4,12 @@ import { shopLookVis } from "../data/costumeShop.js";
 export function giftParts(gift) {
   const bits = [];
   const g = gift || {};
+  if (g.lookId) bits.push({ key: shopLookVis(g.lookId, "select"), n: 1 });
   if (g.coins) bits.push({ key: "item-coin", n: g.coins | 0 });
   if (g.shards) bits.push({ key: "item-shard", n: g.shards | 0 });
   if (g.stones) bits.push({ key: "item-stone", n: g.stones | 0 });
   if (g.vial) bits.push({ key: "item-ether", n: g.vial | 0 });
   if (g.powder) bits.push({ key: "item-powder", n: g.powder | 0 });
-  if (g.lookId) bits.push({ key: shopLookVis(g.lookId, "select"), n: 1 });
   return bits;
 }
 

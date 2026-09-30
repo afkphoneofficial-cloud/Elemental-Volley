@@ -100,3 +100,26 @@ export function passDailyGift(date = new Date()) {
   if (vialDayOn(date)) gift.vial = PASS.vialN;
   return gift;
 }
+
+export function daysInMonthId(id) {
+  const { y, m } = monthParts(id || monthId());
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+export function elapsedDayInMonth(id, date = new Date()) {
+  const mid = id || monthId(date);
+  if (monthId(date) !== mid) return daysInMonthId(mid);
+  return bangkokWall(date).d;
+}
+
+export function passDailyGiftForDay(d) {
+  const gift = { powder: PASS.dailyPowder, stones: PASS.dailyStone };
+  if (PASS.vialDays.indexOf(d | 0) >= 0) gift.vial = PASS.vialN;
+  return gift;
+}
+
+export function passDayKey(id, d) {
+  return String(id || monthId()) + "-" + pad(d | 0);
+}
+
+export const PASS_SKU = "pass";

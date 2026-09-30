@@ -6,7 +6,7 @@ import { t } from "../i18n/I18n.js";
 import { TOPUP_PACKS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { PASS } from "../data/monthPass.js";
-import { TopupPay } from "../systems/TopupPay.js?v=local186";
+import { TopupPay } from "../systems/TopupPay.js?v=local190";
 
 export class TopupScene extends Phaser.Scene {
   constructor() { super("topup"); }

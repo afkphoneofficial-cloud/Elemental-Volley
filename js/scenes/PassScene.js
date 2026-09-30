@@ -5,8 +5,10 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local171";
-import { PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel, passInstantGift } from "../data/monthPass.js?v=local171";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local190";
+import { PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel, passInstantGift } from "../data/monthPass.js?v=local190";
+import { TopupPay } from "../systems/TopupPay.js?v=local190";
+import { openRewardPop } from "../ui/rewardPop.js?v=local190";
 
 export class PassScene extends Phaser.Scene {
   constructor() { super("pass"); }
@@ -14,6 +16,7 @@ export class PassScene extends Phaser.Scene {
   init(data) {
     this.from = (data && data.from) || "shop";
     this.note = (data && data.note) || "";
+    this.got = data && data.got;
     this.lock = false;
   }
 
@@ -106,17 +109,12 @@ export class PassScene extends Phaser.Scene {
           if (this.lock) return;
           AudioSystem.ui();
           const res = SaveSystem.claimPassDay();
-          this.scene.start("pass", {
-            from: this.from,
-            note: res.ok
-              ? (res.vial ? t("pass.claimVial") : t("pass.claimOk"))
-              : t("pass.claimed")
-          });
+          this.scene.start("pass", { from: this.from, got: res.ok ? res : null, note: res.ok ? "" : t("pass.claimed") });
         }, 0x3ad6ff);
       }
     }
 
-    this.add.text(W / 2, 668, this.note || t("pass.mock"), {
+    this.add.text(W / 2, 668, this.note || t("pass.payHint"), {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#4a2810",
       align: "center", wordWrap: { width: 1100 }
     }).setOrigin(0.5).setDepth(8);
@@ -124,6 +122,20 @@ export class PassScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#4a2810",
       align: "center", wordWrap: { width: 1100 }
     }).setOrigin(0.5).setDepth(8);
+
+    if (this.got) {
+      const g = this.got;
+      const gift = SaveSystem.passGiftOf ? SaveSystem.passGiftOf(g) : {
+        powder: g.powder | 0,
+        stones: g.stones | 0,
+        vial: g.vial | 0,
+        lookId: g.lookId && !g.lookAsPowder ? g.lookId : ""
+      };
+      let sub = t("pass.gotNow");
+      if (g.dup) sub = t("pass.dup", { n: g.powder | 0 });
+      else if ((g.catchupDays | 0) > 0) sub = t("pass.catchup", { n: g.catchupDays | 0 });
+      this.time.delayedCall(80, () => openRewardPop(this, { gift, sub }));
+    }
   }
 
   update() {
@@ -146,7 +158,7 @@ export class PassScene extends Phaser.Scene {
     const title = this.add.text(W / 2, 250, t("pass.buy", { n: PASS.thb }), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(52);
-    const body = this.add.text(W / 2, 310, t("pass.mock"), {
+    const body = this.add.text(W / 2, 310, t("pass.payBody"), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#4a2810",
       align: "center", wordWrap: { width: 480 }
     }).setOrigin(0.5).setDepth(52);
@@ -155,19 +167,36 @@ export class PassScene extends Phaser.Scene {
       bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
       this.lock = false;
     };
-    const ok = makeButton(this, W / 2 - 110, 430, 200, 44, t("pass.mockOk"), () => {
+    const ok = makeButton(this, W / 2 - 110, 430, 200, 44, t("pass.payOk"), () => {
       AudioSystem.ui();
-      const res = SaveSystem.buyMonthPass();
       wipe();
-      this.scene.start("pass", {
-        from: this.from,
-        note: res.dup ? t("pass.dup", { n: res.powder }) : t("pass.grant", { id: monthId() })
-      });
+      this.payPass();
     }, 0xff6a22, 54);
     const no = makeButton(this, W / 2 + 110, 430, 200, 44, t("pass.mockNo"), () => {
       AudioSystem.ui();
       wipe();
     }, 0xe8dcc8, 54);
     bits.push(ok.bg, ok.text, ok.gfx, no.bg, no.text, no.gfx);
+  }
+
+  async payPass() {
+    if (this.payLock) return;
+    this.payLock = true;
+    this.lock = true;
+    const W = this.scale.width;
+    const note = this.add.text(W / 2, 640, t("topup.waitPay"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#0a6a88"
+    }).setOrigin(0.5).setDepth(40);
+    try {
+      const paid = await TopupPay.buyPass();
+      this.scene.start("pass", { from: this.from, got: paid && paid.grant });
+    } catch (err) {
+      const msg = (err && err.message) || t("topup.fail");
+      note.setColor("#c45a16");
+      note.setText(msg);
+      this.time.delayedCall(2800, () => { if (note && note.destroy) note.destroy(); });
+      this.lock = false;
+    }
+    this.payLock = false;
   }
 }

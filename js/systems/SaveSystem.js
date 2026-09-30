@@ -18,7 +18,7 @@ import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
-import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js?v=local171";
+import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 
 const BASE_KEY = "elemental-volley-save-v1";
@@ -63,7 +63,8 @@ const empty = () => ({
   shopLooks: emptyShopLooks(),
   topupLog: [],
   passMonths: {},
-  dailyLogin: emptyDaily()
+  dailyLogin: emptyDaily(),
+  ballFx: ""
 });
 
 function stackN(raw) {
@@ -197,6 +198,7 @@ function finish(data) {
   if (data.dailyLogin.lastClaim && !data.dailyLogin.claimed[data.dailyLogin.lastClaim]) {
     data.dailyLogin.claimed[data.dailyLogin.lastClaim] = 1;
   }
+  if (typeof data.ballFx !== "string") data.ballFx = "";
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -370,6 +372,41 @@ export const SaveSystem = {
     return true;
   },
 
+  catchupPassDays(id) {
+    const mid = id || monthId();
+    const row = this.passRow(mid);
+    const last = elapsedDayInMonth(mid);
+    const tot = { powder: 0, stones: 0, vial: 0, days: 0 };
+    for (let d = 1; d <= last; d++) {
+      const key = passDayKey(mid, d);
+      if (row.claimed[key]) continue;
+      const gift = passDailyGiftForDay(d);
+      row.claimed[key] = gift;
+      tot.powder += gift.powder | 0;
+      tot.stones += gift.stones | 0;
+      tot.vial += gift.vial | 0;
+      tot.days += 1;
+      if (gift.powder) this.data.currencies.premium = (this.data.currencies.premium | 0) + (gift.powder | 0);
+      if (gift.stones) this.data.currencies.pvp = (this.data.currencies.pvp | 0) + (gift.stones | 0);
+      if (gift.vial) {
+        if (!this.data.inventory) this.data.inventory = {};
+        this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + (gift.vial | 0);
+      }
+    }
+    return tot;
+  },
+
+  passGiftOf(res) {
+    const r = res || {};
+    const gift = {
+      powder: r.powder | 0,
+      stones: r.stones | 0,
+      vial: r.vial | 0
+    };
+    if (r.lookId && !r.lookAsPowder) gift.lookId = r.lookId;
+    return gift;
+  },
+
   buyMonthPass() {
     const id = monthId();
     const row = this.passRow(id);
@@ -378,13 +415,15 @@ export const SaveSystem = {
       row.bought = (row.bought | 0) + 1;
       this.recordTopup({ kind: "pass-dup", packId: "pass-" + id, powder: PASS.dupBuyPowder, thb: PASS.thb }, false);
       this.persist();
-      return { ok: true, dup: true, powder: PASS.dupBuyPowder, lookId: row.lookId, lookAsPowder: true };
+      return { ok: true, dup: true, powder: PASS.dupBuyPowder, stones: 0, vial: 0, lookId: row.lookId, lookAsPowder: true, catchupDays: 0 };
     }
     const look = passLookOf(id);
     const lookId = look ? look.id : "";
     let lookAsPowder = false;
+    let lookPowder = 0;
     if (lookId && this.ownedShopLook(lookId)) {
-      this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.ownedLookPowder;
+      lookPowder = PASS.ownedLookPowder;
+      this.data.currencies.premium = (this.data.currencies.premium | 0) + lookPowder;
       lookAsPowder = true;
     } else if (lookId) {
       this.giveShopLook(lookId);
@@ -395,14 +434,25 @@ export const SaveSystem = {
     row.at = Date.now();
     row.lookId = lookId;
     row.lookAsPowder = lookAsPowder;
+    const back = this.catchupPassDays(id);
+    const powder = PASS.instantPowder + lookPowder + (back.powder | 0);
     this.recordTopup({
       kind: "pass",
       packId: "pass-" + id,
-      powder: PASS.instantPowder + (lookAsPowder ? PASS.ownedLookPowder : 0),
+      powder,
       thb: PASS.thb
     }, false);
     this.persist();
-    return { ok: true, dup: false, powder: PASS.instantPowder, lookId, lookAsPowder };
+    return {
+      ok: true,
+      dup: false,
+      powder,
+      stones: back.stones | 0,
+      vial: back.vial | 0,
+      lookId,
+      lookAsPowder,
+      catchupDays: back.days | 0
+    };
   },
 
   claimPassDay() {
@@ -640,6 +690,12 @@ export const SaveSystem = {
       if (!res.ok) return res;
       return { ok: true, effect: "shopLook", charId: row.charId, on: true };
     }
+    if (row.effect === "ballFx") {
+      if (this.itemCount(id) <= 0) return { ok: false, reason: "none" };
+      this.data.ballFx = row.ballFx || id;
+      this.persist();
+      return { ok: true, effect: "ballFx", on: true };
+    }
     return { ok: false, reason: "no" };
   },
 
@@ -692,6 +748,16 @@ export const SaveSystem = {
     const res = purchaseCosmetic(this.data, id);
     if (res.ok) this.persist();
     return res;
+  },
+
+  armedBallFx() {
+    return this.data.ballFx || "";
+  },
+
+  clearBallFx() {
+    this.data.ballFx = "";
+    this.persist();
+    return { ok: true };
   },
 
   ownedShopLook(id) {

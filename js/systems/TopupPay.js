@@ -26,7 +26,7 @@ async function invoke(name, body) {
 }
 
 export const TopupPay = {
-  async buyPack(packId) {
+  async paySku(packId) {
     const started = await invoke("create-topup", { packId });
     const StripeCtor = await loadStripeJs();
     const stripe = StripeCtor(started.publishableKey);
@@ -42,6 +42,11 @@ export const TopupPay = {
     if (!intent || intent.status !== "succeeded") throw new Error(t("topup.canceled"));
     await invoke("claim-topup", { orderId: started.orderId });
     if (AuthSystem.pullSave) await AuthSystem.pullSave();
+    return started;
+  },
+
+  async buyPack(packId) {
+    const started = await this.paySku(packId);
     SaveSystem.recordTopup({
       kind: "pack",
       packId,
@@ -50,5 +55,10 @@ export const TopupPay = {
       thb: started.thb | 0
     });
     return started;
+  },
+
+  async buyPass() {
+    const started = await this.paySku("pass");
+    return { started, grant: SaveSystem.buyMonthPass() };
   }
 };

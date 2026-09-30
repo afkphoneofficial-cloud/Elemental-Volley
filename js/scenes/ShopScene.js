@@ -7,7 +7,8 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
-import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local171";
+import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
+import { BALL_FX } from "../data/ballFx.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
@@ -57,6 +58,7 @@ export class ShopScene extends Phaser.Scene {
 
     if (this.tab === "fighters") this.paintFighters();
     else if (this.tab === "cosmetics") this.paintCosmetics();
+    else if (this.tab === "effect") this.paintEffects();
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();
 
@@ -334,6 +336,47 @@ export class ShopScene extends Phaser.Scene {
             stack: false,
             onConfirm: () => SaveSystem.unlockWithTokens(id, ECONOMY.unlockTokenCost),
             after: () => this.bought(I18n.charName(id), 1)
+          });
+        }
+      });
+    });
+  }
+
+  paintEffects() {
+    const cells = this.slots(BALL_FX.length);
+    BALL_FX.forEach((row, i) => {
+      const armed = SaveSystem.armedBallFx() === row.id;
+      const have = SaveSystem.itemCount(row.id);
+      this.paintCard(cells[i].x, cells[i].y, {
+        title: t("item." + row.id + ".name"),
+        icon: "",
+        paintIcon: (ix, iy) => this.pic("ball", ix, iy, 86).setTint(row.color),
+        hint: "",
+        stroke: row.ring,
+        accent: row.color,
+        stamp: armed ? t("shop.using") : null,
+        priceIcon: "item-powder",
+        price: row.price,
+        onClick: () => {
+          if (armed) return;
+          if (have) {
+            SaveSystem.useItem(row.id);
+            AudioSystem.ui();
+            this.refresh();
+            return;
+          }
+          openShopBuy(this, {
+            title: t("item." + row.id + ".name"),
+            icon: "ball",
+            kind: t("shop.kindFx"),
+            owned: have,
+            body: t("item." + row.id + ".body"),
+            priceIcon: "item-powder",
+            unitPrice: row.price,
+            have: this.bag().premium | 0,
+            maxQty: 99,
+            onConfirm: (qty) => SaveSystem.buyWithPremium(row.id, row.price, qty),
+            after: (qty) => this.bought(t("item." + row.id + ".name"), qty)
           });
         }
       });

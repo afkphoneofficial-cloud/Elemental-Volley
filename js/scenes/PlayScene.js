@@ -32,6 +32,7 @@ import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
+import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js";
 import {
   GAUGE_MAX,
   MATCH_FX,
@@ -146,6 +147,7 @@ export class PlayScene extends Phaser.Scene {
     this.ball = this.add.image(200, 80, "ball").setDisplaySize(BALL, BALL).setDepth(7);
     this.trail1 = this.add.image(200, 80, "ball").setDisplaySize(BALL * 0.72, BALL * 0.72).setAlpha(0.35).setDepth(5);
     this.trail2 = this.add.image(200, 80, "ball").setDisplaySize(BALL * 0.5, BALL * 0.5).setAlpha(0.18).setDepth(5);
+    this.ballFxG = this.add.graphics().setDepth(8);
     this.wetRing = this.add.circle(200, 80, BALL * 0.95, 0x3ad6ff, 0.18).setStrokeStyle(4, 0x9af6ff, 0.95).setDepth(6).setVisible(false);
     this.drops = [0, 1, 2, 3, 4].map((i) => this.add.circle(0, 0, 6 + (i % 2) * 3, 0x7ae8ff, 0.85).setDepth(8).setVisible(false));
     this.bolt = this.add.graphics().setDepth(8);
@@ -993,7 +995,29 @@ export class PlayScene extends Phaser.Scene {
       this.trail1.setVisible(!MATCH_FX.hideBall && Math.abs(a.ball.xVelocity) > 6);
       this.trail2.setVisible(!MATCH_FX.hideBall && Math.abs(a.ball.xVelocity) > 10);
     }
+    this.paintArmedBall(a.ball);
     this.syncGauges();
+  }
+
+  youServing() {
+    return this.p2Serves ? this.youSide === 2 : this.youSide === 1;
+  }
+
+  paintArmedBall(ball) {
+    if (!this.ballFxG) return;
+    const row = this.youServing() ? ballFxOf(SaveSystem.armedBallFx()) : null;
+    if (!row || MATCH_FX.hideBall) {
+      this.ballFxG.clear();
+      if (this.trail1) this.trail1.clearTint();
+      if (this.trail2) this.trail2.clearTint();
+      return;
+    }
+    const x = toScreenX(ball.x);
+    const y = toScreenY(ball.y);
+    this.ball.setTint(row.color);
+    this.trail1.setTint(row.color);
+    this.trail2.setTint(row.color);
+    drawArmedBallFx(this.ballFxG, x, y, BALL / 2, row, this.time.now);
   }
 
   pulseMatchPoint() {
