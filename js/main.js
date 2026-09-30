@@ -29,7 +29,7 @@ import { DressScene } from "./scenes/DressScene.js";
 import { GrowthScene } from "./scenes/GrowthScene.js?v=local207";
 import { BagScene } from "./scenes/BagScene.js?v=local202";
 import { NewsScene } from "./scenes/NewsScene.js";
-import { FriendsScene } from "./scenes/FriendsScene.js?v=local209";
+import { FriendsScene } from "./scenes/FriendsScene.js?v=local211";
 import { ChatSystem } from "./systems/ChatSystem.js";
 import { TouchControls } from "./ui/TouchControls.js";
 import { AuthSystem } from "./systems/AuthSystem.js";

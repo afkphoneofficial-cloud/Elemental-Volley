@@ -190,24 +190,31 @@ export class FriendsScene extends Phaser.Scene {
       const viewH = 300;
       this.listMax = Math.max(0, list.length * rowH - viewH);
       this.listScroll = Phaser.Math.Clamp(this.listScroll || 0, 0, this.listMax);
-      this.listBox = this.add.container(0, -this.listScroll);
-      const maskG = this.make.graphics();
-      maskG.fillStyle(0xffffff, 1);
-      maskG.fillRect(leftX - 286, listTop - 42, 572, viewH);
-      this.listBox.setMask(maskG.createGeometryMask());
-      maskG.setVisible(false);
+      this.listBox = this.add.container(0, -this.listScroll).setDepth(10);
+      const mw = 572;
+      const mh = viewH;
+      const mx = leftX - 286;
+      const my = listTop - 42;
+      const rt = this.add.renderTexture(mx + mw / 2, my + mh / 2, mw, mh).setVisible(false);
+      rt.fill(0xffffff, 1);
+      this.listBox.setMask(rt.createBitmapMask());
       slice.forEach((pal, i) => {
         const y = listTop + i * rowH;
-        const panel = roundPanel(this, leftX, y, 560, 82, 0xffb14a, 0xfff6ea);
+        const panel = this.add.graphics().setDepth(10);
+        panel.fillStyle(0xffffff, 1);
+        panel.fillRoundedRect(leftX - 280, y - 38, 560, 76, 16);
+        panel.lineStyle(2.5, 0xff8ab8, 1);
+        panel.strokeRoundedRect(leftX - 280, y - 38, 560, 76, 16);
         const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
-        const img = this.add.image(leftX - 232, y, av).setDisplaySize(52, 52).setDepth(8);
-        const ring = this.add.circle(leftX - 232, y, 30, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
+        const img = this.add.image(leftX - 232, y, av).setDisplaySize(52, 52).setDepth(11);
+        const ring = this.add.circle(leftX - 232, y, 30, 0x000000, 0).setStrokeStyle(3, 0xff6a9a, 1).setDepth(12);
         const nm = this.add.text(leftX - 188, y - 12, pal.name || "—", {
-          fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#3a2418"
-        }).setOrigin(0, 0.5).setDepth(8);
+          fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#1a1008",
+          stroke: "#fff6ea", strokeThickness: 3
+        }).setOrigin(0, 0.5).setDepth(11);
         const sub = this.add.text(leftX - 188, y + 12, t("friends.rowSub"), {
-          fontFamily: UI_FONT, fontSize: "11px", color: "#8a5a38"
-        }).setOrigin(0, 0.5).setDepth(8);
+          fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#5a3828"
+        }).setOrigin(0, 0.5).setDepth(11);
         const ex = makeButton(this, leftX + 52, y, 108, 34, t("friends.exhibit"), () => {
           if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
