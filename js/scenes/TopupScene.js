@@ -68,7 +68,7 @@ export class TopupScene extends Phaser.Scene {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const x = W / 2 - 310 + col * 310;
-      const y = 348 + row * 150;
+      const y = 398 + row * 148;
       const g = this.add.graphics();
       g.fillStyle(0xfff6ea, 0.96);
       g.fillRoundedRect(x - 140, y - 70, 280, 140, 20);

@@ -12,7 +12,7 @@ import { HubScene } from "./scenes/HubScene.js?v=local184";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js";
 import { ShopScene } from "./scenes/ShopScene.js?v=local172";
-import { TopupScene } from "./scenes/TopupScene.js";
+import { TopupScene } from "./scenes/TopupScene.js?v=local185";
 import { PassScene } from "./scenes/PassScene.js?v=local172";
 import { PlayScene } from "./scenes/PlayScene.js";
 import { LuckScene } from "./scenes/LuckScene.js";
