@@ -363,18 +363,18 @@ export class HubScene extends Phaser.Scene {
     const days = SaveSystem.dailyClaimCount();
     const look = dailyLookOf(mid);
     const vis = look ? shopLookVis(look.id, "select") : "";
-    bits.push(this.add.circle(1124, 78, 40, 0xffe8c8, 1).setStrokeStyle(3, 0x7ad0ff, 0.9).setDepth(Z + 2));
+    bits.push(this.add.circle(1124, 96, 40, 0xffe8c8, 1).setStrokeStyle(3, 0x7ad0ff, 0.9).setDepth(Z + 2));
     if (vis && this.textures.exists(vis)) {
-      bits.push(this.add.image(1124, 76, vis).setDisplaySize(72, 72).setDepth(Z + 3));
+      bits.push(this.add.image(1124, 94, vis).setDisplaySize(72, 72).setDepth(Z + 3));
     }
-    bits.push(this.add.text(1124, 126, look ? shopLookLabel(look, I18n.lang) : "", {
+    bits.push(this.add.text(1124, 144, look ? shopLookLabel(look, I18n.lang) : "", {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#1a1008",
       align: "center", wordWrap: { width: 140 }
     }).setOrigin(0.5).setDepth(Z + 2));
     const lookLine = SaveSystem.dailyLookGranted()
       ? t("daily.lookGot")
       : t("daily.lookNeed", { have: days, need: DAILY_LOOK_NEED });
-    bits.push(this.add.text(1124, 146, lookLine, {
+    bits.push(this.add.text(1124, 164, lookLine, {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#0a6a88",
       align: "center", wordWrap: { width: 150 }
     }).setOrigin(0.5).setDepth(Z + 2));
