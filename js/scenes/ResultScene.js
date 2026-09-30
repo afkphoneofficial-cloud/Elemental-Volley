@@ -13,7 +13,7 @@ import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local172";
-import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js";
+import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
 import { texHeroSelect } from "../data/seasonLooks.js";
 
 const SEASON_FX = {

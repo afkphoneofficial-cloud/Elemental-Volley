@@ -1,19 +1,43 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import {
-  STAT_IDS, STAT_CAP, GROWTH_MAX_LV,
+  STAT_IDS, STAT_CAP, GIFT_LOCK, GROWTH_MAX_LV,
   copyGrowth, growthEqual, trySpend, tryUnspend, sheetFromRow
-} from "../data/growth.js";
+} from "../data/growth.js?v=local206";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { texHeroSelect } from "../data/seasonLooks.js";
 
-function paintStatBar(g, x, y, w, h, total, gift) {
+function bindHold(scene, zone, fn) {
+  let wait = null;
+  let tick = null;
+  const stop = () => {
+    if (wait) wait.remove(false);
+    if (tick) tick.remove(false);
+    wait = null;
+    tick = null;
+  };
+  zone.on("pointerdown", () => {
+    stop();
+    wait = scene.time.delayedCall(280, () => {
+      tick = scene.time.addEvent({
+        delay: 60,
+        loop: true,
+        callback: () => fn(true)
+      });
+    });
+  });
+  zone.on("pointerup", stop);
+  zone.on("pointerout", stop);
+  scene.events.once("shutdown", stop);
+}
+
+function paintStatBar(g, x, y, w, h, total, lock) {
   const r = 9;
   const totW = w * Math.max(0, Math.min(1, (total | 0) / STAT_CAP));
-  const giftW = w * Math.max(0, Math.min(1, (gift | 0) / STAT_CAP));
+  const lockW = w * Math.max(0, Math.min(1, (lock | 0) / STAT_CAP));
   g.clear();
   g.fillStyle(0x3a2418, 0.14);
   g.fillRoundedRect(x, y - h / 2, w, h, r);
@@ -21,9 +45,9 @@ function paintStatBar(g, x, y, w, h, total, gift) {
     g.fillStyle(0xffb14a, 1);
     g.fillRoundedRect(x, y - h / 2, totW, h, r);
   }
-  if (giftW > 0.5) {
+  if (lockW > 0.5) {
     g.fillStyle(0xff8ab8, 1);
-    g.fillRoundedRect(x, y - h / 2, giftW, h, r);
+    g.fillRoundedRect(x, y - h / 2, lockW, h, r);
   }
   g.lineStyle(2, 0xff8ab8, 0.55);
   g.strokeRoundedRect(x, y - h / 2, w, h, r);
@@ -102,6 +126,8 @@ export class GrowthScene extends Phaser.Scene {
       const plus = makeButton(this, 980, y, 56, 36, "+", () => {
         this.nudge(stat, 1);
       }, 0x7d5cff);
+      bindHold(this, minus.bg, () => this.nudge(stat, -1, true));
+      bindHold(this, plus.bg, () => this.nudge(stat, 1, true));
       return { stat, name, barG, barLabel, plus, minus };
     });
 
@@ -151,7 +177,7 @@ export class GrowthScene extends Phaser.Scene {
     AudioSystem.ui();
   }
 
-  nudge(stat, dir) {
+  nudge(stat, dir, quiet) {
     if (!SaveSystem.isUnlocked(this.charId)) return;
     const saved = this.savedRow();
     const cur = this.viewRow();
@@ -160,7 +186,7 @@ export class GrowthScene extends Phaser.Scene {
       : tryUnspend(this.charId, cur, saved, stat);
     if (!next) return;
     this.draft = growthEqual(next, saved) ? null : next;
-    AudioSystem.ui();
+    if (!quiet) AudioSystem.ui();
     this.refresh();
   }
 
@@ -200,10 +226,11 @@ export class GrowthScene extends Phaser.Scene {
     this.ptsText.setText(t("growth.leftPts", { n: sheet.unspent }));
     this.draftText.setText(dirty ? t("growth.draftNote") : "");
     this.rows.forEach((item) => {
-      const gift = item.stat === sheet.giftStat ? sheet.gift : 0;
+      const lock = item.stat === sheet.giftStat ? GIFT_LOCK : 0;
+      const spent = sheet.spent[item.stat] | 0;
       const total = sheet.totals[item.stat] | 0;
       item.name.setText(t("growth.stat." + item.stat));
-      paintStatBar(item.barG, 530, item.barLabel.y, 340, 20, total, gift);
+      paintStatBar(item.barG, 530, item.barLabel.y, 340, 20, spent + lock, lock);
       item.barLabel.setText(t("growth.statFill", { n: total, max: STAT_CAP }));
     });
     this.respecStartBtn.text.setFontSize(15).setText(t("growth.respecStart"));

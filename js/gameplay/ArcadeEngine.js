@@ -1,6 +1,6 @@
-import { GROUND_HALF_WIDTH } from "./physics.js";
+import { GROUND_HALF_WIDTH } from "./physics.js?v=local206";
 
-export { PikaPhysics, PikaUserInput, GROUND_HALF_WIDTH } from "./physics.js";
+export { PikaPhysics, PikaUserInput, GROUND_HALF_WIDTH } from "./physics.js?v=local206";
 
 export const WORLD = {
   width: 432,

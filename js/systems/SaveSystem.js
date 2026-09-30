@@ -10,7 +10,7 @@ import {
   ownsCosmetic as hasCosmetic
 } from "../data/cosmetics.js";
 import { emptySkins, clampSkin, skinNeedLv } from "../data/skins.js";
-import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
+import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js?v=local206";
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
 import { ITEMS } from "../data/items.js?v=local198";
 import { ROSTER_IDS } from "../data/roster.js";

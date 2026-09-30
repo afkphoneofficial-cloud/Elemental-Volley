@@ -7,7 +7,7 @@ import { Session } from "../systems/Session.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { TRAIN_STAGES, trainMapXY } from "../data/trainStages.js";
-import { botSheet } from "../data/growth.js";
+import { botSheet } from "../data/growth.js?v=local206";
 import { pinHit } from "../ui/mapPins.js";
 
 export class ExploreScene extends Phaser.Scene {

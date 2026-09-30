@@ -29,7 +29,7 @@
 'use strict';
 import { rand } from "./rand.js";
 import { MATCH_FX, stickBall } from "./UltSystem.js";
-import { GROWTH_FX } from "../data/growth.js";
+import { GROWTH_FX } from "../data/growth.js?v=local206";
 
 function growthMul(table, side) {
   const v = Number(table && table[side]);

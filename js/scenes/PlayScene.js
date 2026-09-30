@@ -1,7 +1,7 @@
 import { GAME, PHYSICS } from "../config/gameConfig.js";
 import { COURTS } from "../data/courts.js";
 import { getCharacter, pickMatchRef } from "../data/roster.js";
-import { botSheet, statsLive, modsFromTotals, applyGrowthFx, resetGrowthFx } from "../data/growth.js";
+import { botSheet, statsLive, modsFromTotals, applyGrowthFx, resetGrowthFx } from "../data/growth.js?v=local206";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
@@ -16,7 +16,7 @@ import {
   OX,
   toScreenX,
   toScreenY
-} from "../gameplay/ArcadeEngine.js";
+} from "../gameplay/ArcadeEngine.js?v=local206";
 import { HitFx, ELEMENT_FX } from "../fx/HitFx.js?v=local198";
 import { syncJumpForm } from "../fx/JumpForm.js?v=local196";
 import { paintSkinAura } from "../fx/SkinAura.js";

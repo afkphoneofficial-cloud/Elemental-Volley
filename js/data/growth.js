@@ -5,6 +5,7 @@ export const GROWTH_MAX_LV = 50;
 export const GROWTH_SPECIAL_LV = 40;
 export const STAT_IDS = ["spike", "touch", "aim", "spring"];
 export const STAT_CAP = 50;
+export const GIFT_LOCK = 5;
 export const START_POINTS = 50;
 export const MAX_POINTS = 100;
 
@@ -69,10 +70,9 @@ export function pointPool(level) {
   return START_POINTS + (lv - 1) + (lv >= GROWTH_MAX_LV ? 1 : 0);
 }
 
-export function spendCapFor(charId, stat, level) {
+export function spendCapFor(charId, stat, _level) {
   const sig = ELEMENT_GIFT[ROSTER[charId] ? charId : "ignis"];
-  const gift = stat === sig ? giftPoints(level) : 0;
-  return STAT_CAP - gift;
+  return stat === sig ? STAT_CAP - GIFT_LOCK : STAT_CAP;
 }
 
 export function levelPool(level) {
@@ -233,7 +233,7 @@ export function sheetFromRow(charId, row) {
   const caps = {};
   STAT_IDS.forEach((s) => {
     const gft = s === sig ? gift : 0;
-    caps[s] = STAT_CAP - gft;
+    caps[s] = spendCapFor(id, s, prog.level);
     totals[s] = Math.min(STAT_CAP, spent[s] + gft);
   });
   return {
