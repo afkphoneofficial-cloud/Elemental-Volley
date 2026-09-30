@@ -7,6 +7,7 @@ import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
+import { BALL_FX } from "../data/ballFx.js?v=local191";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
@@ -58,6 +59,9 @@ export class BootScene extends Phaser.Scene {
       this.load.image(id, "assets/sprites/season/" + id + ".png");
     });
     this.load.image("ball-art", "assets/sprites/ball.png");
+    BALL_FX.forEach((row) => {
+      this.load.image(row.tex, row.src);
+    });
     this.load.image("map-etheria", "assets/maps/etheria-island.png");
     COURTS.forEach((s) => {
       this.load.image("court-" + s, "assets/sprites/court-" + s + ".png");
@@ -84,6 +88,7 @@ export class BootScene extends Phaser.Scene {
     I18n.load();
     try {
       TextureFactory.build(this);
+      TextureFactory.applyBall(this, "ball-art", "ball");
       RANK_TIERS.forEach((row) => {
         if (!this.textures.exists(badgeKey(row.id))) {
           TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);

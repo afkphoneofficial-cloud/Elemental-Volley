@@ -8,7 +8,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
-import { BALL_FX } from "../data/ballFx.js";
+import { BALL_FX } from "../data/ballFx.js?v=local191";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
@@ -349,8 +349,7 @@ export class ShopScene extends Phaser.Scene {
       const have = SaveSystem.itemCount(row.id);
       this.paintCard(cells[i].x, cells[i].y, {
         title: t("item." + row.id + ".name"),
-        icon: "",
-        paintIcon: (ix, iy) => this.pic("ball", ix, iy, 86).setTint(row.color),
+        icon: this.textures.exists(row.tex) ? row.tex : "ball",
         hint: "",
         stroke: row.ring,
         accent: row.color,
@@ -367,7 +366,7 @@ export class ShopScene extends Phaser.Scene {
           }
           openShopBuy(this, {
             title: t("item." + row.id + ".name"),
-            icon: "ball",
+            icon: this.textures.exists(row.tex) ? row.tex : "ball",
             kind: t("shop.kindFx"),
             owned: have,
             body: t("item." + row.id + ".body"),

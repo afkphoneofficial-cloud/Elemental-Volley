@@ -62,6 +62,7 @@ function iconKey(scene, id) {
   const key = itemIconKey(id);
   if (scene.textures.exists(key)) return key;
   const row = ITEMS[id];
+  if (row && row.effect === "ballFx" && scene.textures.exists("ball")) return "ball";
   if (row && row.charId && scene.textures.exists("vis_select_" + row.charId)) return "vis_select_" + row.charId;
   return "item-stone";
 }

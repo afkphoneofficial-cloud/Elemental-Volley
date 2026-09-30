@@ -242,7 +242,8 @@ export const TextureFactory = {
           const i = (y * w + x) * 4;
           const r = px[i], g = px[i + 1], b = px[i + 2], a = px[i + 3];
           const mag = r >= 170 && b >= 90 && g <= 145 && (r - g) >= 40;
-          if (mag || a < 8) {
+          const dark = r < 28 && g < 28 && b < 28;
+          if (mag || dark || a < 8) {
             px[i + 3] = 0;
           } else if (a > 16) {
             count += 1;

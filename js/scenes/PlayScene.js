@@ -1006,18 +1006,20 @@ export class PlayScene extends Phaser.Scene {
   paintArmedBall(ball) {
     if (!this.ballFxG) return;
     const row = this.youServing() ? ballFxOf(SaveSystem.armedBallFx()) : null;
+    const tex = row && this.textures.exists(row.tex) ? row.tex : "ball";
+    if (this.ball.texture.key !== tex) this.ball.setTexture(tex);
+    if (this.trail1.texture.key !== tex) this.trail1.setTexture(tex);
+    if (this.trail2.texture.key !== tex) this.trail2.setTexture(tex);
+    if (!ball.isPowerHit) {
+      this.ball.clearTint();
+      this.trail1.clearTint();
+      this.trail2.clearTint();
+    }
     if (!row || MATCH_FX.hideBall) {
       this.ballFxG.clear();
-      if (this.trail1) this.trail1.clearTint();
-      if (this.trail2) this.trail2.clearTint();
       return;
     }
-    const x = toScreenX(ball.x);
-    const y = toScreenY(ball.y);
-    this.ball.setTint(row.color);
-    this.trail1.setTint(row.color);
-    this.trail2.setTint(row.color);
-    drawArmedBallFx(this.ballFxG, x, y, BALL / 2, row, this.time.now);
+    drawArmedBallFx(this.ballFxG, toScreenX(ball.x), toScreenY(ball.y), BALL / 2, row, this.time.now);
   }
 
   pulseMatchPoint() {
