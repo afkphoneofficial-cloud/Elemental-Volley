@@ -13,7 +13,7 @@ export class TopupScene extends Phaser.Scene {
 
   init(data) {
     this.from = (data && data.from) || "shop";
-    this.payNote = (data && data.note) || "";
+    this.payGot = (data && data.got) | 0;
   }
 
   create() {
@@ -91,11 +91,40 @@ export class TopupScene extends Phaser.Scene {
       const zone = this.add.zone(x, y, 280, 140).setInteractive({ useHandCursor: true });
       zone.on("pointerdown", () => this.buyPack(pack));
     });
-    if (this.payNote) {
-      this.add.text(W / 2, 688, this.payNote, {
-        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#146b32"
-      }).setOrigin(0.5).setDepth(40);
-    }
+    if (this.payGot > 0) this.openPaidPop(this.payGot);
+  }
+
+  openPaidPop(n) {
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const Z = 80;
+    const bits = [];
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.55).setDepth(Z).setInteractive();
+    const panel = this.add.graphics().setDepth(Z + 1);
+    panel.fillStyle(0xfff6ea, 0.98);
+    panel.fillRoundedRect(W / 2 - 220, H / 2 - 170, 440, 340, 24);
+    panel.lineStyle(3, 0x3ad6ff, 0.9);
+    panel.strokeRoundedRect(W / 2 - 220, H / 2 - 170, 440, 340, 24);
+    bits.push(dim, panel);
+    bits.push(this.add.text(W / 2, H / 2 - 118, t("topup.gotTitle"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(Z + 2));
+    const ik = this.textures.exists("item-powder") ? "item-powder" : "item-shard";
+    bits.push(this.add.circle(W / 2, H / 2 - 18, 56, 0xe8f8ff, 1).setStrokeStyle(3, 0x3ad6ff, 0.7).setDepth(Z + 2));
+    bits.push(this.add.image(W / 2, H / 2 - 18, ik).setDisplaySize(92, 92).setDepth(Z + 3));
+    bits.push(this.add.text(W / 2, H / 2 + 72, t("topup.gotAmt", { n }), {
+      fontFamily: UI_FONT, fontSize: "32px", fontStyle: "900", color: "#0a6a88"
+    }).setOrigin(0.5).setDepth(Z + 2));
+    bits.push(this.add.text(W / 2, H / 2 + 118, t("topup.gotDone"), {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#146b32"
+    }).setOrigin(0.5).setDepth(Z + 2));
+    const wipe = () => bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
+    dim.on("pointerdown", () => { AudioSystem.ui(); wipe(); });
+    const ok = makeButton(this, W / 2, H / 2 + 168, 180, 42, t("career.close"), () => {
+      AudioSystem.ui();
+      wipe();
+    }, 0x3ad6ff, Z + 4);
+    bits.push(ok.bg, ok.text, ok.gfx);
   }
 
   async buyPack(pack) {
@@ -108,7 +137,7 @@ export class TopupScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(40);
     try {
       await TopupPay.buyPack(pack.id);
-      this.scene.start("topup", { from: this.from, note: t("topup.paid", { n: pack.powder }) });
+      this.scene.start("topup", { from: this.from, got: pack.powder | 0 });
     } catch (err) {
       const msg = (err && err.message) || t("topup.fail");
       note.setColor("#c45a16");

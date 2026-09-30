@@ -495,6 +495,9 @@ export const COPY = {
       pass: "พาสเดือนนี้",
       waitPay: "กำลังเปิด QR PromptPay…",
       paid: "เติมสำเร็จ +{n} ผง",
+      gotTitle: "คุณได้รับ",
+      gotAmt: "+{n} ผง",
+      gotDone: "เรียบร้อยแล้วค่ะ",
       fail: "เติมไม่สำเร็จ ลองใหม่",
       canceled: "ยกเลิกการสแกน",
       needLogin: "ต้องล็อกอินก่อนเติม"
@@ -1302,6 +1305,9 @@ export const COPY = {
       pass: "This month's pass",
       waitPay: "Opening PromptPay QR…",
       paid: "Paid +{n} powder",
+      gotTitle: "You received",
+      gotAmt: "+{n} powder",
+      gotDone: "All done",
       fail: "Top-up failed. Try again.",
       canceled: "Scan canceled",
       needLogin: "Sign in before topping up"
