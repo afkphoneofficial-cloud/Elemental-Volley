@@ -1,14 +1,14 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
-import { I18n } from "./i18n/I18n.js?v=local231";
+import { I18n } from "./i18n/I18n.js?v=local232";
 import { mountLobbyStage } from "./web/LobbyStage.js";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
-import { BootScene } from "./scenes/BootScene.js?v=local231";
+import { BootScene } from "./scenes/BootScene.js?v=local232";
 import { AuthScene } from "./scenes/AuthScene.js";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
-import { HubScene } from "./scenes/HubScene.js?v=local230";
+import { HubScene } from "./scenes/HubScene.js?v=local232";
 import { WelcomePop } from "./systems/WelcomePop.js?v=local230";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local206";
@@ -27,6 +27,7 @@ import { RankScene } from "./scenes/RankScene.js?v=local217";
 import { SeasonScene } from "./scenes/SeasonScene.js?v=local210";
 import { ModeScene } from "./scenes/ModeScene.js";
 import { DressScene } from "./scenes/DressScene.js";
+import { ChampLooksScene } from "./scenes/ChampLooksScene.js?v=local232";
 import { GrowthScene } from "./scenes/GrowthScene.js?v=local228";
 import { BagScene } from "./scenes/BagScene.js?v=local202";
 import { NewsScene } from "./scenes/NewsScene.js?v=local216";
@@ -64,7 +65,7 @@ window.game = new Phaser.Game({
     width: GAME.width,
     height: GAME.height
   },
-  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, TopupScene, PassScene, PlayScene, ResultScene, WikiScene, ExploreScene, SettingsScene, CareerScene, QueueScene, RankScene, SeasonScene, ModeScene, FriendsScene, DressScene, GrowthScene, BagScene, NewsScene]
+  scene: [BootScene, AuthScene, MenuScene, HubScene, StarterScene, SelectScene, LuckScene, ShopScene, TopupScene, PassScene, PlayScene, ResultScene, WikiScene, ExploreScene, SettingsScene, CareerScene, QueueScene, RankScene, SeasonScene, ModeScene, FriendsScene, DressScene, ChampLooksScene, GrowthScene, BagScene, NewsScene]
 });
 
 SaveSystem.load();

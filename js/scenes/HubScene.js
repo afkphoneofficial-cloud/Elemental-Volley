@@ -3,7 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n, t, charName } from "../i18n/I18n.js?v=local229";
+import { I18n, t, charName } from "../i18n/I18n.js?v=local232";
 import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
@@ -17,7 +17,7 @@ import { TicketPop } from "../systems/TicketPop.js?v=local229";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local217";
-import { mountHubMenu } from "../ui/hubMenu.js?v=local228";
+import { mountHubMenu } from "../ui/hubMenu.js?v=local232";
 import { mountHubNav } from "../ui/hubNavStrip.js?v=local228";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
@@ -188,8 +188,12 @@ export class HubScene extends Phaser.Scene {
   }
 
   mountHubBag() {
-    this.mountHubSideBtn(28 + 236 + 72, 300, "item-bag", "item-bag", "item-shard", t("hub.navBag"), 0xffb14a, () => {
+    const x = 28 + 236 + 72;
+    this.mountHubSideBtn(x, 300, "item-bag", "item-bag", "item-shard", t("hub.navBag"), 0xffb14a, () => {
       this.scene.start("bag");
+    });
+    this.mountHubSideBtn(x, 408, "vis_icon_champ", "icon-champ", "item-plate-champ", t("hub.navChampLook"), 0xffc44a, () => {
+      this.scene.start("champLooks");
     });
   }
 
@@ -208,7 +212,12 @@ export class HubScene extends Phaser.Scene {
     const ik = this.textures.exists(iconA) ? iconA : (this.textures.exists(iconB) ? iconB : iconC);
     this.add.image(x, y - 12, ik).setDisplaySize(46, 46).setDepth(29);
     this.add.text(x, y + 32, label, {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#3a2418"
+      fontFamily: UI_FONT,
+      fontSize: label.length > 8 ? "11px" : "13px",
+      fontStyle: "900",
+      color: "#3a2418",
+      align: "center",
+      wordWrap: { width: 80 }
     }).setOrigin(0.5).setDepth(29);
     const zone = this.add.zone(x, y, bw, bh).setInteractive({ useHandCursor: true }).setDepth(30);
     zone.on("pointerover", () => draw(true));

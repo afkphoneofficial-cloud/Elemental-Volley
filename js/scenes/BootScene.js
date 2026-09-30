@@ -1,7 +1,7 @@
 import { TextureFactory } from "../systems/TextureFactory.js?v=local224";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local231";
+import { I18n } from "../i18n/I18n.js?v=local232";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
@@ -48,6 +48,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("icon-mirror", "assets/sprites/items/icon-mirror.png");
     this.load.image("icon-mail", "assets/sprites/items/icon-mail.png");
     this.load.image("icon-shop", "assets/sprites/items/icon-shop.png");
+    this.load.image("icon-champ", "assets/sprites/items/icon-champ.png");
     this.load.image("icon-growth", "assets/sprites/items/icon-growth.png");
     this.load.image("icon-ticket", "assets/sprites/items/icon-ticket.jpg");
     this.load.image("icon-map", "assets/sprites/items/icon-map.png");
@@ -112,6 +113,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
       TextureFactory.applyChibi(this, "icon-mail", "vis_icon_mail");
       TextureFactory.applyChibi(this, "icon-shop", "vis_icon_shop");
+      TextureFactory.applyChibi(this, "icon-champ", "vis_icon_champ", true);
       TextureFactory.applyChibi(this, "icon-growth", "vis_icon_growth", true);
       TextureFactory.applyChibi(this, "icon-ticket", "vis_icon_ticket", true);
       TextureFactory.applyChibi(this, "icon-map", "vis_icon_map");

@@ -90,6 +90,7 @@ export const COPY = {
       welcomeClose: "ปิด",
       navWelcome: "ต้อนรับ",
       navTicket: "Ticket",
+      navChampLook: "คอสตูมแชมป์",
       online: "ออนไลน์ {n} คน",
       chipToken: "เศษธาตุ {n}",
       chipPvp: "หินประหลาด {n}",
@@ -141,6 +142,20 @@ export const COPY = {
       staffShots: "ภาพจากแอดมิน",
       reply: "ตอบ",
       replyPh: "พิมพ์ถึงแอดมิน"
+    },
+    champLooks: {
+      sub: "แตะชุดเพื่อดูทุกมุมในกระจก",
+      card: "{name}  ชุด {n}",
+      mirror: "เลื่อนดูทุกมุม  ·  หน้า ซ้าย ขวา ดิ่ง ฉลอง",
+      onlyChamp: "สำหรับแชมป์ในแต่ละซีซั่นเท่านั้น",
+      pose: {
+        select: "หน้าตรง",
+        left: "ยืนซ้าย",
+        right: "ยืนขวา",
+        dive: "ดิ่งซ้าย",
+        diveR: "ดิ่งขวา",
+        cheer: "ฉลองแต้ม"
+      }
     },
     maint: {
       title: "ปิดปรับปรุงรายสัปดาห์",
@@ -1002,6 +1017,7 @@ export const COPY = {
       welcomeClose: "Close",
       navWelcome: "Welcome",
       navTicket: "Ticket",
+      navChampLook: "Champ looks",
       online: "Online {n}",
       chipToken: "Shards {n}",
       chipPvp: "Odd Stones {n}",
@@ -1053,6 +1069,20 @@ export const COPY = {
       staffShots: "Staff screenshots",
       reply: "Reply",
       replyPh: "Write to staff"
+    },
+    champLooks: {
+      sub: "Tap a set to preview every angle in the mirror",
+      card: "{name}  set {n}",
+      mirror: "Swipe every angle  ·  front, sides, dives, cheer",
+      onlyChamp: "For each season's champions only",
+      pose: {
+        select: "Front",
+        left: "Stand left",
+        right: "Stand right",
+        dive: "Dive left",
+        diveR: "Dive right",
+        cheer: "Cheer"
+      }
     },
     maint: {
       title: "Weekly maintenance",

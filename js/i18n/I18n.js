@@ -1,4 +1,4 @@
-import { COPY, LORE, WIKI_CAST, SECRET_CAST, CHAR_COPY } from "./copy.js?v=local231";
+import { COPY, LORE, WIKI_CAST, SECRET_CAST, CHAR_COPY } from "./copy.js?v=local232";
 import { RULES } from "./rules.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { ROSTER } from "../data/roster.js";

@@ -100,6 +100,7 @@ export function paintHubMenu(scene) {
     { label: t("career.title"), icon: avatarKey(avId), go: () => scene.scene.start("career") },
     { label: t("hub.navGrowth"), icon: "vis_icon_growth", go: () => scene.scene.start("growth") },
     { label: t("hub.navBag"), icon: "item-bag", go: () => scene.scene.start("bag") },
+    { label: t("hub.navChampLook"), icon: "vis_icon_champ", go: () => scene.scene.start("champLooks") },
     { label: t("hub.navDress"), icon: "vis_icon_mirror", go: () => scene.scene.start("bag", { tab: "look" }) },
     { label: t("hub.navShop"), icon: "vis_icon_shop", go: () => scene.scene.start("shop") },
     { label: t("hub.navMap"), icon: "vis_icon_map", go: () => scene.scene.start("wiki", { from: "hub" }) },
