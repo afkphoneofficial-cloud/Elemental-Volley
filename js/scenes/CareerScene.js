@@ -229,7 +229,7 @@ export class CareerScene extends Phaser.Scene {
     }
     if (!log.length) {
       bits.push(this.add.text(LEFT_X, MASK_TOP + 90, t("career.empty"), {
-        fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: COL_W - 48 }
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: COL_W - 48 }
       }).setOrigin(0.5).setDepth(8));
       this.mountCol(LEFT_X, COL_W, bits, 140);
       return;
@@ -245,7 +245,7 @@ export class CareerScene extends Phaser.Scene {
         mode: row.mode === "pvp" ? t("career.pvp") : row.mode === "exhibit" ? t("career.exhibit") : row.mode === "special" ? t("career.special") : t("career.bot")
       });
       bits.push(this.add.text(LEFT_X, y, line, {
-        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: row.win ? "#2a7a38" : "#7a4a30",
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: row.win ? "#156b2a" : "#5a2018",
         wordWrap: { width: COL_W - 48 }, align: "center"
       }).setOrigin(0.5).setDepth(8));
     });
@@ -254,11 +254,11 @@ export class CareerScene extends Phaser.Scene {
 
   sumCell(bits, x, y, label, value) {
     bits.push(this.add.text(x, y - 14, label, {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#6a3a24"
-    }).setOrigin(0.5).setDepth(8));
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#4a2810"
+    }).setOrigin(0.5).setDepth(8).setResolution(2));
     bits.push(this.add.text(x, y + 12, value, {
-      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
-    }).setOrigin(0.5).setDepth(8));
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(8).setResolution(2));
   }
 
   mountRight() {
@@ -266,7 +266,7 @@ export class CareerScene extends Phaser.Scene {
     const rows = seasonRows(this.rightTab);
     if (!rows.length) {
       bits.push(this.add.text(RIGHT_X, MASK_TOP + 90, t("career.seasonEmpty"), {
-        fontFamily: UI_FONT, fontSize: "16px", color: "#8a5a38", align: "center", wordWrap: { width: COL_W - 48 }
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: COL_W - 48 }
       }).setOrigin(0.5).setDepth(8));
       this.mountCol(RIGHT_X, COL_W, bits, 140);
       return;
@@ -277,7 +277,7 @@ export class CareerScene extends Phaser.Scene {
         ? t("career.seasonRow", { week: weekLabel(row.week), games: row.games, place: row.place, wins: row.wins })
         : t("career.seasonRowNo", { week: weekLabel(row.week), games: row.games, wins: row.wins });
       bits.push(this.add.text(RIGHT_X, y, line, {
-        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#5a3828",
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#2a1810",
         wordWrap: { width: COL_W - 48 }, align: "center"
       }).setOrigin(0.5).setDepth(8));
     });
@@ -287,12 +287,9 @@ export class CareerScene extends Phaser.Scene {
   wipeCols() {
     (this.tabBits || []).forEach((o) => { if (o && o.active && o.destroy) o.destroy(); });
     this.tabBits = [];
-    (this.cols || []).forEach((col) => {
-      if (col.box && col.box.destroy) col.box.destroy(true);
-      if (col.maskG && col.maskG.destroy) col.maskG.destroy();
-    });
-    this.cols = [];
+    (this.listBits || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
     this.listBits = [];
+    this.cols = [];
   }
 
   keepList(obj) {
@@ -302,20 +299,16 @@ export class CareerScene extends Phaser.Scene {
   }
 
   mountCol(x, w, bits, contentH) {
-    bits.forEach((o) => this.keepList(o));
-    const box = this.add.container(0, 0);
-    bits.forEach((o) => box.add(o));
-    const maskG = this.make.graphics();
-    maskG.fillStyle(0xffffff, 1);
-    maskG.fillRect(x - w / 2 + 12, MASK_TOP, w - 24, MASK_H);
-    box.setMask(maskG.createGeometryMask());
-    maskG.setVisible(false);
-    this.keepList(box);
-    this.keepList(maskG);
+    bits.forEach((o) => {
+      if (o && typeof o.setResolution === "function") o.setResolution(2);
+      if (o) o._baseY = o.y;
+      this.keepList(o);
+    });
     this.cols.push({
-      x, w, top: MASK_TOP, viewH: MASK_H, box, maskG,
+      x, w, top: MASK_TOP, viewH: MASK_H, bits,
       scroll: 0, max: Math.max(0, contentH - MASK_H)
     });
+    this.applyCol(this.cols[this.cols.length - 1]);
   }
 
   colAt(x, y) {
@@ -325,10 +318,21 @@ export class CareerScene extends Phaser.Scene {
     )) || null;
   }
 
+  applyCol(col) {
+    if (!col) return;
+    const top = col.top;
+    const bot = col.top + col.viewH;
+    (col.bits || []).forEach((o) => {
+      if (!o || !o.setY) return;
+      o.y = (o._baseY || 0) - (col.scroll || 0);
+      if (o.setVisible) o.setVisible(o.y > top - 18 && o.y < bot + 18);
+    });
+  }
+
   nudgeCol(col, dy) {
     if (!col) return;
     col.scroll = Phaser.Math.Clamp((col.scroll || 0) + dy, 0, col.max || 0);
-    col.box.y = -col.scroll;
+    this.applyCol(col);
   }
 
   bindCols() {
@@ -348,7 +352,7 @@ export class CareerScene extends Phaser.Scene {
     this.input.on("pointermove", (p) => {
       if (!this._drag || !p.isDown || this.pickerOn || this.ledgerOn) return;
       this._drag.col.scroll = Phaser.Math.Clamp(this._drag.s + (this._drag.y - p.y), 0, this._drag.col.max || 0);
-      this._drag.col.box.y = -this._drag.col.scroll;
+      this.applyCol(this._drag.col);
     });
   }
 
@@ -364,13 +368,13 @@ export class CareerScene extends Phaser.Scene {
     const preview = log.slice(0, PAY_PREVIEW);
     if (!preview.length) {
       keep(this.add.text(RIGHT_X, HEAD_Y - 6, t("career.payEmpty"), {
-        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#8a5a38",
+        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#3a2418",
         align: "center", wordWrap: { width: COL_W - 48 }
       }).setOrigin(0.5).setDepth(8));
     } else {
       preview.forEach((row, i) => {
         keep(this.add.text(RIGHT_X, HEAD_Y - 24 + i * 22, payLine(row), {
-          fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828",
+          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#2a1810",
           wordWrap: { width: COL_W - 40 }, align: "center"
         }).setOrigin(0.5).setDepth(8));
       });
@@ -435,14 +439,14 @@ export class CareerScene extends Phaser.Scene {
       slice.forEach((row, i) => {
         const y = 162 + i * 44;
         keep(this.add.text(W / 2 - 310, y, payStamp(row.at), {
-          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#8a5a38"
+          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#4a2810"
         }).setOrigin(0, 0.5).setDepth(52));
         keep(this.add.text(W / 2 + 20, y, payKind(row), {
           fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#3a2418"
         }).setOrigin(0.5).setDepth(52));
         const extra = row.bonus ? "  " + t("career.payBonus", { n: row.bonus | 0 }) : "";
         keep(this.add.text(W / 2 + 310, y, "+" + ((row.powder | 0) + (row.bonus | 0)) + "  ·  ฿" + (row.thb | 0) + extra, {
-          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#1a7a48"
+          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#146b32"
         }).setOrigin(1, 0.5).setDepth(52));
       });
     }
