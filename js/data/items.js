@@ -1,5 +1,5 @@
 import { CHAMP_ITEMS } from "./seasonCycle.js";
-import { SHOP_LOOKS, shopLookVis } from "./costumeShop.js";
+import { SHOP_LOOKS, shopLookOf, shopLookVis } from "./costumeShop.js";
 import { BALL_FX, BALL_FX_ITEMS } from "./ballFx.js?v=local196";
 
 export const ITEM_IDS = ["stone", "shard", "ether_vial", "bodyfruit", "namestone"].concat(Object.keys(CHAMP_ITEMS), BALL_FX.map((row) => row.id));
@@ -54,8 +54,8 @@ export const ITEMS = {
 
 ITEM_IDS.push(...Object.keys(LOOK_ITEMS));
 
-export const BAG_COLS = 5;
-export const BAG_ROWS = 4;
+export const BAG_COLS = 4;
+export const BAG_ROWS = 3;
 export const BAG_SLOTS = BAG_COLS * BAG_ROWS;
 export const BAG_STACK = 999;
 
@@ -72,9 +72,36 @@ export const SHOP_GOODS = [
 export function bagTabOf(id) {
   const row = ITEMS[id];
   if (!row) return String(id).indexOf("champ-") === 0 ? "look" : "";
-  if (row.effect === "champSkin" || row.effect === "shopLook") return "look";
+  if (row.effect === "champSkin" || row.effect === "shopLook" || row.effect === "ballFx" || row.effect === "ultFx" || row.effect === "hitSfx") return "look";
   if (row.kind === "material") return "mat";
   return "use";
+}
+
+const KIND_RANK = { look: 0, ball: 1, ult: 2, sfx: 3 };
+
+export function wearKindOf(id) {
+  const row = ITEMS[id];
+  if (row && row.effect === "ballFx") return "ball";
+  if (row && row.effect === "ultFx") return "ult";
+  if (row && row.effect === "hitSfx") return "sfx";
+  if (row && (row.effect === "champSkin" || row.effect === "shopLook")) return "look";
+  if (String(id).indexOf("champ-") === 0) return "look";
+  if (shopLookOf(id)) return "look";
+  return "";
+}
+
+export function wearCharOf(id) {
+  const row = ITEMS[id];
+  if (row && row.charId) return row.charId;
+  if (row && row.char) return row.char;
+  const champ = String(id || "").match(/^champ-([a-z]+)-\d+$/);
+  if (champ) return champ[1];
+  const look = shopLookOf(id);
+  return look ? look.charId : "";
+}
+
+export function wearKindRank(kind) {
+  return KIND_RANK[kind] == null ? 9 : KIND_RANK[kind];
 }
 
 export function stackSlots(id, n) {

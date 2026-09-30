@@ -12,7 +12,7 @@ import {
 import { emptySkins, clampSkin, skinNeedLv } from "../data/skins.js";
 import { emptyGrowth, clampGrowth, sheetFromRow, normalizeRow, defaultSpent, STAT_IDS } from "../data/growth.js";
 import { isTrainOpen as trainNodeOpen, isTrainCleared as trainNodeCleared } from "../data/trainStages.js";
-import { ITEMS } from "../data/items.js?v=local196";
+import { ITEMS } from "../data/items.js?v=local197";
 import { ROSTER_IDS } from "../data/roster.js";
 import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
@@ -64,7 +64,8 @@ const empty = () => ({
   topupLog: [],
   passMonths: {},
   dailyLogin: emptyDaily(),
-  ballFx: ""
+  ballFx: "",
+  gear: {}
 });
 
 function stackN(raw) {
@@ -199,6 +200,24 @@ function finish(data) {
     data.dailyLogin.claimed[data.dailyLogin.lastClaim] = 1;
   }
   if (typeof data.ballFx !== "string") data.ballFx = "";
+  if (!data.gear || typeof data.gear !== "object" || Array.isArray(data.gear)) data.gear = {};
+  ROSTER_IDS.forEach((id) => {
+    const g = data.gear[id] && typeof data.gear[id] === "object" ? data.gear[id] : {};
+    data.gear[id] = {
+      ball: typeof g.ball === "string" ? g.ball : "",
+      ult: typeof g.ult === "string" ? g.ult : "",
+      sfx: typeof g.sfx === "string" ? g.sfx : ""
+    };
+  });
+  if (data.ballFx) {
+    const row = ITEMS[data.ballFx];
+    const only = row && row.char;
+    ROSTER_IDS.forEach((id) => {
+      if (data.gear[id].ball) return;
+      if (only && only !== id) return;
+      data.gear[id].ball = data.ballFx;
+    });
+  }
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -261,6 +280,17 @@ export const SaveSystem = {
       if (!(next.champEquipped[id] | 0) && (prev.champEquipped[id] | 0)) {
         next.champEquipped[id] = prev.champEquipped[id] | 0;
       }
+    });
+    if (!next.gear || typeof next.gear !== "object") next.gear = {};
+    ROSTER_IDS.forEach((id) => {
+      const a = prev.gear && prev.gear[id];
+      const b = next.gear[id] || { ball: "", ult: "", sfx: "" };
+      if (a) {
+        if (!b.ball && a.ball) b.ball = a.ball;
+        if (!b.ult && a.ult) b.ult = a.ult;
+        if (!b.sfx && a.sfx) b.sfx = a.sfx;
+      }
+      next.gear[id] = b;
     });
     restoreOutfitItems(next);
     this.data = next;
@@ -692,10 +722,13 @@ export const SaveSystem = {
     }
     if (row.effect === "ballFx") {
       if (this.itemCount(id) <= 0) return { ok: false, reason: "none" };
-      if (row.char && !this.isUnlocked(row.char)) return { ok: false, reason: "elem" };
+      const charId = ctx && ctx.charId;
+      if (!charId || !this.isUnlocked(charId)) return { ok: false, reason: "char" };
+      if (row.char && row.char !== charId) return { ok: false, reason: "elem" };
+      this.gearOf(charId).ball = row.ballFx || id;
       this.data.ballFx = row.ballFx || id;
       this.persist();
-      return { ok: true, effect: "ballFx", on: true };
+      return { ok: true, effect: "ballFx", on: true, charId };
     }
     return { ok: false, reason: "no" };
   },
@@ -751,12 +784,40 @@ export const SaveSystem = {
     return res;
   },
 
-  armedBallFx() {
+  gearOf(charId) {
+    if (!this.data.gear || typeof this.data.gear !== "object") this.data.gear = {};
+    if (!this.data.gear[charId] || typeof this.data.gear[charId] !== "object") {
+      this.data.gear[charId] = { ball: "", ult: "", sfx: "" };
+    }
+    const g = this.data.gear[charId];
+    if (typeof g.ball !== "string") g.ball = "";
+    if (typeof g.ult !== "string") g.ult = "";
+    if (typeof g.sfx !== "string") g.sfx = "";
+    return g;
+  },
+
+  outfitIdOf(charId) {
+    const set = (this.data.champEquipped && this.data.champEquipped[charId]) | 0;
+    if (set >= 1 && set <= 3) return "champ-" + charId + "-" + set;
+    return this.wornShopLook(charId) || "";
+  },
+
+  armedBallFx(charId) {
+    if (charId) return this.gearOf(charId).ball || "";
     return this.data.ballFx || "";
   },
 
-  clearBallFx() {
-    this.data.ballFx = "";
+  wearingBall(id) {
+    if (!id) return false;
+    if (this.data.ballFx === id) return true;
+    return ROSTER_IDS.some((charId) => this.gearOf(charId).ball === id);
+  },
+
+  clearBallFx(charId) {
+    if (charId) this.gearOf(charId).ball = "";
+    else ROSTER_IDS.forEach((id) => { this.gearOf(id).ball = ""; });
+    const still = ROSTER_IDS.map((id) => this.gearOf(id).ball).find(Boolean);
+    this.data.ballFx = still || "";
     this.persist();
     return { ok: true };
   },

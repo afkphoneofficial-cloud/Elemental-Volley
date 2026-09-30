@@ -353,7 +353,7 @@ export class ShopScene extends Phaser.Scene {
   paintEffects() {
     const cells = this.slots(BALL_FX.length);
     BALL_FX.forEach((row, i) => {
-      const armed = SaveSystem.armedBallFx() === row.id;
+      const armed = SaveSystem.wearingBall(row.id);
       const have = SaveSystem.itemCount(row.id);
       this.paintCard(cells[i].x, cells[i].y, {
         title: t("item." + row.id + ".name"),
@@ -368,7 +368,8 @@ export class ShopScene extends Phaser.Scene {
         onClick: () => {
           if (armed) return;
           if (have) {
-            SaveSystem.useItem(row.id);
+            const charId = row.char || SaveSystem.data.showcaseId || SaveSystem.data.starterId;
+            SaveSystem.useItem(row.id, { charId });
             AudioSystem.ui();
             this.refresh();
             return;

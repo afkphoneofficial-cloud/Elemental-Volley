@@ -1006,7 +1006,7 @@ export class PlayScene extends Phaser.Scene {
   paintArmedBall(ball) {
     if (!this.ballFxG) return;
     const youId = this.youSide === 1 ? this.leftData.id : this.rightData.id;
-    const armed = ballFxOf(SaveSystem.armedBallFx());
+    const armed = ballFxOf(SaveSystem.armedBallFx(youId));
     const row = this.youServing() && ballFxFitsChar(armed, youId) ? armed : null;
     const tex = row && this.textures.exists(row.tex) ? row.tex : "ball";
     if (this.ball.texture.key !== tex) this.ball.setTexture(tex);
