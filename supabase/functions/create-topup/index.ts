@@ -1,6 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "https://esm.sh/stripe@17.4.0?target=deno";
-import { corsHeaders, TOPUP_PACKS } from "../_shared/packs.ts";
+
+const TOPUP_PACKS: Record<string, { thb: number; powder: number }> = {
+  p29: { thb: 29, powder: 60 },
+  p59: { thb: 59, powder: 130 },
+  p149: { thb: 149, powder: 350 },
+  p299: { thb: 299, powder: 750 },
+  p499: { thb: 499, powder: 1350 },
+  p999: { thb: 999, powder: 3000 }
+};
+
+function corsHeaders(req: Request) {
+  return {
+    "Access-Control-Allow-Origin": req.headers.get("Origin") || "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS"
+  };
+}
 
 Deno.serve(async (req) => {
   const cors = corsHeaders(req);

@@ -1,10 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "https://esm.sh/stripe@17.4.0?target=deno";
-import { corsHeaders } from "../_shared/packs.ts";
 
 Deno.serve(async (req) => {
-  const cors = corsHeaders(req);
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method === "OPTIONS") return new Response("ok");
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
   const whsec = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
@@ -20,12 +18,12 @@ Deno.serve(async (req) => {
     return new Response("bad sig", { status: 400 });
   }
   if (event.type !== "payment_intent.succeeded") {
-    return new Response(JSON.stringify({ ok: true, skip: true }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, skip: true }), { headers: { "Content-Type": "application/json" } });
   }
   const pi = event.data.object as Stripe.PaymentIntent;
   const orderId = pi.metadata && pi.metadata.order_id;
-  if (!orderId) return new Response(JSON.stringify({ ok: true, skip: true }), { headers: { ...cors, "Content-Type": "application/json" } });
+  if (!orderId) return new Response(JSON.stringify({ ok: true, skip: true }), { headers: { "Content-Type": "application/json" } });
   const admin = createClient(supabaseUrl, service);
   await admin.rpc("fulfill_purchase", { p_id: orderId });
-  return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
 });

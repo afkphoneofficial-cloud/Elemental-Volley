@@ -1,6 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "https://esm.sh/stripe@17.4.0?target=deno";
-import { corsHeaders } from "../_shared/packs.ts";
+
+function corsHeaders(req: Request) {
+  return {
+    "Access-Control-Allow-Origin": req.headers.get("Origin") || "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS"
+  };
+}
 
 Deno.serve(async (req) => {
   const cors = corsHeaders(req);
