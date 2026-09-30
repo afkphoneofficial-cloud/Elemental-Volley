@@ -35,7 +35,7 @@ function seasonRows(board) {
       if ((snap.games | 0) > map[snap.week].games) map[snap.week].games = snap.games | 0;
     }
   }
-  return Object.keys(map).sort().reverse().map((k) => map[k]).slice(0, 5);
+  return Object.keys(map).sort().reverse().map((k) => map[k]);
 }
 
 export class CareerScene extends Phaser.Scene {
@@ -57,21 +57,21 @@ export class CareerScene extends Phaser.Scene {
     const mail = sess.email || "";
     const pid = sess.id ? String(sess.id).slice(0, 8) : "—";
 
-    roundPanel(this, W / 2, 142, 1100, 156, 0xff8a3a, 0xfff6ea);
+    roundPanel(this, W / 2, 148, 1080, 168, 0xff8a3a, 0xfff6ea);
     const avId = SaveSystem.data.avatarId;
     const key = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
-    this.avImg = this.add.image(130, 142, key).setDisplaySize(112, 112).setDepth(8);
-    this.add.circle(130, 142, 58, 0x000000, 0).setStrokeStyle(4, 0xc45a16, 0.85).setDepth(9);
-    this.add.text(210, 92, AuthSystem.displayName(), {
+    this.avImg = this.add.image(210, 148, key).setDisplaySize(112, 112).setDepth(8);
+    this.add.circle(210, 148, 58, 0x000000, 0).setStrokeStyle(4, 0xc45a16, 0.85).setDepth(9);
+    this.add.text(292, 96, AuthSystem.displayName(), {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.add.text(210, 122, mail || "—", {
+    this.add.text(292, 126, mail || "—", {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.add.text(210, 146, t("career.idLine", { id: pid }), {
+    this.add.text(292, 150, t("career.idLine", { id: pid }), {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#8a5a38"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.avName = this.add.text(210, 170, avatarLabel(avId, I18n.lang), {
+    this.avName = this.add.text(292, 174, avatarLabel(avId, I18n.lang), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(8);
     const rk = SaveSystem.data.rank;
@@ -79,24 +79,29 @@ export class CareerScene extends Phaser.Scene {
     const rankLab = isCalibrating(rk)
       ? t("rank.calShort", { n: rk.games, max: RANK_CAL_GAMES })
       : t("rank.chip", { name: t("rank.tier." + medal.id), star: medal.star || "" });
-    this.add.text(210, 194, rankLab, {
+    this.add.text(292, 198, rankLab, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0, 0.5).setDepth(8);
     const shown = displayBadgeId(rk);
     if (this.textures.exists(badgeKey(shown))) {
-      this.add.image(178, 194, badgeKey(shown)).setDisplaySize(26, 26).setDepth(8);
+      this.add.image(260, 198, badgeKey(shown)).setDisplaySize(26, 26).setDepth(8);
     }
-    makeButton(this, W - 330, 118, 220, 40, t("career.change"), () => {
+    const btnX = W - 250;
+    makeButton(this, btnX, 112, 220, 40, t("career.change"), () => {
       AudioSystem.ui();
       this.openPicker();
     }, 0x7d5cff);
-    makeButton(this, W - 330, 168, 220, 40, t("career.rename"), () => {
+    makeButton(this, btnX, 160, 220, 40, t("career.rename"), () => {
       AudioSystem.ui();
       this.scene.start("shop", { tab: "items" });
     }, 0xff8ab8);
+    this.add.text(btnX, 198, t("career.renameShop", { name: t("item.namestone.name") }), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#8a5a38",
+      align: "center", wordWrap: { width: 240 }
+    }).setOrigin(0.5).setDepth(8);
 
-    roundPanel(this, W / 2, 250, 1100, 56, 0xff8a3a, 0xfff6ea);
-    this.add.text(W / 2, 250,
+    roundPanel(this, W / 2, 262, 1080, 52, 0xff8a3a, 0xfff6ea);
+    this.add.text(W / 2, 262,
       t("career.totals", {
         m: c.matches,
         w: c.wins,
@@ -107,20 +112,30 @@ export class CareerScene extends Phaser.Scene {
         streak: c.bestStreak,
         rally: c.longestRally
       }),
-      { fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: 1040 } }
+      { fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#3a2418", align: "center", wordWrap: { width: 1000 } }
     ).setOrigin(0.5).setDepth(6);
 
-    roundPanel(this, 330, 500, 580, 430, 0xffb14a, 0xfff6ea);
-    this.add.text(330, 310, t("career.logHead", { n: Math.min(log.length, ECONOMY.matchLogMax) }), {
+    const leftX = 394;
+    const rightX = 886;
+    const colW = 548;
+    const panelY = 508;
+    const panelH = 392;
+    const maskTop = 348;
+    const viewH = 328;
+    this.cols = [];
+
+    roundPanel(this, leftX, panelY, colW, panelH, 0xffb14a, 0xfff6ea);
+    this.add.text(leftX, 322, t("career.logHead", { n: Math.min(log.length, ECONOMY.matchLogMax) }), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5).setDepth(8);
+    const leftBits = [];
     if (!log.length) {
-      this.add.text(330, 500, t("career.empty"), {
-        fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 500 }
-      }).setOrigin(0.5).setDepth(8);
+      leftBits.push(this.add.text(leftX, maskTop + 80, t("career.empty"), {
+        fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30", align: "center", wordWrap: { width: 480 }
+      }).setOrigin(0.5).setDepth(8));
     } else {
-      log.slice(0, 8).forEach((row, i) => {
-        const y = 348 + i * 36;
+      log.forEach((row, i) => {
+        const y = maskTop + 18 + i * 36;
         const line = t("career.row", {
           result: row.win ? t("career.win") : t("career.lose"),
           you: charName(row.you),
@@ -129,46 +144,94 @@ export class CareerScene extends Phaser.Scene {
           b: row.foeScore,
           mode: row.mode === "pvp" ? t("career.pvp") : row.mode === "exhibit" ? t("career.exhibit") : row.mode === "special" ? t("career.special") : t("career.bot")
         });
-        this.add.text(330, y, line, {
+        leftBits.push(this.add.text(leftX, y, line, {
           fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: row.win ? "#2a7a38" : "#7a4a30",
-          wordWrap: { width: 540 }, align: "center"
-        }).setOrigin(0.5).setDepth(8);
+          wordWrap: { width: 500 }, align: "center"
+        }).setOrigin(0.5).setDepth(8));
       });
-      if (log.length > 8) {
-        this.add.text(330, 348 + 8 * 36, t("career.more", { n: log.length - 8 }), {
-          fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
-        }).setOrigin(0.5).setDepth(8);
-      }
     }
+    this.mountCol(leftX, colW, maskTop, viewH, leftBits, Math.max(36, log.length * 36 + 36));
 
-    roundPanel(this, 950, 500, 580, 430, 0x3ad6ff, 0xfff6ea);
-    this.add.text(950, 310, t("career.seasonHead"), {
+    roundPanel(this, rightX, panelY, colW, panelH, 0x3ad6ff, 0xfff6ea);
+    this.add.text(rightX, 322, t("career.seasonHead"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5).setDepth(8);
-
-    [["pvp", t("career.pvpBoard"), 348], ["special", t("career.elemBoard"), 528]].forEach(([board, label, y0]) => {
-      this.add.text(950, y0, label, {
+    const rightBits = [];
+    let ry = maskTop + 12;
+    [["pvp", t("career.pvpBoard")], ["special", t("career.elemBoard")]].forEach(([board, label]) => {
+      rightBits.push(this.add.text(rightX, ry, label, {
         fontFamily: UI_FONT, fontSize: "15px", fontStyle: "900", color: "#3a2418"
-      }).setOrigin(0.5).setDepth(8);
+      }).setOrigin(0.5).setDepth(8));
+      ry += 28;
       const rows = seasonRows(board);
       if (!rows.length) {
-        this.add.text(950, y0 + 40, t("career.seasonEmpty"), {
+        rightBits.push(this.add.text(rightX, ry, t("career.seasonEmpty"), {
           fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
-        }).setOrigin(0.5).setDepth(8);
-        return;
+        }).setOrigin(0.5).setDepth(8));
+        ry += 36;
+      } else {
+        rows.forEach((row) => {
+          const line = row.place
+            ? t("career.seasonRow", { week: weekLabel(row.week), games: row.games, place: row.place, wins: row.wins })
+            : t("career.seasonRowNo", { week: weekLabel(row.week), games: row.games, wins: row.wins });
+          rightBits.push(this.add.text(rightX, ry, line, {
+            fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828"
+          }).setOrigin(0.5).setDepth(8));
+          ry += 26;
+        });
+        ry += 10;
       }
-      rows.forEach((row, i) => {
-        const line = row.place
-          ? t("career.seasonRow", { week: weekLabel(row.week), games: row.games, place: row.place, wins: row.wins })
-          : t("career.seasonRowNo", { week: weekLabel(row.week), games: row.games, wins: row.wins });
-        this.add.text(950, y0 + 28 + i * 26, line, {
-          fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#5a3828"
-        }).setOrigin(0.5).setDepth(8);
-      });
     });
+    this.mountCol(rightX, colW, maskTop, viewH, rightBits, ry - maskTop + 12);
 
+    this.bindCols(maskTop, viewH);
     makeButton(this, 120, 36, 140, 40, t("nav.back"), () => this.scene.start("hub"), 0x7d5cff);
     AudioSystem.playMenu();
+  }
+
+  mountCol(x, w, top, viewH, bits, contentH) {
+    const box = this.add.container(0, 0);
+    bits.forEach((o) => box.add(o));
+    const maskG = this.make.graphics();
+    maskG.fillStyle(0xffffff, 1);
+    maskG.fillRect(x - w / 2 + 8, top, w - 16, viewH);
+    box.setMask(maskG.createGeometryMask());
+    maskG.setVisible(false);
+    const col = { x, w, top, viewH, box, scroll: 0, max: Math.max(0, contentH - viewH) };
+    this.cols.push(col);
+    return col;
+  }
+
+  colAt(x, y) {
+    return (this.cols || []).find((col) => (
+      y >= col.top && y <= col.top + col.viewH &&
+      x >= col.x - col.w / 2 && x <= col.x + col.w / 2
+    )) || null;
+  }
+
+  nudgeCol(col, dy) {
+    if (!col) return;
+    col.scroll = Phaser.Math.Clamp((col.scroll || 0) + dy, 0, col.max || 0);
+    col.box.y = -col.scroll;
+  }
+
+  bindCols(maskTop, viewH) {
+    this.input.on("wheel", (p, _g, _dx, dy) => {
+      if (this.pickerOn) return;
+      this.nudgeCol(this.colAt(p.x, p.y), dy * 0.45);
+    });
+    this.input.on("pointerdown", (p) => {
+      if (this.pickerOn) return;
+      const col = this.colAt(p.x, p.y);
+      if (!col) return;
+      this._drag = { y: p.y, s: col.scroll, col };
+    });
+    this.input.on("pointerup", () => { this._drag = null; });
+    this.input.on("pointermove", (p) => {
+      if (!this._drag || !p.isDown || this.pickerOn) return;
+      this._drag.col.scroll = Phaser.Math.Clamp(this._drag.s + (this._drag.y - p.y), 0, this._drag.col.max || 0);
+      this._drag.col.box.y = -this._drag.col.scroll;
+    });
   }
 
   openPicker() {
