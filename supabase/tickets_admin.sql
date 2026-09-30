@@ -1,9 +1,9 @@
 -- รันครั้งเดียว: ตั๋วปัญหา + แอดมิน + ที่เก็บภาพ
 -- รันไฟล์นี้อีกรอบเมื่ออัปเดต (ภาพที่แอดมินส่งกลับ, grant อัปโหลด)
 -- Dashboard → Storage ถ้ายังไม่มี bucket ticket-shots บล็อกท้ายจะสร้างให้
--- รหัสแอดมิน (เปลี่ยนได้หลังรัน)
+-- รหัสแอดมินไม่เก็บใน git
 --   ID: isle-keeper
---   PASS: WedPatch#2026
+--   PASS: รัน supabase/admin_set_pass.sql ที่เครื่องคุณ (คัดจาก .example)
 
 create extension if not exists pgcrypto;
 
@@ -20,8 +20,8 @@ create table if not exists public.admin_auth (
 );
 
 insert into public.admin_auth (login, pass_hash)
-values ('isle-keeper', crypt('WedPatch#2026', gen_salt('bf')))
-on conflict (login) do update set pass_hash = excluded.pass_hash;
+values ('isle-keeper', crypt('SET_VIA_admin_set_pass', gen_salt('bf')))
+on conflict (login) do nothing;
 
 create table if not exists public.admin_sessions (
   token text primary key,

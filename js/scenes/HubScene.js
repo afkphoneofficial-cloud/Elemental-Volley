@@ -8,8 +8,8 @@ import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
-import { mountMailboxHud } from "../ui/MailboxHud.js?v=local226";
-import { Mailbox } from "../systems/Mailbox.js";
+import { mountMailboxHud } from "../ui/MailboxHud.js?v=local235";
+import { Mailbox } from "../systems/Mailbox.js?v=local235";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
 import { WelcomePop } from "../systems/WelcomePop.js?v=local234";
@@ -17,7 +17,7 @@ import { TicketPop } from "../systems/TicketPop.js?v=local229";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local217";
-import { mountHubMenu } from "../ui/hubMenu.js?v=local232";
+import { mountHubMenu } from "../ui/hubMenu.js?v=local235";
 import { mountHubNav } from "../ui/hubNavStrip.js?v=local228";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
@@ -51,7 +51,17 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
-    const tryPowder = SaveSystem.grantTryPowder();
+    SaveSystem.grantTryPowder().then((tryPowder) => {
+      if (!tryPowder || !this.sys || !this.sys.isActive()) return;
+      this.time.delayedCall(900, () => {
+        if (!this.sys || !this.sys.isActive()) return;
+        openRewardPop(this, {
+          title: t("hub.testPowderTitle"),
+          sub: t("hub.testPowderSub"),
+          gift: { powder: tryPowder }
+        });
+      });
+    });
     SaveSystem.settleBetaGift();
     NetPlay.ensure();
     drawGrid(this);
@@ -164,16 +174,6 @@ export class HubScene extends Phaser.Scene {
     };
     document.addEventListener("visibilitychange", this._onVis);
     this.time.delayedCall(280, () => WelcomePop.tryShow());
-    if (tryPowder) {
-      this.time.delayedCall(900, () => {
-        if (!this.sys || !this.sys.isActive()) return;
-        openRewardPop(this, {
-          title: t("hub.testPowderTitle"),
-          sub: t("hub.testPowderSub"),
-          gift: { powder: tryPowder }
-        });
-      });
-    }
   }
 
   mountHubShop(W) {

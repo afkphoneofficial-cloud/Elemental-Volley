@@ -291,9 +291,10 @@ SQL Editor → วางทั้งไฟล์ supabase/tickets_admin.sql → 
 
 เข้าแอดมินที่  https://evolley.dev/admin.html
   ID: isle-keeper
-  PASS: WedPatch#2026
+  PASS: อย่าใส่ใน git — รัน supabase/admin_set_pass.sql (คัดจาก admin_set_pass.sql.example)
 
-อย่าแปะลิงก์นี้ในหน้าเกม  เปลี่ยนรหัสในตาราง admin_auth ได้ภายหลัง
+อย่าแปะลิงก์นี้ในหน้าเกม
+SQL Editor ต้องรัน supabase/save_guard.sql ด้วย กันผู้เล่นเขียนผงอีเธเรียในเซฟตรง ๆ
 Ticket จากล็อบบี้ขึ้นแท็บ Ticket ของแอดมิน  ตอบแล้วผู้เล่นได้จดหมายในเกม
 ปิดสถานะ success จะลบภาพ เหลือหัวข้อกับข้อความ
 

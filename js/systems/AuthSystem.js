@@ -212,9 +212,9 @@ export const AuthSystem = {
     if (!data) {
       await sb.from("profiles").insert({
         id: user.id,
-        email: String(user.email).toLowerCase(),
-        save_data: SaveSystem.data || {}
+        email: String(user.email).toLowerCase()
       });
+      this.schedulePush();
     } else if (data.save_data && typeof data.save_data === "object") {
       SaveSystem.applyCloud(data.save_data);
     } else if (SaveSystem.hasStarter()) {
@@ -304,10 +304,28 @@ export const AuthSystem = {
   async pushSave() {
     const sb = await getSb();
     if (!sb || !session || !session.id) return;
-    await sb.from("profiles").update({
-      save_data: SaveSystem.data,
-      last_seen_at: new Date().toISOString()
-    }).eq("id", session.id);
+    const { data, error } = await sb.rpc("push_save", { p_save: SaveSystem.data });
+    if (error) return;
+    const prem = data && data.premium;
+    if (prem != null && SaveSystem.data && SaveSystem.data.currencies) {
+      SaveSystem.data.currencies.premium = prem | 0;
+    }
+  },
+
+  async claimBetaShopPowder() {
+    const sb = await getSb();
+    if (!sb || !session || !session.id) return { ok: false };
+    const { data, error } = await sb.rpc("claim_beta_shop_powder");
+    if (error) return { ok: false, reason: error.message };
+    return data && typeof data === "object" ? data : { ok: false };
+  },
+
+  async claimBetaRestGift() {
+    const sb = await getSb();
+    if (!sb || !session || !session.id) return { ok: false };
+    const { data, error } = await sb.rpc("claim_beta_rest_gift");
+    if (error) return { ok: false, reason: error.message };
+    return data && typeof data === "object" ? data : { ok: false };
   },
 
   async logout() {

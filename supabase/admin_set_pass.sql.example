@@ -1,0 +1,6 @@
+-- คัดลอกเป็น admin_set_pass.sql (ไฟล์นั้นอยู่ใน .gitignore)
+-- ใส่รหัสของคุณ แล้ว Run ใน SQL Editor — อย่า commit รหัสจริง
+
+update public.admin_auth
+set pass_hash = crypt('PUT_NEW_PASSWORD_HERE', gen_salt('bf'))
+where login = 'isle-keeper';

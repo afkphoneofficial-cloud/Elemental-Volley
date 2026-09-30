@@ -434,17 +434,24 @@ export const SaveSystem = {
     if (persist !== false) this.persist();
   },
 
-  grantTryPowder() {
+  async grantTryPowder() {
     if (!onBetaDay(dayKey(), BETA.testStart, BETA.testEnd)) return 0;
     if (this.data.tryCostumePowder || (this.data.beta && this.data.beta.shopTry)) return 0;
+    const auth = window.AuthSystem;
+    if (!auth || !auth.claimBetaShopPowder) return 0;
+    const r = await auth.claimBetaShopPowder();
+    if (!r || !r.ok) return 0;
     if (!this.data.beta || typeof this.data.beta !== "object") this.data.beta = { testPlay: false };
     this.data.beta.shopTry = true;
     this.data.tryCostumePowder = true;
-    const n = BETA.shopTryPowder | 0;
-    this.data.currencies.premium = (this.data.currencies.premium | 0) + n;
-    this.recordTopup({ kind: "try", packId: "beta-shop", powder: n, bonus: 0, thb: 0 }, false);
+    if (r.premium != null) this.data.currencies.premium = r.premium | 0;
+    if (!(r.n > 0)) {
+      this.persist();
+      return 0;
+    }
+    this.recordTopup({ kind: "try", packId: "beta-shop", powder: r.n | 0, bonus: 0, thb: 0 }, false);
     this.persist();
-    return n;
+    return r.n | 0;
   },
 
   passRow(id) {
@@ -1121,8 +1128,9 @@ export const SaveSystem = {
     return gift;
   },
 
-  claimSeasonMail(id) {
+  claimSeasonMail(id, opt) {
     const raw = String(id || "").replace(/^local:/, "");
+    const skipPayload = Boolean(opt && opt.skipPayload);
     const list = this.data.seasonInbox || [];
     const i = list.findIndex((row) => row.id === raw || row.id === id);
     if (i < 0) return { ok: false, reason: "no" };
@@ -1133,7 +1141,7 @@ export const SaveSystem = {
       this.persist();
       return { ok: true };
     }
-    const p = mail.payload || {};
+    const p = skipPayload ? {} : (mail.payload || {});
     const bar = p.etherBar | 0;
     const vials = p.etherVial | 0;
     if ((bar || vials) && !canTakeEther(this.data, 1, Date.now())) return { ok: false, reason: "full" };

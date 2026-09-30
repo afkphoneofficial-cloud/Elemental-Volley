@@ -1,6 +1,7 @@
 import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { I18n } from "../i18n/I18n.js";
+import { BETA } from "../data/beta.js";
 
 export const MAIL_KINDS = ["friend_invite", "friend_accept", "news", "server", "dev", "season", "ticket"];
 
@@ -79,6 +80,24 @@ export const Mailbox = {
 
   async archive(id) {
     if (String(id).startsWith("local:")) {
+      const raw = String(id).replace(/^local:/, "");
+      if (raw === BETA.giftId && AuthSystem.claimBetaRestGift) {
+        const r = await AuthSystem.claimBetaRestGift();
+        if (r && r.ok) {
+          if (!r.already && SaveSystem.data) {
+            if (!SaveSystem.data.currencies) SaveSystem.data.currencies = {};
+            SaveSystem.data.currencies.premium = r.premium | 0;
+            SaveSystem.data.currencies.coins = r.coins | 0;
+            if (!SaveSystem.data.inventory) SaveSystem.data.inventory = {};
+            SaveSystem.data.inventory.bodyfruit = (SaveSystem.data.inventory.bodyfruit | 0) + 1;
+            if (!SaveSystem.data.beta || typeof SaveSystem.data.beta !== "object") SaveSystem.data.beta = {};
+            SaveSystem.data.beta.giftTaken = true;
+          }
+          const res = SaveSystem.claimSeasonMail(id, { skipPayload: true });
+          await this.refresh();
+          return res;
+        }
+      }
       const res = SaveSystem.claimSeasonMail(id);
       await this.refresh();
       return res;

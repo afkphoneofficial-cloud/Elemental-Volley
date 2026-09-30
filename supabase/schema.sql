@@ -32,9 +32,19 @@ drop policy if exists "profiles self read" on public.profiles;
 create policy "profiles self read" on public.profiles
   for select using (auth.uid() = id);
 
+-- อัปเดต save_data ทำผ่าน push_save RPC (ดู save_guard.sql) ไม่ใช่คอลัมน์ตรง
 drop policy if exists "profiles self update" on public.profiles;
-create policy "profiles self update" on public.profiles
-  for update using (auth.uid() = id);
+drop policy if exists "profiles self touch" on public.profiles;
+create policy "profiles self touch" on public.profiles
+  for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+revoke all on table public.profiles from anon, authenticated;
+grant select on table public.profiles to authenticated;
+grant insert (id, email) on table public.profiles to authenticated;
+grant update (last_seen_at, display_name, display_name_set_at) on table public.profiles to authenticated;
+grant all on table public.profiles to service_role;
 
 drop policy if exists "profiles self insert" on public.profiles;
 create policy "profiles self insert" on public.profiles
@@ -402,3 +412,5 @@ $$;
 
 revoke all on function public.admin_restore_save(uuid, uuid) from public;
 revoke all on function public.admin_restore_save(uuid, uuid) from anon, authenticated;
+
+-- ล็อกผง + RPC push_save: รัน supabase/save_guard.sql ต่อทันทีหลังไฟล์นี้

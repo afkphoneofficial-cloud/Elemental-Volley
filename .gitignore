@@ -5,3 +5,4 @@ desktop.ini
 node_modules/
 .cursor/
 server/match/.env
+supabase/admin_set_pass.sql
