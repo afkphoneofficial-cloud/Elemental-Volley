@@ -120,10 +120,10 @@ export class GrowthScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "14px", fontStyle: "900", color: "#1a1008",
         stroke: "#fff6ea", strokeThickness: 4
       }).setOrigin(0.5).setDepth(9);
-      const minus = makeButton(this, 900, y, 56, 36, "−", () => {
+      const minus = makeButton(this, 912, y, 56, 36, "−", () => {
         this.nudge(stat, -1);
       }, 0xff8ab8);
-      const plus = makeButton(this, 980, y, 56, 36, "+", () => {
+      const plus = makeButton(this, 990, y, 56, 36, "+", () => {
         this.nudge(stat, 1);
       }, 0x7d5cff);
       bindHold(this, minus.bg, () => this.nudge(stat, -1, true));

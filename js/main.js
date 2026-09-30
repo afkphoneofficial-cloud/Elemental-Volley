@@ -26,7 +26,7 @@ import { RankScene } from "./scenes/RankScene.js";
 import { SeasonScene } from "./scenes/SeasonScene.js";
 import { ModeScene } from "./scenes/ModeScene.js";
 import { DressScene } from "./scenes/DressScene.js";
-import { GrowthScene } from "./scenes/GrowthScene.js?v=local206";
+import { GrowthScene } from "./scenes/GrowthScene.js?v=local207";
 import { BagScene } from "./scenes/BagScene.js?v=local202";
 import { NewsScene } from "./scenes/NewsScene.js";
 import { FriendsScene } from "./scenes/FriendsScene.js";
