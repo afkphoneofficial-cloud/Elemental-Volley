@@ -1,5 +1,12 @@
 export const NEWS_POSTS = [
   {
+    id: "2026-10-01-beta",
+    dateTh: "1 ต.ค. 2026",
+    dateEn: "1 Oct 2026",
+    th: "ทดสอบ 1–7 ต.ค. พักเซิร์ฟ 8–9 ต.ค. เปิดจริง 10 ต.ค. คนที่มาเล่นช่วงทดสอบได้ฉายา BetaTester และเมลผง 80 + เหรียญ 200 + ผลคืนกาย 1 ตอนพักเซิร์ฟ",
+    en: "Test 1–7 Oct, rest 8–9 Oct, live 10 Oct. Testers get the BetaTester title plus mail with 80 powder, 200 coins, and 1 Body Fruit during rest."
+  },
+  {
     id: "2026-09-29-shop",
     dateTh: "29 ก.ย. 2026",
     dateEn: "29 Sep 2026",

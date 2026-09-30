@@ -5,7 +5,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local190";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel, passInstantGift } from "../data/monthPass.js?v=local190";
 import { TopupPay } from "../systems/TopupPay.js?v=local190";
 import { openRewardPop } from "../ui/rewardPop.js?v=local190";

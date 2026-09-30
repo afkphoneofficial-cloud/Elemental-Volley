@@ -6,6 +6,8 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
+import { TITLE_LIST, TITLE_TIER_HEX } from "../data/titles.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
 
 const PAD = 72;
 const GAP = 24;
@@ -14,7 +16,7 @@ const COL_W = (INNER - GAP) / 2;
 const LEFT_X = PAD + COL_W / 2;
 const RIGHT_X = LEFT_X + COL_W + GAP;
 const HEAD_TOP = 80;
-const HEAD_H = 146;
+const HEAD_H = 168;
 const HEAD_Y = HEAD_TOP + HEAD_H / 2;
 const COL_TOP = HEAD_TOP + HEAD_H + GAP;
 const COL_BOT = 720 - PAD;
@@ -132,14 +134,18 @@ export class CareerScene extends Phaser.Scene {
     this.add.text(infoX, HEAD_Y - 42, AuthSystem.displayName(), {
       fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.add.text(infoX, HEAD_Y - 18, mail || "—", {
+    const worn = TitleSystem.worn(SaveSystem.data);
+    this.titleChip = this.add.text(infoX, HEAD_Y - 20, worn ? TitleSystem.label(worn) : t("career.titleOff"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: worn ? TitleSystem.colorOf(worn) : "#8a5a38"
+    }).setOrigin(0, 0.5).setDepth(8);
+    this.add.text(infoX, HEAD_Y + 2, mail || "—", {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#7a4a30",
       wordWrap: { width: Math.max(120, infoW) }
     }).setOrigin(0, 0.5).setDepth(8);
-    this.add.text(infoX, HEAD_Y + 4, t("career.idLine", { id: pid }), {
+    this.add.text(infoX, HEAD_Y + 22, t("career.idLine", { id: pid }), {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#8a5a38"
     }).setOrigin(0, 0.5).setDepth(8);
-    this.avName = this.add.text(infoX, HEAD_Y + 24, avatarLabel(avId, I18n.lang), {
+    this.avName = this.add.text(infoX, HEAD_Y + 42, avatarLabel(avId, I18n.lang), {
       fontFamily: UI_FONT, fontSize: "12px", color: "#7a4a30"
     }).setOrigin(0, 0.5).setDepth(8);
     const rk = SaveSystem.data.rank;
@@ -149,24 +155,28 @@ export class CareerScene extends Phaser.Scene {
       : t("rank.chip", { name: t("rank.tier." + medal.id), star: medal.star || "" });
     const shown = displayBadgeId(rk);
     if (this.textures.exists(badgeKey(shown))) {
-      this.add.image(infoX + 10, HEAD_Y + 46, badgeKey(shown)).setDisplaySize(18, 18).setDepth(8);
-      this.add.text(infoX + 24, HEAD_Y + 46, rankLab, {
+      this.add.image(infoX + 10, HEAD_Y + 62, badgeKey(shown)).setDisplaySize(18, 18).setDepth(8);
+      this.add.text(infoX + 24, HEAD_Y + 62, rankLab, {
         fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0, 0.5).setDepth(8);
     } else {
-      this.add.text(infoX, HEAD_Y + 46, rankLab, {
+      this.add.text(infoX, HEAD_Y + 62, rankLab, {
         fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0, 0.5).setDepth(8);
     }
-    makeButton(this, btnX, HEAD_Y - 28, btnW, 32, t("career.change"), () => {
+    makeButton(this, btnX, HEAD_Y - 40, btnW, 28, t("career.change"), () => {
       AudioSystem.ui();
       this.openPicker();
     }, 0x7d5cff);
-    makeButton(this, btnX, HEAD_Y + 10, btnW, 32, t("career.rename"), () => {
+    makeButton(this, btnX, HEAD_Y - 6, btnW, 28, t("career.rename"), () => {
       AudioSystem.ui();
       this.scene.start("shop", { tab: "items" });
     }, 0xff8ab8);
-    this.add.text(btnX, HEAD_Y + 48, t("career.renameShop", { name: t("item.namestone.name") }), {
+    makeButton(this, btnX, HEAD_Y + 28, btnW, 28, t("career.titleBtn"), () => {
+      AudioSystem.ui();
+      this.openTitles();
+    }, 0x3ad6ff);
+    this.add.text(btnX, HEAD_Y + 54, t("career.renameShop", { name: t("item.namestone.name") }), {
       fontFamily: UI_FONT, fontSize: "10px", fontStyle: "700", color: "#8a5a38",
       align: "center", wordWrap: { width: btnW }
     }).setOrigin(0.5).setDepth(8);
@@ -339,18 +349,18 @@ export class CareerScene extends Phaser.Scene {
     if (this._colsBound) return;
     this._colsBound = true;
     this.input.on("wheel", (p, _g, _dx, dy) => {
-      if (this.pickerOn || this.ledgerOn) return;
+      if (this.pickerOn || this.ledgerOn || this.titleOn) return;
       this.nudgeCol(this.colAt(p.x, p.y), dy * 0.45);
     });
     this.input.on("pointerdown", (p) => {
-      if (this.pickerOn || this.ledgerOn) return;
+      if (this.pickerOn || this.ledgerOn || this.titleOn) return;
       const col = this.colAt(p.x, p.y);
       if (!col) return;
       this._drag = { y: p.y, s: col.scroll, col };
     });
     this.input.on("pointerup", () => { this._drag = null; });
     this.input.on("pointermove", (p) => {
-      if (!this._drag || !p.isDown || this.pickerOn || this.ledgerOn) return;
+      if (!this._drag || !p.isDown || this.pickerOn || this.ledgerOn || this.titleOn) return;
       this._drag.col.scroll = Phaser.Math.Clamp(this._drag.s + (this._drag.y - p.y), 0, this._drag.col.max || 0);
       this.applyCol(this._drag.col);
     });
@@ -475,6 +485,7 @@ export class CareerScene extends Phaser.Scene {
 
   openPicker() {
     if (this.pickerOn) return;
+    if (this.titleOn) this.closeTitles();
     if (this.ledgerOn) this.closeLedger();
     this.pickerOn = true;
     const W = this.scale.width;
@@ -542,5 +553,139 @@ export class CareerScene extends Phaser.Scene {
     const key = this.textures.exists(avatarKey(avId)) ? avatarKey(avId) : avatarKey("av01");
     if (this.avImg) this.avImg.setTexture(key);
     if (this.avName) this.avName.setText(avatarLabel(avId, I18n.lang));
+    this.refreshTitleChip();
+  }
+
+  refreshTitleChip() {
+    if (!this.titleChip) return;
+    const worn = TitleSystem.worn(SaveSystem.data);
+    this.titleChip.setText(worn ? TitleSystem.label(worn) : t("career.titleOff"));
+    this.titleChip.setColor(worn ? TitleSystem.colorOf(worn) : "#8a5a38");
+  }
+
+  openTitles() {
+    if (this.titleOn) return;
+    if (this.pickerOn) this.closePicker();
+    if (this.ledgerOn) this.closeLedger();
+    TitleSystem.unlock(SaveSystem.data);
+    SaveSystem.persist();
+    this.titleOn = true;
+    this.titleFilter = "all";
+    this.titleScroll = 0;
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.55).setDepth(40).setInteractive();
+    const panel = this.add.graphics().setDepth(41);
+    panel.fillStyle(0xfff6ea, 0.98);
+    panel.fillRoundedRect(W / 2 - 430, 48, 860, 624, 24);
+    panel.lineStyle(3, 0x3ad6ff, 0.8);
+    panel.strokeRoundedRect(W / 2 - 430, 48, 860, 624, 24);
+    this.titleBits = [dim, panel];
+    this.titleRows = [];
+    this.input.on("wheel", this._onTitleWheel = (p, _g, _dx, dy) => {
+      if (!this.titleOn) return;
+      if (p.y < 168 || p.y > 600) return;
+      this.titleScroll = Phaser.Math.Clamp((this.titleScroll || 0) + dy * 0.5, 0, this.titleMax || 0);
+      this.paintTitleRows();
+    });
+    this.paintTitleChrome();
+  }
+
+  paintTitleChrome() {
+    (this.titleChrome || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.titleChrome = [];
+    const keep = (o) => { this.titleChrome.push(o); return o; };
+    const W = this.scale.width;
+    const owned = (SaveSystem.data.titles && SaveSystem.data.titles.owned) || [];
+    keep(this.add.text(W / 2, 72, t("career.titlePick"), {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(42));
+    keep(this.add.text(W / 2, 100, t("career.titleHave", { n: owned.length, m: TITLE_LIST.length }), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30"
+    }).setOrigin(0.5).setDepth(42));
+    keep(this.add.text(W / 2, 122, t("career.titleNote"), {
+      fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+    }).setOrigin(0.5).setDepth(42));
+    const filters = [
+      { id: "all", lab: t("career.tabSum") },
+      { id: "train", lab: t("career.bot") },
+      { id: "rankplay", lab: t("career.pvp") },
+      { id: "rank", lab: t("rank.title") },
+      { id: "exhibit", lab: t("career.exhibit") }
+    ];
+    filters.forEach((f, i) => {
+      const x = W / 2 - 320 + i * 160;
+      const on = this.titleFilter === f.id;
+      const btn = makeButton(this, x, 152, 148, 30, f.lab, () => {
+        AudioSystem.ui();
+        this.titleFilter = f.id;
+        this.titleScroll = 0;
+        this.paintTitleChrome();
+        this.paintTitleRows();
+      }, on ? 0x3ad6ff : 0xe8dcc8, 44);
+      this.titleChrome.push(btn.bg, btn.text, btn.gfx);
+    });
+    const off = makeButton(this, W / 2 - 210, 636, 220, 36, t("career.titleOff"), () => {
+      AudioSystem.ui();
+      TitleSystem.wear(SaveSystem.data, "");
+      SaveSystem.persist();
+      this.refreshTitleChip();
+      this.paintTitleRows();
+    }, 0xffe08a, 44);
+    const close = makeButton(this, W / 2 + 210, 636, 180, 36, t("career.close"), () => {
+      AudioSystem.ui();
+      this.closeTitles();
+    }, 0xff6a22, 44);
+    this.titleChrome.push(off.bg, off.text, off.gfx, close.bg, close.text, close.gfx);
+    this.paintTitleRows();
+  }
+
+  paintTitleRows() {
+    (this.titleRows || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.titleRows = [];
+    const keep = (o) => { this.titleRows.push(o); return o; };
+    const W = this.scale.width;
+    const owned = new Set((SaveSystem.data.titles && SaveSystem.data.titles.owned) || []);
+    const worn = SaveSystem.data.titles && SaveSystem.data.titles.worn;
+    const rows = TITLE_LIST.filter((row) => this.titleFilter === "all" || row.group === this.titleFilter);
+    this.titleMax = Math.max(0, rows.length * 44 - 420);
+    const y0 = 184;
+    rows.forEach((row, i) => {
+      const y = y0 + i * 44 - (this.titleScroll || 0);
+      if (y < 168 || y > 608) return;
+      const have = owned.has(row.id);
+      const on = worn === row.id;
+      const col = have ? TitleSystem.colorOf(row) : "#9a7a68";
+      keep(this.add.text(W / 2 - 390, y, have ? TitleSystem.label(row) : "???  " + t("career.titleLocked"), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: col
+      }).setOrigin(0, 0.5).setDepth(43));
+      keep(this.add.text(W / 2 - 80, y, have ? TitleSystem.hint(row) : TitleSystem.hint(row), {
+        fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: have ? "#4a2810" : "#b08a78",
+        wordWrap: { width: 320 }
+      }).setOrigin(0, 0.5).setDepth(43));
+      if (have) {
+        const lab = on ? "●" : t("career.titleWear");
+        const btn = makeButton(this, W / 2 + 360, y, 96, 28, lab, () => {
+          AudioSystem.ui();
+          TitleSystem.wear(SaveSystem.data, on ? "" : row.id);
+          SaveSystem.persist();
+          this.refreshTitleChip();
+          this.paintTitleRows();
+        }, on ? TITLE_TIER_HEX[row.tier] : 0xe8dcc8, 44);
+        this.titleRows.push(btn.bg, btn.text, btn.gfx);
+      }
+    });
+  }
+
+  closeTitles() {
+    if (this._onTitleWheel) this.input.off("wheel", this._onTitleWheel);
+    this._onTitleWheel = null;
+    (this.titleRows || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    (this.titleChrome || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    (this.titleBits || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.titleRows = [];
+    this.titleChrome = [];
+    this.titleBits = [];
+    this.titleOn = false;
   }
 }

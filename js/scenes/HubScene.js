@@ -12,7 +12,7 @@ import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local213";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local215";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local216";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js";
@@ -24,7 +24,7 @@ import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLay
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local190";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { openRewardPop } from "../ui/rewardPop.js?v=local190";
 
 function chip(scene, x, y, w, color, onClick) {
@@ -51,6 +51,7 @@ export class HubScene extends Phaser.Scene {
   create() {
     if (!AuthSystem.guard(this)) return;
     SaveSystem.grantTryPowder();
+    SaveSystem.settleBetaGift();
     NetPlay.ensure();
     drawGrid(this);
     const W = this.scale.width;

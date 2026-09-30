@@ -3,6 +3,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
 
 export class MenuScene extends Phaser.Scene {
   constructor() { super("menu"); }
@@ -33,7 +34,7 @@ export class MenuScene extends Phaser.Scene {
       fontSize: "20px",
       color: "#7a4a30"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 308, t("menu.signedIn", { name: AuthSystem.displayName() }), {
+    this.add.text(W / 2, 308, t("menu.signedIn", { name: TitleSystem.named(SaveSystem.data, AuthSystem.displayName()) }), {
       fontFamily: UI_FONT,
       fontSize: "16px",
       fontStyle: "700",

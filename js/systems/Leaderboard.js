@@ -3,6 +3,7 @@ import { SaveSystem } from "./SaveSystem.js";
 import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
+import { TitleSystem } from "./TitleSystem.js?v=local216";
 import { AudioSystem } from "./AudioSystem.js";
 
 function els() {
@@ -201,7 +202,7 @@ export const Leaderboard = {
     const place = this.me && this.me.place;
     const on = this.me ? this.me.on_board : games > 0;
     ui.you.hidden = false;
-    const name = AuthSystem.displayName() || "—";
+    const name = TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "—");
     let status = t("board.youOff");
     if (on && place) {
       status = place <= 100

@@ -2,7 +2,7 @@ import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { I18n, t } from "../i18n/I18n.js";
-import { NEWS_POSTS } from "../data/news.js";
+import { NEWS_POSTS } from "../data/news.js?v=local216";
 
 export class NewsScene extends Phaser.Scene {
   constructor() { super("news"); }

@@ -3,6 +3,7 @@ import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
+import { TitleSystem } from "./TitleSystem.js?v=local216";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 
@@ -102,7 +103,7 @@ export const NetPlay = {
       ws.send(JSON.stringify({
         t: "hello",
         token: sess.access_token,
-        name: AuthSystem.displayName() || "player",
+        name: TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "player"),
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
         skin: fighterSkin(),

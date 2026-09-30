@@ -35,6 +35,7 @@ import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
@@ -479,7 +480,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   sideTag(isYou, id) {
-    if (isYou) return t("play.you") + " · " + (AuthSystem.displayName() || charName(id));
+    if (isYou) return t("play.you") + " · " + TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || charName(id));
     if ((Session.mode === "pvp" || Session.mode === "exhibit") && Session.rival) {
       const n = I18n.lang === "en" ? Session.rival.nameEn : Session.rival.nameTh;
       return t("play.rival") + " · " + n;

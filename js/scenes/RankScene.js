@@ -4,6 +4,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { t } from "../i18n/I18n.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js";
 import { paintRankTabs } from "../ui/sceneTabs.js";
@@ -310,7 +311,7 @@ export class RankScene extends Phaser.Scene {
     const losses = (me && me.losses) || local.losses | 0;
     const place = me && me.place;
     const on = me ? me.on_board : games > 0;
-    const name = AuthSystem.displayName() || "—";
+    const name = TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "—");
     let status = t(special ? "board.specialOff" : "board.youOff");
     if (!special && on && place) {
       status = place <= 100 ? t("board.youPlace", { n: place }) : t("board.youOut", { n: place });

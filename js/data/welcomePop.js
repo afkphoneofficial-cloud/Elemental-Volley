@@ -22,5 +22,13 @@ export const WELCOME_SLIDES = [
     tabEn: "Season",
     capTh: "อันดับรายสัปดาห์ ป้ายแชมป์ และของรางวัลซีซั่นรออยู่ที่ล็อบบี้",
     capEn: "Weekly ranks, champion plates, and season mail wait in the lobby"
+  },
+  {
+    id: "beta",
+    img: "assets/welcome/welcome-news-season.jpg",
+    tabTh: "เบต้า",
+    tabEn: "Beta",
+    capTh: "ทดสอบ 1–7 ต.ค.  ·  พัก 8–9 ต.ค.  ·  เปิดจริง 10 ต.ค. 2026",
+    capEn: "Test 1–7 Oct  ·  Rest 8–9 Oct  ·  Live 10 Oct 2026"
   }
 ];

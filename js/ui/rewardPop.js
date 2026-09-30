@@ -1,5 +1,5 @@
 import { makeButton, UI_FONT } from "./Ui.js";
-import { paintGiftIcons, giftParts } from "./giftIcons.js?v=local190";
+import { paintGiftIcons, giftParts } from "./giftIcons.js?v=local216";
 import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 

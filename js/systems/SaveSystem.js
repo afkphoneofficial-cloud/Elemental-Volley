@@ -18,6 +18,9 @@ import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
+import { emptyTitles } from "../data/titles.js";
+import { BETA } from "../data/beta.js";
+import { TitleSystem } from "./TitleSystem.js?v=local216";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 
@@ -66,7 +69,9 @@ const empty = () => ({
   dailyLogin: emptyDaily(),
   ballFx: "",
   gear: {},
-  welcomeDay: ""
+  welcomeDay: "",
+  titles: emptyTitles(),
+  beta: { testPlay: false }
 });
 
 function stackN(raw) {
@@ -201,6 +206,11 @@ function finish(data) {
     data.dailyLogin.claimed[data.dailyLogin.lastClaim] = 1;
   }
   if (typeof data.welcomeDay !== "string") data.welcomeDay = "";
+  if (!data.titles || typeof data.titles !== "object" || Array.isArray(data.titles)) data.titles = emptyTitles();
+  data.titles = { owned: Array.isArray(data.titles.owned) ? data.titles.owned.filter((id) => typeof id === "string") : [], worn: typeof data.titles.worn === "string" ? data.titles.worn : "" };
+  if (!data.beta || typeof data.beta !== "object" || Array.isArray(data.beta)) data.beta = { testPlay: false };
+  data.beta.testPlay = Boolean(data.beta.testPlay);
+  TitleSystem.normalize(data);
   if (typeof data.ballFx !== "string") data.ballFx = "";
   if (!data.gear || typeof data.gear !== "object" || Array.isArray(data.gear)) data.gear = {};
   ROSTER_IDS.forEach((id) => {
@@ -329,6 +339,7 @@ export const SaveSystem = {
   clearTrainStage(id) {
     if (!id || this.isTrainCleared(id)) return;
     this.data.trainCleared = (this.data.trainCleared || []).concat([id]);
+    TitleSystem.unlock(this.data);
     this.persist();
   },
 
@@ -983,6 +994,7 @@ export const SaveSystem = {
     if (this.data.matchLog.length > ECONOMY.matchLogMax) {
       this.data.matchLog.length = ECONOMY.matchLogMax;
     }
+    TitleSystem.unlock(this.data);
     this.persist();
   },
 
@@ -1023,7 +1035,19 @@ export const SaveSystem = {
     });
     if (this.data.seasonIssued.length > 24) this.data.seasonIssued = this.data.seasonIssued.slice(-24);
     if (dirty) this.persist();
+    this.settleBetaGift();
   },
+
+  settleBetaGift() {
+    const fresh = TitleSystem.unlock(this.data);
+    const gift = TitleSystem.shouldGift(this.data);
+    if (gift) {
+      this.data.seasonIssued.push(BETA.giftId);
+      this.data.seasonInbox.push(TitleSystem.giftMail());
+    }
+    if (fresh.length || gift) this.persist();
+    return gift;
+  },,
 
   claimSeasonMail(id) {
     const raw = String(id || "").replace(/^local:/, "");
@@ -1042,6 +1066,8 @@ export const SaveSystem = {
     }
     if (p.etherVial) this.addItem("ether_vial", p.etherVial | 0);
     if (p.shards) this.addTokens(p.shards | 0);
+    if (p.powder) this.addPremium(p.powder | 0);
+    if (p.coins) this.addCoins(p.coins | 0);
     if (p.fruit) this.addItem("bodyfruit", p.fruit | 0);
     if (p.cheer) {
       const cyc = seasonCycleOf(p.cycle | 0);

@@ -10,6 +10,7 @@ export function giftParts(gift) {
   if (g.stones) bits.push({ key: "item-stone", n: g.stones | 0 });
   if (g.vial) bits.push({ key: "item-ether", n: g.vial | 0 });
   if (g.powder) bits.push({ key: "item-powder", n: g.powder | 0 });
+  if (g.fruit) bits.push({ key: "item-fruit", n: g.fruit | 0 });
   return bits;
 }
 

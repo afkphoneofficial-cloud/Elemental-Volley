@@ -7,12 +7,14 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
+import { titleById } from "../data/titles.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local172";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
 import { texHeroSelect } from "../data/seasonLooks.js";
 
@@ -122,6 +124,7 @@ export class ResultScene extends Phaser.Scene {
       mmrDelta: this.rankDelta,
       stats: this.payload.stats || {}
     });
+    this.newTitles = (TitleSystem.lastNew || []).slice();
     if (this.pvpMode || this.specialMode) {
       const board = this.pvpMode ? "pvp" : "special";
       SaveSystem.touchSeasonSnap(board, 0);
@@ -469,6 +472,9 @@ export class ResultScene extends Phaser.Scene {
           star: this.rankAfter.star || ""
         }));
       }
+      (this.newTitles || []).slice(0, 3).forEach((id) => {
+        bits.push(t("career.titleNew", { name: TitleSystem.label(titleById(id)) }));
+      });
       this.pvpText.setText(bits.join("\n"));
     }
     if (this.lootTitle) this.lootTitle.setText(t("result.lootTitle"));
