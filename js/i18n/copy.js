@@ -23,7 +23,7 @@ export const COPY = {
       bootReady: "สนามพร้อมแล้ว",
       privacy: "นโยบายความเป็นส่วนตัว",
       terms: "ข้อตกลงการใช้งาน",
-      stripePay: "รับชำระเงินผ่าน"
+      stripePay: "รับชำระเงินด้วย PromptPay ผ่าน"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -935,7 +935,7 @@ export const COPY = {
       bootReady: "The court is ready.",
       privacy: "Privacy policy",
       terms: "Terms of use",
-      stripePay: "Payments by"
+      stripePay: "PromptPay via"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
