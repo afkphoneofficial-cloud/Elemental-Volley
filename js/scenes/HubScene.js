@@ -135,6 +135,7 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, heroX - 198, heroY, 52, 52, "‹", () => this.cycleShowcase(-1), 0xffe08a);
     makeButton(this, heroX + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
     this.mountHubShop(W);
+    this.mountHubWelcome(W);
     this.mountHubBag(W);
 
     this.mountPlay(W);
@@ -164,8 +165,16 @@ export class HubScene extends Phaser.Scene {
   }
 
   mountHubShop(W) {
-    this.mountHubSideBtn(W - 28 - 236 - 72, 300, "vis_icon_shop", "icon-shop", "item-shard", t("hub.navShop"), 0xff8a3a, () => {
+    const x = W - 28 - 236 - 72;
+    this.mountHubSideBtn(x, 300, "vis_icon_shop", "icon-shop", "item-shard", t("hub.navShop"), 0xff8a3a, () => {
       this.scene.start("shop", { from: "hub" });
+    });
+  }
+
+  mountHubWelcome(W) {
+    const x = W - 28 - 236 - 72;
+    this.mountHubSideBtn(x, 192, "vis_icon_news", "icon-news", "item-shard", t("hub.navWelcome"), 0x3ad6ff, () => {
+      WelcomePop.show();
     });
   }
 
