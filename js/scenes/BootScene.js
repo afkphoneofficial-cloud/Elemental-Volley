@@ -43,6 +43,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("item-ether", "assets/sprites/items/item-ether.png");
     this.load.image("item-fruit", "assets/sprites/items/item-fruit.png");
     this.load.image("item-bag", "assets/sprites/items/item-bag.png");
+    this.load.image("item-pact-cube", "assets/sprites/items/item-pact-cube.png");
     this.load.image("icon-news", "assets/sprites/items/icon-news.png");
     this.load.image("icon-mirror", "assets/sprites/items/icon-mirror.png");
     this.load.image("icon-mail", "assets/sprites/items/icon-mail.png");
@@ -104,7 +105,7 @@ export class BootScene extends Phaser.Scene {
       if (!this.textures.exists(badgeKey(RANK_CAL_ID))) {
         TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
       }
-      TextureFactory.applyChibi(this, "item-cheer-champ", "item-cheer-champ");
+      TextureFactory.applyChibi(this, "item-pact-cube", "vis_item_pact_cube");
       TextureFactory.applyChibi(this, "icon-news", "vis_icon_news");
       TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
       TextureFactory.applyChibi(this, "icon-mail", "vis_icon_mail");

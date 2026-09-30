@@ -55,8 +55,8 @@ export class GrowthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
 
-    this.ptsText = this.add.text(W / 2, 158, "", {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
+    this.ptsText = this.add.text(720, 186, "", {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
 
     ROSTER_IDS.forEach((id, i) => {
@@ -79,7 +79,7 @@ export class GrowthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#c45a16",
       align: "center", wordWrap: { width: 240 }
     }).setOrigin(0.5);
-    this.draftText = this.add.text(720, 188, "", {
+    this.draftText = this.add.text(720, 468, "", {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#9a3a18",
       wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
@@ -197,8 +197,6 @@ export class GrowthScene extends Phaser.Scene {
       n: sheet.gift,
       stat: t("growth.stat." + sheet.giftStat)
     }));
-    const pickI = Math.max(0, ROSTER_IDS.indexOf(this.charId));
-    this.ptsText.setPosition(this.scale.width / 2 - 240 + pickI * 160, 158);
     this.ptsText.setText(t("growth.leftPts", { n: sheet.unspent }));
     this.draftText.setText(dirty ? t("growth.draftNote") : "");
     this.rows.forEach((item) => {

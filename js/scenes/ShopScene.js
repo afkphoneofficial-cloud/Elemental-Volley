@@ -366,9 +366,15 @@ export class ShopScene extends Phaser.Scene {
       }, on ? sub.color : 0xc8bdd8);
     });
     if (this.effectSub === "sfx") {
-      this.add.text(this.scale.width / 2 + 70, 360, t("shop.sfxSoon"), {
-        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#8a5a38", align: "center", wordWrap: { width: 640 }
-      }).setOrigin(0.5);
+      const cx = this.scale.width / 2 + 70;
+      const cy = 360;
+      const cube = this.textures.exists("vis_item_pact_cube") ? "vis_item_pact_cube" : "item-pact-cube";
+      this.add.image(cx, cy + 8, cube).setDisplaySize(280, 280).setAlpha(0.92).setDepth(6);
+      this.add.text(cx, cy, t("shop.sfxSoon"), {
+        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418",
+        align: "center", wordWrap: { width: 520 },
+        stroke: "#fff6ea", strokeThickness: 6
+      }).setOrigin(0.5).setDepth(8);
       return;
     }
     const goods = (this.effectSub === "orb" ? ULT_ORBS : BALL_FX).map((row) => ({
