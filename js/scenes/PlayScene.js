@@ -5,6 +5,7 @@ import { botSheet, statsLive, modsFromTotals, applyGrowthFx, resetGrowthFx } fro
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
+import { maintenanceNow } from "../data/maintenance.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { shakeCam, wantFx, phaserKeyCode } from "../systems/GameSettings.js";
 import {
@@ -63,6 +64,10 @@ export class PlayScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    if (maintenanceNow()) {
+      this.scene.start("hub");
+      return;
+    }
     SaveSystem.notePlayDay();
     this.youSide = Session.youSide === 2 ? 2 : 1;
     this.youData = getCharacter(Session.playerId);

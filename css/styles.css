@@ -1211,3 +1211,101 @@ html[data-control="pc"] #game {
   box-shadow: 0 4px 0 #c45a16;
 }
 
+#site-legal {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 19;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  pointer-events: auto;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 246, 234, 0.7);
+}
+#site-legal a {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #8a5a38;
+  text-decoration: none;
+  border-bottom: 1.5px solid rgba(196, 90, 22, 0.45);
+  padding-bottom: 1px;
+}
+#site-legal a:hover,
+#site-legal a:focus-visible { color: #ff6a22; border-bottom-color: #ff6a22; }
+#site-legal .foot-dot { font-size: 11px; color: #c45a16; opacity: 0.7; }
+
+#maint-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 6, 14, 0.88);
+  pointer-events: all;
+}
+#maint-overlay[hidden] { display: none; }
+.maint-card {
+  width: min(520px, 92vw);
+  padding: 28px 24px;
+  border-radius: 22px;
+  background: #fff4dc;
+  color: #3a2418;
+  text-align: center;
+  font-family: Kanit, "Segoe UI", sans-serif;
+}
+.maint-card h2 { margin: 0 0 8px; font-size: 28px; }
+.maint-card p { margin: 8px 0; color: #7a4a30; }
+
+#ticket-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 145;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(18, 10, 8, 0.55);
+  pointer-events: all;
+}
+#ticket-overlay[hidden] { display: none; }
+.ticket-shell {
+  position: relative;
+  width: min(920px, 96%);
+  max-height: 92%;
+  overflow: auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #fff6ea;
+  border-radius: 18px;
+  border: 3px solid #ffe08a;
+  font-family: Kanit, "Segoe UI", sans-serif;
+  color: #3a2418;
+}
+.ticket-head { padding: 16px 88px 8px 18px; }
+.ticket-kicker { margin: 0; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #c45a16; font-weight: 700; }
+.ticket-head h2 { margin: 4px 0 0; }
+.ticket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 16px 16px; }
+.ticket-form, .ticket-list { display: flex; flex-direction: column; gap: 8px; }
+.ticket-form label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: #7a4a30; }
+.ticket-form input, .ticket-form select, .ticket-form textarea {
+  padding: 8px 10px; border-radius: 10px; border: 1px solid #e8c090; font: inherit; color: #3a2418;
+}
+.ticket-form input[readonly] { background: #f3e6d2; }
+.ticket-hint, .ticket-msg, .ticket-empty { margin: 0; font-size: 13px; color: #8a5a38; font-weight: 600; }
+.ticket-msg.bad { color: #c43058; }
+.ticket-form button, .ticket-card button {
+  border: 0; border-radius: 999px; min-height: 40px; font: inherit; font-weight: 800; background: #ff6a22; color: #fff8ee; cursor: pointer;
+}
+.ticket-card { background: #fff; border: 1px solid #e8c090; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+.ticket-card header { display: flex; justify-content: space-between; font-weight: 800; }
+.ticket-line { margin: 6px 0; font-size: 13px; }
+.ticket-line.staff { color: #1a5a90; }
+.ticket-card form { display: flex; gap: 6px; margin-top: 6px; }
+.ticket-card form input { flex: 1; }
+@media (max-width: 800px) {
+  .ticket-grid { grid-template-columns: 1fr; }
+}
+

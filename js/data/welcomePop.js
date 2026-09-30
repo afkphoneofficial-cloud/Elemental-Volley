@@ -16,6 +16,14 @@ export const WELCOME_SLIDES = [
     capEn: "Servers go live Saturday 10 Oct 2026 at 00:00 Bangkok time"
   },
   {
+    id: "close",
+    img: "assets/welcome/welcome-promo-close.jpg?v=local223",
+    tabTh: "ปิดเซิร์ฟ",
+    tabEn: "Close",
+    capTh: "หลังเปิดจริง ปิดปรับปรุงทุกวันพุธ 05:00–11:00 น. เวลาไทย — ช่วงเบต้าไม่ปิดตามเวลานี้",
+    capEn: "After live, weekly close every Wednesday 05:00–11:00 ICT — not during beta"
+  },
+  {
     id: "home",
     img: "assets/welcome/welcome-hero.jpg?v=local218",
     tabTh: "ต้อนรับ",

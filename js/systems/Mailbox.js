@@ -2,7 +2,7 @@ import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { I18n } from "../i18n/I18n.js";
 
-export const MAIL_KINDS = ["friend_invite", "friend_accept", "news", "server", "dev", "season"];
+export const MAIL_KINDS = ["friend_invite", "friend_accept", "news", "server", "dev", "season", "ticket"];
 
 function localMails() {
   return (SaveSystem.data.seasonInbox || []).map((row) => ({

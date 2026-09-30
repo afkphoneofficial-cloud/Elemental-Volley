@@ -18,8 +18,11 @@ export const COPY = {
       authNameTaken: "ชื่อนี้มีคนใช้แล้ว",
       authLiveName: "เซิร์ฟเปิดจริงแล้ว จองชื่อใหม่ได้ทุกไอดี",
       authFail: "ล็อกอินไม่สำเร็จ",
+      authBanned: "บัญชีนี้ถูกระงับ",
       bootLine1: "กำลังอุ่นตาข่าย…",
-      bootReady: "สนามพร้อมแล้ว"
+      bootReady: "สนามพร้อมแล้ว",
+      privacy: "นโยบายความเป็นส่วนตัว",
+      terms: "ข้อตกลงการใช้งาน"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -85,6 +88,7 @@ export const COPY = {
       showcaseHint: "แตะหรือกดลูกศรเพื่อสลับตัวที่โชว์",
       welcomeClose: "ปิด",
       navWelcome: "ต้อนรับ",
+      navTicket: "Ticket",
       online: "ออนไลน์ {n} คน",
       chipToken: "เศษธาตุ {n}",
       chipPvp: "หินประหลาด {n}",
@@ -111,6 +115,32 @@ export const COPY = {
       ok: "อ่านแล้ว",
       claim: "รับของ",
       etherHint: "กดไม่ได้ หลอดเอเธอร์เต็มหรือจะล้น — ใช้ได้เฉพาะตอนที่หลอดยังไม่เต็ม"
+    },
+    ticket: {
+      kicker: "ช่วยเหลือ",
+      title: "Ticket",
+      name: "ชื่อในเกม",
+      email: "อีเมล",
+      cat: "หมวดปัญหา",
+      body: "รายละเอียด",
+      shots: "ภาพหน้าจอ (ไม่เกิน 3 ไฟล์ ไฟล์ละ 5MB)",
+      hint: "ระบบใส่ชื่อกับอีเมลให้แล้ว เลือกหมวด แล้วอธิบายปัญหา",
+      send: "ส่งรายงาน",
+      sending: "กำลังส่ง…",
+      sent: "ส่งแล้ว แอดมินจะตอบใน Ticket และจดหมาย",
+      fail: "ส่งไม่สำเร็จ ลองใหม่อีกครั้ง",
+      empty: "ยังไม่มี Ticket",
+      needSql: "ยังไม่ได้ติดตั้งระบบ Ticket บนเซิร์ฟ",
+      tooBig: "ภาพต้องไม่เกิน 5MB และไม่เกิน 3 ไฟล์",
+      staff: "แอดมิน",
+      you: "คุณ",
+      reply: "ตอบ",
+      replyPh: "พิมพ์ถึงแอดมิน"
+    },
+    maint: {
+      title: "ปิดปรับปรุงรายสัปดาห์",
+      body: "เซิร์ฟปิดทุกวันพุธ 05:00–11:00 น. เวลาไทย เพื่อแพตช์ ช่วงเบต้าไม่ปิดตามเวลานี้",
+      wait: "เปิดอีกครั้งใน {t}"
     },
     chat: {
       title: "แชท",
@@ -894,8 +924,11 @@ export const COPY = {
       authNameTaken: "That name is already taken",
       authLiveName: "Live servers are up. Every name is free to claim again.",
       authFail: "Sign-in failed",
+      authBanned: "This account is suspended",
       bootLine1: "Warming the net…",
-      bootReady: "The court is ready."
+      bootReady: "The court is ready.",
+      privacy: "Privacy policy",
+      terms: "Terms of use"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -961,6 +994,7 @@ export const COPY = {
       showcaseHint: "Tap or use the arrows to swap the showcase fighter",
       welcomeClose: "Close",
       navWelcome: "Welcome",
+      navTicket: "Ticket",
       online: "Online {n}",
       chipToken: "Shards {n}",
       chipPvp: "Odd Stones {n}",
@@ -987,6 +1021,32 @@ export const COPY = {
       ok: "Got it",
       claim: "Claim",
       etherHint: "Can't claim — the Ether pool is full or this would overflow. Use it only when the pool isn't full."
+    },
+    ticket: {
+      kicker: "Support",
+      title: "Ticket",
+      name: "In-game name",
+      email: "Email",
+      cat: "Issue type",
+      body: "Details",
+      shots: "Screenshots (max 3 files, 5MB each)",
+      hint: "Name and email are filled in. Pick a category and describe the issue.",
+      send: "Submit",
+      sending: "Sending…",
+      sent: "Sent. Staff will reply in Ticket and mailbox.",
+      fail: "Could not send. Try again.",
+      empty: "No tickets yet",
+      needSql: "Ticket tables are not installed on the server yet",
+      tooBig: "Images must be 5MB or less, and at most 3 files",
+      staff: "Staff",
+      you: "You",
+      reply: "Reply",
+      replyPh: "Write to staff"
+    },
+    maint: {
+      title: "Weekly maintenance",
+      body: "Servers close every Wednesday 05:00–11:00 ICT for patches. This window is off during beta.",
+      wait: "Back in {t}"
     },
     chat: {
       title: "Chat",

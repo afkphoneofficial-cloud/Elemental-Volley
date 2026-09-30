@@ -12,7 +12,8 @@ import { mountMailboxHud } from "../ui/MailboxHud.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local213";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local219";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local223";
+import { TicketPop } from "../systems/TicketPop.js";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local217";
@@ -136,6 +137,7 @@ export class HubScene extends Phaser.Scene {
     makeButton(this, heroX + 198, heroY, 52, 52, "›", () => this.cycleShowcase(1), 0xffe08a);
     this.mountHubShop(W);
     this.mountHubWelcome(W);
+    this.mountHubTicket(W);
     this.mountHubBag(W);
 
     this.mountPlay(W);
@@ -175,6 +177,13 @@ export class HubScene extends Phaser.Scene {
     const x = W - 28 - 236 - 72;
     this.mountHubSideBtn(x, 192, "vis_icon_news", "icon-news", "item-shard", t("hub.navWelcome"), 0x3ad6ff, () => {
       WelcomePop.show();
+    });
+  }
+
+  mountHubTicket(W) {
+    const x = W - 28 - 236 - 72;
+    this.mountHubSideBtn(x, 408, "vis_icon_ticket", "icon-ticket", "item-shard", t("hub.navTicket"), 0x5ad6a8, () => {
+      TicketPop.show();
     });
   }
 

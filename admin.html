@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>EV Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/admin.css?v=local223" />
+</head>
+<body>
+  <form id="admin-login" class="login">
+    <p class="kicker">Elemental Volley</p>
+    <h1>Admin</h1>
+    <label>ID<input id="ad-id" autocomplete="username" /></label>
+    <label>รหัส<input id="ad-pass" type="password" autocomplete="current-password" /></label>
+    <button type="submit">เข้าสู่ระบบ</button>
+    <p id="ad-msg"></p>
+  </form>
+  <div id="admin-desk" hidden>
+    <header>
+      <strong>EV Admin</strong>
+      <p id="desk-msg"></p>
+      <button type="button" id="ad-out">ออก</button>
+    </header>
+    <nav>
+      <button type="button" data-tab="overview" class="on">ภาพรวม</button>
+      <button type="button" data-tab="players">ผู้เล่น</button>
+      <button type="button" data-tab="rank">อันดับ</button>
+      <button type="button" data-tab="tickets">Ticket</button>
+      <button type="button" data-tab="mail">จดหมาย</button>
+      <button type="button" data-tab="buys">ใบเสร็จ</button>
+    </nav>
+    <section data-panel="overview"><div id="ov-grid" class="cards"></div></section>
+    <section data-panel="players" hidden>
+      <div class="tools">
+        <input id="pl-q" placeholder="ค้นชื่อ / เมล / uuid" />
+        <button type="button" id="pl-search">ค้น</button>
+        <span id="pl-pick">ยังไม่เลือกแถว</span>
+      </div>
+      <div class="grant">
+        <input id="g-powder" type="number" placeholder="ผง" />
+        <input id="g-coins" type="number" placeholder="เหรียญ" />
+        <input id="g-shards" type="number" placeholder="เศษ" />
+        <input id="g-stones" type="number" placeholder="หิน" />
+        <input id="g-fruit" type="number" placeholder="ผล" />
+        <button type="button" id="pl-grant">ให้ของ</button>
+        <input id="g-reason" placeholder="เหตุแบน" />
+        <button type="button" id="pl-ban">แบน</button>
+        <button type="button" id="pl-unban">ปลดแบน</button>
+      </div>
+      <p id="pl-msg"></p>
+      <div class="scroll"><table id="pl-table"></table></div>
+    </section>
+    <section data-panel="rank" hidden><div class="scroll"><table id="rk-table"></table></div></section>
+    <section data-panel="tickets" hidden>
+      <p id="tk-msg"></p>
+      <div id="tk-list"></div>
+    </section>
+    <section data-panel="mail" hidden>
+      <label class="chk"><input type="checkbox" id="mail-all" /> ส่งทุกไอดี (ไม่ติ๊ก = คนที่เลือกในแท็บผู้เล่น)</label>
+      <input id="mail-th" placeholder="หัวข้อไทย" />
+      <input id="mail-en" placeholder="หัวข้อ EN" />
+      <textarea id="mail-body-th" placeholder="เนื้อไทย"></textarea>
+      <textarea id="mail-body-en" placeholder="เนื้อ EN"></textarea>
+      <button type="button" id="mail-send">ส่งจดหมายในเกม</button>
+      <p id="mail-msg"></p>
+    </section>
+    <section data-panel="buys" hidden><div class="scroll"><table id="by-table"></table></div></section>
+  </div>
+  <script type="module">
+    import { bootAdmin } from "./js/admin/AdminApp.js?v=local223";
+    bootAdmin();
+  </script>
+</body>
+</html>

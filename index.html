@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local216" />
+  <link rel="stylesheet" href="css/styles.css?v=local223" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -166,9 +166,21 @@
     <span class="foot-by">Powered by</span>
     <a class="foot-brand" href="https://afkphone.com" target="_blank" rel="noopener noreferrer">afkphone</a>
   </footer>
+  <nav id="site-legal">
+    <a href="privacy.html" data-i18n="web.privacy">นโยบายความเป็นส่วนตัว</a>
+    <span class="foot-dot" aria-hidden="true">·</span>
+    <a href="terms.html" data-i18n="web.terms">ข้อตกลงการใช้งาน</a>
+  </nav>
+  <div id="maint-overlay" hidden>
+    <div class="maint-card">
+      <h2 id="maint-title">ปิดปรับปรุงรายสัปดาห์</h2>
+      <p id="maint-body">เซิร์ฟปิดทุกวันพุธ 05:00–11:00 น. เวลาไทย เพื่อแพตช์ ช่วงเบต้าไม่ปิดตามเวลานี้</p>
+      <p id="maint-wait"></p>
+    </div>
+  </div>
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="js/main.js?v=local222"></script>
+  <script type="module" src="js/main.js?v=local223"></script>
 </body>
 </html>

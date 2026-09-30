@@ -55,6 +55,7 @@ export const AuthSystem = {
   session: () => session,
   profile: () => profile,
   displayName: () => (profile && profile.display_name) || "",
+  backendUrl: () => BACKEND.supabaseUrl,
   db: () => getSb(),
 
   isLoggedIn() {
@@ -201,6 +202,13 @@ export const AuthSystem = {
     if (error) throw new Error(error.message);
     SaveSystem.attachAccount(user.id);
     profile = data || { id: user.id, email: user.email, display_name: "", save_data: {} };
+    if (data && data.banned) {
+      session = null;
+      profile = null;
+      SaveSystem.bootEmpty();
+      await sb.auth.signOut();
+      throw new Error(t("web.authBanned"));
+    }
     if (!data) {
       await sb.from("profiles").insert({
         id: user.id,
