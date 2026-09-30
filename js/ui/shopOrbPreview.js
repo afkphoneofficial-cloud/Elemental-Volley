@@ -3,6 +3,14 @@ import { t, I18n } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { ultOrbOf } from "../data/ultOrb.js?v=local198";
 import { ELEMENT_FX } from "../fx/HitFx.js?v=local198";
+import {
+  makeOrbTouchFx,
+  clearOrbTouchFx,
+  destroyOrbTouchFx,
+  noteOrbContact,
+  noteOrbTravel,
+  tickOrbTouchFx
+} from "../fx/OrbTouchFx.js?v=local201";
 
 function live(scene) {
   return Boolean(scene && scene._orbPrevLive && scene._orbPrev);
@@ -19,6 +27,12 @@ export function closeOrbPreview(scene) {
     try { scene._orbPrevWait.remove(false); } catch (e) { /* */ }
     scene._orbPrevWait = null;
   }
+  if (scene._orbPrevTick) {
+    try { scene._orbPrevTick.remove(false); } catch (e) { /* */ }
+    scene._orbPrevTick = null;
+  }
+  try { destroyOrbTouchFx(scene._orbPrevFx); } catch (e) { /* */ }
+  scene._orbPrevFx = null;
   (scene._orbPrevBits || []).forEach((o) => {
     try {
       if (o && scene.tweens) scene.tweens.killTweensOf(o);
@@ -87,11 +101,11 @@ export function openOrbPreview(scene, orbId) {
   const x0 = cx - 168;
   const x1 = cx + 200;
   const yFloor = cy + 56;
+  const floorY = cy + 72;
   const trail = [];
-  const drops = [];
-  for (let i = 0; i < 6; i += 1) {
-    drops.push(keep(scene.add.circle(0, 0, 4, 0x7ae8ff, 0.8).setVisible(false).setDepth(D + 5)));
-  }
+  const orbFx = makeOrbTouchFx(scene);
+  orbFx.g.setDepth(D + 7);
+  scene._orbPrevFx = orbFx;
 
   const burst = (x, y) => {
     if (!live(scene)) return;
@@ -160,11 +174,6 @@ export function openOrbPreview(scene, orbId) {
       extra.strokeCircle(x, y, 48 + Math.sin(now / 90) * 8);
       extra.lineStyle(2, 0x3ad6ff, 0.35);
       extra.strokeCircle(x, y, 72);
-      drops.forEach((d, i) => {
-        d.setVisible(true);
-        const ang = now / 160 + i * 1.25;
-        d.setPosition(x + Math.cos(ang) * (28 + i * 6), y + Math.sin(ang * 1.3) * (22 + i * 4));
-      });
     } else {
       ball.setVisible(true).setTint(impact ? 0xffc070 : 0xc07830);
       trail.forEach((p, i) => {
@@ -194,7 +203,7 @@ export function openOrbPreview(scene, orbId) {
     trail.length = 0;
     if (fxG.active) fxG.clear();
     if (extra.active) extra.clear();
-    drops.forEach((d) => { if (d.active) d.setVisible(false); });
+    clearOrbTouchFx(orbFx);
     if (!ball.active) return;
     ball.clearTint();
     ball.setVisible(row.char !== "volt").setPosition(x0, yFloor);
@@ -207,13 +216,22 @@ export function openOrbPreview(scene, orbId) {
       onUpdate: () => {
         if (!live(scene)) return;
         const u = dummy.u;
-        paint(x0 + (x1 - x0) * u, yFloor - Math.sin(u * Math.PI) * 48, scene.time.now, false);
+        const x = x0 + (x1 - x0) * u;
+        const y = yFloor - Math.sin(u * Math.PI) * 48;
+        paint(x, y, scene.time.now, false);
+        if (row.char === "aqua") noteOrbTravel(orbFx, x, y, row.char, scene.time.now);
+        else noteOrbContact(orbFx, x, y, row.char, scene.time.now, null);
+        orbFx.lastX = x;
+        orbFx.lastY = y;
+        tickOrbTouchFx(orbFx, row.char, scene.time.now, floorY);
       },
       onComplete: () => {
         if (!live(scene)) return;
         paint(x1, yFloor, scene.time.now, true);
         burst(x1, yFloor);
-        scene._orbPrevWait = scene.time.delayedCall(720, () => {
+        noteOrbContact(orbFx, x1, yFloor, row.char, scene.time.now, null);
+        tickOrbTouchFx(orbFx, row.char, scene.time.now, floorY);
+        scene._orbPrevWait = scene.time.delayedCall(1100, () => {
           if (live(scene)) play();
         });
       }

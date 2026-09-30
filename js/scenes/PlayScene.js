@@ -22,6 +22,15 @@ import { syncJumpForm } from "../fx/JumpForm.js?v=local196";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { CheerPopup } from "../fx/CheerPopup.js";
 import { UltCutIn } from "../fx/UltCutIn.js?v=local198";
+import {
+  makeOrbTouchFx,
+  clearOrbTouchFx,
+  destroyOrbTouchFx,
+  noteOrbContact,
+  noteOrbTravel,
+  scanOrbContact,
+  tickOrbTouchFx
+} from "../fx/OrbTouchFx.js?v=local201";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
@@ -155,6 +164,8 @@ export class PlayScene extends Phaser.Scene {
     this.boltTrail = [];
     this.flame = this.add.graphics().setDepth(8);
     this.flameTrail = [];
+    this.orbFx = makeOrbTouchFx(this);
+    this.orbKind = "";
     this.spark1 = this.add.circle(0, 0, 14, 0xe8ff3a, 1).setDepth(9).setVisible(false);
     this.spark2 = this.add.circle(0, 0, 14, 0xe8ff3a, 1).setDepth(9).setVisible(false);
     this.spark1b = this.add.circle(0, 0, 8, 0xffffff, 1).setDepth(9).setVisible(false);
@@ -178,6 +189,7 @@ export class PlayScene extends Phaser.Scene {
       window.removeEventListener("ev-lang", this._onLang);
       try { this.cheer.destroy(); } catch (e) {}
       try { this.ultCut.destroy(); } catch (e) {}
+      try { destroyOrbTouchFx(this.orbFx); } catch (e) {}
       try { this.pauseUi.destroy(); } catch (e) {}
       this.unbindPauseWatch();
       if (this.offNet) this.offNet();
@@ -650,6 +662,9 @@ export class PlayScene extends Phaser.Scene {
     if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
     this.readyFrames = this.net ? 0 : 25;
     this.lastHitter = 0;
+    this.ultGrand = false;
+    this.orbKind = "";
+    clearOrbTouchFx(this.orbFx);
     this.showBanner(t("play.ready"), "#fff4e8");
     this.syncSprites();
   }
@@ -784,6 +799,7 @@ export class PlayScene extends Phaser.Scene {
     const pack = this.physicsPack;
     const hitGround = pack.runEngineForNextFrame([this.p1In, this.p2In]);
     this.detectHits();
+    this.markOrbPhysics();
     this.handleSounds();
     if (hitGround && !this.roundEnded) this.onPoint();
     if (this.roundEnded && !this.matchOver && !this.holdForPause && !this.paused && this.pointSlowMs <= 0 && this.roundHoldMs <= 0) {
@@ -883,6 +899,7 @@ export class PlayScene extends Phaser.Scene {
     const pack = this.physicsPack;
     const hitGround = pack.runEngineForNextFrame([this.p1In, this.p2In]);
     this.detectHits();
+    this.markOrbPhysics();
     this.handleSounds();
 
     if (hitGround && !this.roundEnded) this.onPoint();
@@ -919,6 +936,9 @@ export class PlayScene extends Phaser.Scene {
       } else if (power) {
         if (addGauge(idx, 1) && human) this.showUltPopup();
       }
+    }
+    if (this.ultGrand && this.orbKind) {
+      noteOrbContact(this.orbFx, toScreenX(a.x), toScreenY(a.y), this.orbKind, this.time.now, this.cameras.main);
     }
     if (!this.roundEnded) {
       this.matchStats.rallyBySide[idx] += 1;
@@ -976,6 +996,7 @@ export class PlayScene extends Phaser.Scene {
     this.trail2.setAngle(this.ball.angle);
     this.drawBolt(a.ball);
     this.drawFlame(a.ball);
+    this.paintOrbTouch(a.ball);
     this.tickStatusFx(a);
     this.p1.setDisplaySize(CHAR, CHAR);
     this.p2.setDisplaySize(CHAR, CHAR);
@@ -1165,6 +1186,8 @@ export class PlayScene extends Phaser.Scene {
     this.enterHold = 0;
     this.enterDownAt = 0;
     this.ultGrand = (courtSide === this.youSide) && SaveSystem.grandUlt(ult.id);
+    this.orbKind = this.ultGrand ? ult.id : "";
+    if (this.ultGrand) clearOrbTouchFx(this.orbFx);
     this.ultCut.show(courtSide, ult.id, this.faceKey(ult.id, courtSide), this.ultGrand);
     this.cameras.main.flash(this.ultGrand ? 110 : 70, 255, 236, 210);
     const names = { ignis: "BLAZE SPIKE", aqua: "TIDAL BREAK", volt: "THUNDER GHOST", terra: "QUAKE SMASH" };
@@ -1181,6 +1204,24 @@ export class PlayScene extends Phaser.Scene {
     }
     this.boltTrail = [];
     if (courtSide === this.youSide) this.matchStats.ults += 1;
+  }
+
+  markOrbPhysics() {
+    if (!this.ultGrand || !this.orbKind) return;
+    const b = this.physicsPack.ball;
+    scanOrbContact(this.orbFx, b, toScreenX(b.x), toScreenY(b.y), this.orbKind, this.time.now, this.cameras.main);
+  }
+
+  paintOrbTouch(ball) {
+    if (!this.orbFx || !this.orbKind) return;
+    const x = toScreenX(ball.x);
+    const y = toScreenY(ball.y);
+    if (this.ultGrand) {
+      noteOrbTravel(this.orbFx, x, y, this.orbKind, this.time.now);
+      this.orbFx.lastX = x;
+      this.orbFx.lastY = y;
+    }
+    tickOrbTouchFx(this.orbFx, this.orbKind, this.time.now, toScreenY(WORLD.ballGroundY));
   }
 
   notePointStats(winSide) {

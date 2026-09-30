@@ -15,7 +15,7 @@ import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
 import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local196";
-import { openOrbPreview, closeOrbPreview } from "../ui/shopOrbPreview.js?v=local200";
+import { openOrbPreview, closeOrbPreview } from "../ui/shopOrbPreview.js?v=local201";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
 const CARD_W = 196;
