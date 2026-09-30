@@ -28,26 +28,31 @@ export function ballFxTex(id) {
   return row ? row.tex : "";
 }
 
-export function drawArmedBallFx(g, x, y, r, row, now) {
+export function drawArmedBallFx(g, x, y, r, row, now, style) {
   if (!g) return;
   g.clear();
   if (!row) return;
+  const pow = style === "ult" ? 1.7 : style === "smash" ? 1.28 : 1;
   const pulse = 1 + Math.sin((now || 0) / 140) * 0.12;
-  g.lineStyle(3, row.ring, 0.88);
-  g.strokeCircle(x, y, (r + 8) * pulse);
-  g.lineStyle(2, row.color, 0.5);
-  g.strokeCircle(x, y, (r + 16) * pulse);
-  if (row.kind === "volt") {
+  g.lineStyle(3 * pow, row.ring, 0.9);
+  g.strokeCircle(x, y, (r + 8) * pulse * pow);
+  g.lineStyle(2, row.color, 0.5 + (pow - 1) * 0.2);
+  g.strokeCircle(x, y, (r + 16) * pulse * pow);
+  if (style === "ult") {
+    g.fillStyle(row.color, 0.12);
+    g.fillCircle(x, y, (r + 28) * pulse);
+  }
+  if (row.kind === "volt" || style === "ult") {
     g.lineStyle(2, 0xfff6ea, 0.75);
     const a = ((now || 0) / 40) % (Math.PI * 2);
-    g.strokeCircle(x + Math.cos(a) * (r + 20), y + Math.sin(a) * (r + 20), 3);
-    g.strokeCircle(x + Math.cos(a + 2.1) * (r + 20), y + Math.sin(a + 2.1) * (r + 20), 3);
+    g.strokeCircle(x + Math.cos(a) * (r + 20) * pow, y + Math.sin(a) * (r + 20) * pow, 3);
+    g.strokeCircle(x + Math.cos(a + 2.1) * (r + 20) * pow, y + Math.sin(a + 2.1) * (r + 20) * pow, 3);
   }
-  if (row.kind === "star") {
+  if (row.kind === "star" || style === "smash" || style === "ult") {
     g.fillStyle(0xffe08a, 0.6);
     for (let i = 0; i < 5; i++) {
       const a = ((now || 0) / 180) + i * 1.256;
-      g.fillCircle(x + Math.cos(a) * (r + 18), y + Math.sin(a) * (r + 18), 2.4);
+      g.fillCircle(x + Math.cos(a) * (r + 18) * pow, y + Math.sin(a) * (r + 18) * pow, style === "ult" ? 3.2 : 2.4);
     }
   }
 }

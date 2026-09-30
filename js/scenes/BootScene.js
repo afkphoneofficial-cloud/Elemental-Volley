@@ -7,7 +7,7 @@ import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
-import { BALL_FX } from "../data/ballFx.js?v=local191";
+import { BALL_FX } from "../data/ballFx.js?v=local192";
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const COURTS = ["summer", "rain", "spring", "winter"];
