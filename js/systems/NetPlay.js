@@ -3,7 +3,7 @@ import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
-import { TitleSystem } from "./TitleSystem.js?v=local216";
+import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 

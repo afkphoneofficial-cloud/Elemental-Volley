@@ -1,5 +1,6 @@
 -- กระดาน 100 อันดับ + คอลัมน์แต้มสนามจริง
 -- SQL Editor → วางทั้งไฟล์นี้แล้ว Run ทั้งก้อน
+-- รอบนี้เพิ่ม title_id จากฉายาที่สวมใน save_data
 -- ถ้าขึ้น 42P13 cannot change return type: ฟังก์ชันเก่ามีอยู่แล้ว ไฟล์นี้ DROP ก่อน CREATE ให้แล้ว
 
 alter table public.profiles
@@ -49,7 +50,8 @@ returns table (
   wins integer,
   losses integer,
   games integer,
-  season_mark jsonb
+  season_mark jsonb,
+  title_id text
 )
 language sql
 security definer
@@ -73,7 +75,8 @@ as $$
       p.rank_wins as wins,
       p.rank_losses as losses,
       p.rank_games as games,
-      coalesce(p.save_data->'seasonMark', '{}'::jsonb) as season_mark
+      coalesce(p.save_data->'seasonMark', '{}'::jsonb) as season_mark,
+      nullif(p.save_data->'titles'->>'worn', '') as title_id
     from public.profiles p
     where p.display_name is not null
       and length(btrim(p.display_name)) >= 2

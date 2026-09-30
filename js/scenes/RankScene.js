@@ -4,7 +4,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { t } from "../i18n/I18n.js";
-import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
 import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js";
 import { paintRankTabs } from "../ui/sceneTabs.js";
@@ -277,6 +277,13 @@ export class RankScene extends Phaser.Scene {
       const name = this.add.text(W / 2 - 380, y - 10, row.display_name || "—", {
         fontFamily: UI_FONT, fontSize: "17px", fontStyle: "900", color: ink
       }).setOrigin(0, 0.5).setDepth(8);
+      const titleRow = TitleSystem.boardWorn(row, youId, SaveSystem.data);
+      let titleTx = null;
+      if (titleRow) {
+        titleTx = this.add.text(W / 2 - 380 + name.width + 8, y - 10, TitleSystem.label(titleRow), {
+          fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: TitleSystem.colorOf(titleRow)
+        }).setOrigin(0, 0.5).setDepth(8);
+      }
       const chip = this.add.text(W / 2 - 380, y + 12, boardRankLabel(row.mmr, row.games), {
         fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: muted
       }).setOrigin(0, 0.5).setDepth(8);
@@ -284,16 +291,18 @@ export class RankScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: special ? gold : "#3a2418"
       }).setOrigin(0.5).setDepth(8);
       const rowBits = [panel, av, badge, placeTx, name, chip, mmr];
+      if (titleTx) rowBits.push(titleTx);
       const sess = AuthSystem.session && AuthSystem.session();
       const mark = liveSeasonMark(row.season_mark) || (sess && row.id === sess.id ? liveSeasonMark(SaveSystem.data.seasonMark) : null);
       if (mark) {
         const cyc = seasonCycleOf(mark.cycle | 0);
         const key = plateKey(mark.kind, cyc);
         if (key && this.textures.exists(key)) {
+          const nameEnd = titleTx ? titleTx.x + titleTx.width : W / 2 - 380 + name.width;
           if (mark.kind === "frame") {
             rowBits.push(this.add.image(W / 2 - 300, y - 10, key).setDisplaySize(52, 36).setDepth(7));
           } else {
-            rowBits.push(this.add.image(W / 2 - 380 + name.width + 22, y - 10, key).setDisplaySize(30, 30).setDepth(8));
+            rowBits.push(this.add.image(nameEnd + 22, y - 10, key).setDisplaySize(30, 30).setDepth(8));
           }
         }
       }

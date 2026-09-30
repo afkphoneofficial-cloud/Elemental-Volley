@@ -187,7 +187,8 @@ returns table (
   wins integer,
   losses integer,
   games integer,
-  season_mark jsonb
+  season_mark jsonb,
+  title_id text
 )
 language sql
 security definer
@@ -211,7 +212,8 @@ as $$
       p.rank_wins as wins,
       p.rank_losses as losses,
       p.rank_games as games,
-      coalesce(p.save_data->'seasonMark', '{}'::jsonb) as season_mark
+      coalesce(p.save_data->'seasonMark', '{}'::jsonb) as season_mark,
+      nullif(p.save_data->'titles'->>'worn', '') as title_id
     from public.profiles p
     where p.display_name is not null
       and length(btrim(p.display_name)) >= 2

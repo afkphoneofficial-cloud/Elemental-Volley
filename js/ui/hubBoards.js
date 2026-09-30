@@ -3,6 +3,9 @@ import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { wantFx } from "../systems/GameSettings.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
+import { AuthSystem } from "../systems/AuthSystem.js";
+import { SaveSystem } from "../systems/SaveSystem.js";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
 import { avatarKey } from "../data/avatars.js";
 import { badgeKey, displayBadgeId } from "../data/ranks.js";
 
@@ -146,13 +149,21 @@ function fillRows(scene, x, y, w, h, kind, res, status) {
     if (scene.textures.exists(badgeKey(badgeId))) {
       scene.add.image(x - w / 2 + 92, ry, badgeKey(badgeId)).setDisplaySize(28, 28).setDepth(12);
     }
+    const youId = AuthSystem.session && AuthSystem.session() && AuthSystem.session().id;
+    const titleRow = TitleSystem.boardWorn(row, youId, SaveSystem.data);
     const name = String(row.display_name || "—").slice(0, 10);
     scene.add.text(x - w / 2 + 110, ry - 10, name, {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: epic ? "#fff6ea" : "#3a2418"
     }).setOrigin(0, 0.5).setDepth(12);
-    scene.add.text(x - w / 2 + 110, ry + 12, String(row.mmr | 0), {
-      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: epic ? "#ffe08a" : "#7d5cff"
-    }).setOrigin(0, 0.5).setDepth(12);
+    if (titleRow) {
+      scene.add.text(x - w / 2 + 110, ry + 12, TitleSystem.label(titleRow) + " · " + (row.mmr | 0), {
+        fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: TitleSystem.colorOf(titleRow)
+      }).setOrigin(0, 0.5).setDepth(12);
+    } else {
+      scene.add.text(x - w / 2 + 110, ry + 12, String(row.mmr | 0), {
+        fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: epic ? "#ffe08a" : "#7d5cff"
+      }).setOrigin(0, 0.5).setDepth(12);
+    }
   });
 }
 

@@ -35,7 +35,7 @@ import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
-import { TitleSystem } from "../systems/TitleSystem.js?v=local216";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";

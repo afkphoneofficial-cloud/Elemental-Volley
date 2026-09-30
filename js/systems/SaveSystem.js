@@ -20,7 +20,7 @@ import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { emptyTitles } from "../data/titles.js";
 import { BETA } from "../data/beta.js";
-import { TitleSystem } from "./TitleSystem.js?v=local216";
+import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 

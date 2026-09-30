@@ -97,6 +97,16 @@ export const TitleSystem = {
     return name + "  " + this.label(row);
   },
 
+  boardWorn(row, youId, save) {
+    if (!row) return null;
+    let id = "";
+    if (youId && String(row.id) === String(youId) && save && save.titles) {
+      id = save.titles.worn || "";
+    }
+    if (!id) id = row.title_id || row.titleId || "";
+    return titleById(id);
+  },
+
   giftMail() {
     return {
       id: BETA.giftId,

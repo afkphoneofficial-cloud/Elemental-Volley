@@ -3,7 +3,7 @@ import { SaveSystem } from "./SaveSystem.js";
 import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { TitleSystem } from "./TitleSystem.js?v=local216";
+import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { AudioSystem } from "./AudioSystem.js";
 
 function els() {
@@ -56,12 +56,16 @@ function rowHtml(row, youId) {
   const badgeId = displayBadgeId({ mmr: row.mmr, games: row.games });
   const badge = `<img class="board-badge" alt="" src="${badgeSrc(badgeId)}" width="44" height="44" />`;
   const mark = markBits(row, youId);
+  const title = TitleSystem.boardWorn(row, youId, SaveSystem.data);
+  const titleHtml = title
+    ? `<span class="board-title-tag t-${title.tier}">${escapeHtml(TitleSystem.label(title))}</span>`
+    : "";
   return `<article class="board-row ${podium}${mine}" data-place="${place}">
     <span class="board-place">${place}</span>
     <img class="board-av" alt="" src="${avSrc(row.avatar_id)}" width="44" height="44" />
     ${badge}
     <div class="board-meta">
-      <p class="board-name${mark.cls}">${escapeHtml(row.display_name || "—")}${mark.plate}</p>
+      <p class="board-name${mark.cls}">${escapeHtml(row.display_name || "—")}${titleHtml}${mark.plate}</p>
       <p class="board-rank">${rankLabel(row.mmr, row.games)}</p>
     </div>
     <div class="board-stats">
@@ -202,7 +206,11 @@ export const Leaderboard = {
     const place = this.me && this.me.place;
     const on = this.me ? this.me.on_board : games > 0;
     ui.you.hidden = false;
-    const name = TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "—");
+    const rawName = AuthSystem.displayName() || "—";
+    const worn = TitleSystem.worn(SaveSystem.data);
+    const nameHtml = escapeHtml(rawName) + (worn
+      ? ` <span class="board-title-tag t-${worn.tier}">${escapeHtml(TitleSystem.label(worn))}</span>`
+      : "");
     let status = t("board.youOff");
     if (on && place) {
       status = place <= 100
@@ -213,7 +221,7 @@ export const Leaderboard = {
     ui.you.innerHTML = `<span class="board-you-kicker">${status}</span>
       <span class="board-you-id">
         <img class="board-you-badge" alt="" src="${badgeSrc(badgeId)}" width="28" height="28" />
-        <strong>${escapeHtml(name)}</strong>
+        <strong>${nameHtml}</strong>
       </span>
       <span>${rankLabel(mmr, games)}</span>
       <span>${mmr} · ${t("board.wl", { w: wins, l: losses })}</span>`;
