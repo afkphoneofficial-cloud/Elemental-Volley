@@ -5,6 +5,7 @@ export const PASS = {
   thb: 59,
   instantPowder: 40,
   dailyPowder: 1,
+  dailyStone: 2,
   ownedLookPowder: 30,
   dupBuyPowder: 20,
   vialDays: [7, 15, 23],
@@ -88,4 +89,14 @@ export function vialDayOn(date = new Date()) {
 
 export function vialDaysLabel() {
   return PASS.vialDays.join(" · ");
+}
+
+export function passInstantGift() {
+  return { powder: PASS.instantPowder };
+}
+
+export function passDailyGift(date = new Date()) {
+  const gift = { powder: PASS.dailyPowder, stones: PASS.dailyStone };
+  if (vialDayOn(date)) gift.vial = PASS.vialN;
+  return gift;
 }

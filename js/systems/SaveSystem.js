@@ -18,8 +18,8 @@ import { previousRankingWeek, rankingWeek } from "../data/rankWindows.js";
 import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
-import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js";
-import { emptyDaily, nextDailyStreak, dailyGiftOf } from "../data/dailyLogin.js?v=local170";
+import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js?v=local171";
+import { emptyDaily, nextDailyStreak, dailyGiftOf } from "../data/dailyLogin.js?v=local171";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -406,14 +406,16 @@ export const SaveSystem = {
     const row = this.passRow(id);
     if (row.claimed[key]) return { ok: false, reason: "done" };
     const vial = vialDayOn();
-    row.claimed[key] = { powder: PASS.dailyPowder, vial: vial ? PASS.vialN : 0 };
+    const stones = PASS.dailyStone | 0;
+    row.claimed[key] = { powder: PASS.dailyPowder, stones, vial: vial ? PASS.vialN : 0 };
     this.data.currencies.premium = (this.data.currencies.premium | 0) + PASS.dailyPowder;
+    if (stones) this.data.currencies.pvp = (this.data.currencies.pvp | 0) + stones;
     if (vial) {
       if (!this.data.inventory) this.data.inventory = {};
       this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + PASS.vialN;
     }
     this.persist();
-    return { ok: true, powder: PASS.dailyPowder, vial: vial ? PASS.vialN : 0 };
+    return { ok: true, powder: PASS.dailyPowder, stones, vial: vial ? PASS.vialN : 0 };
   },
 
   dailyRow() {

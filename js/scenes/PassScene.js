@@ -5,9 +5,8 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import {
-  PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel
-} from "../data/monthPass.js";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local171";
+import { PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel, passInstantGift } from "../data/monthPass.js?v=local171";
 
 export class PassScene extends Phaser.Scene {
   constructor() { super("pass"); }
@@ -72,41 +71,34 @@ export class PassScene extends Phaser.Scene {
     this.add.text(940, 168, t("pass.instant"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(940, 210, t("pass.instantPowder", { n: PASS.instantPowder }), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#1a1008"
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(940, 242, t("pass.instantLook"), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008"
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(940, 290, t("pass.daily"), {
+    paintGiftIcons(this, 940, 222, passInstantGift(), { size: 48, gap: 64, depth: 8, fontSize: "16px" });
+    this.add.text(940, 292, t("pass.daily"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(8);
-    this.add.text(940, 324, t("pass.dailyPowder", { n: PASS.dailyPowder }), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008"
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(940, 356, t("pass.dailyVial", { days: vialDaysLabel() }), {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#4a2810",
-      align: "center", wordWrap: { width: 460 }
+    paintGiftIcons(this, 940, 348, { powder: PASS.dailyPowder, stones: PASS.dailyStone, vial: PASS.vialN }, { size: 42, gap: 78, depth: 8, fontSize: "15px" });
+    this.add.text(940, 408, t("pass.dailyVial", { days: vialDaysLabel() }), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#4a2810",
+      align: "center", wordWrap: { width: 440 }
     }).setOrigin(0.5).setDepth(8);
 
-    this.leftTx = this.add.text(940, 410, t("pass.left", { t: formatRemain(msUntilMonthEnd()) }), {
+    this.leftTx = this.add.text(940, 438, t("pass.left", { t: formatRemain(msUntilMonthEnd()) }), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5).setDepth(8);
 
     if (!bought) {
-      makeButton(this, 940, 478, 280, 48, t("pass.buy", { n: PASS.thb }), () => {
+      makeButton(this, 940, 500, 280, 48, t("pass.buy", { n: PASS.thb }), () => {
         if (this.lock) return;
         AudioSystem.ui();
         this.openBuy();
       }, 0xff6a22);
     } else {
-      this.add.text(940, 448, t("pass.bought"), {
+      this.add.text(940, 470, t("pass.bought"), {
         fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#146b32"
       }).setOrigin(0.5).setDepth(8);
       if (SaveSystem.passClaimedToday()) {
-        makeButton(this, 940, 500, 280, 44, t("pass.claimed"), () => {}, 0xe8dcc8);
+        makeButton(this, 940, 518, 280, 44, t("pass.claimed"), () => {}, 0xe8dcc8);
       } else {
-        makeButton(this, 940, 500, 280, 44, t("pass.claim"), () => {
+        makeButton(this, 940, 518, 280, 44, t("pass.claim"), () => {
           if (this.lock) return;
           AudioSystem.ui();
           const res = SaveSystem.claimPassDay();

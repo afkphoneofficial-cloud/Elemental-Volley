@@ -19,10 +19,11 @@ import { mountHubMenu } from "../ui/hubMenu.js";
 import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
-import { HUB_BAR_TOP, HUB_PASS_H, HUB_MENU } from "../ui/hubLayout.js?v=local170";
-import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js";
+import { HUB_BAR_TOP, HUB_PASS_H, HUB_MENU } from "../ui/hubLayout.js?v=local171";
+import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local170";
+import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local171";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local171";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -302,15 +303,6 @@ export class HubScene extends Phaser.Scene {
     this.dailyBits = [];
   }
 
-  giftLine(gift) {
-    const bits = [];
-    if (gift.coins) bits.push(t("daily.coins", { n: gift.coins }));
-    if (gift.shards) bits.push(t("daily.shards", { n: gift.shards }));
-    if (gift.vial) bits.push(t("daily.vial", { n: gift.vial }));
-    if (gift.powder) bits.push(t("daily.powder", { n: gift.powder }));
-    return bits.join("  ·  ");
-  }
-
   paintDailyChip() {
     this.wipeDaily();
     const keep = (o) => { this.dailyBits.push(o); return o; };
@@ -323,6 +315,7 @@ export class HubScene extends Phaser.Scene {
     const y = HUB_BAR_TOP + h / 2;
     const ready = SaveSystem.dailyReady();
     const streak = SaveSystem.dailyStreakNow();
+    const gift = dailyGiftOf(streak);
     const g = keep(this.add.graphics().setDepth(28));
     const draw = (hot) => {
       g.clear();
@@ -332,15 +325,11 @@ export class HubScene extends Phaser.Scene {
       g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
     };
     draw(false);
-    const icon = this.textures.exists("item-coin") ? "item-coin" : "item-shard";
-    keep(this.add.image(x - w / 2 + 28, y, icon).setDisplaySize(36, 36).setDepth(29));
-    keep(this.add.text(x + 10, y - 16, t("daily.short"), {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "900", color: "#1a1008"
+    keep(this.add.text(x, y - 26, t("daily.short"), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(29));
-    keep(this.add.text(x + 10, y + 4, t("daily.streak", { n: ((dailyIndex(streak) + 1)) }), {
-      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: "#4a2810"
-    }).setOrigin(0.5).setDepth(29));
-    keep(this.add.text(x + 10, y + 22, ready ? t("daily.take") : t("daily.done"), {
+    paintGiftIcons(this, x, y + 2, gift, { size: 26, gap: 38, depth: 29, fontSize: "11px" }).forEach(keep);
+    keep(this.add.text(x, y + 28, ready ? t("daily.take") : t("daily.done"), {
       fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: ready ? "#c45a16" : "#146b32"
     }).setOrigin(0.5).setDepth(29));
     const zone = keep(this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30));
@@ -386,13 +375,10 @@ export class HubScene extends Phaser.Scene {
       g.lineStyle(2, on ? 0xff6a22 : 0xe8c8a8, 1);
       g.strokeRoundedRect(x - 48, y - 58, 96, 116, 14);
       bits.push(g);
-      bits.push(this.add.text(x, y - 38, t("daily.day", { n: i + 1 }), {
+      bits.push(this.add.text(x, y - 42, t("daily.day", { n: i + 1 }), {
         fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#1a1008"
       }).setOrigin(0.5).setDepth(53));
-      bits.push(this.add.text(x, y + 8, this.giftLine(gift), {
-        fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#4a2810",
-        align: "center", wordWrap: { width: 88 }
-      }).setOrigin(0.5).setDepth(53));
+      paintGiftIcons(this, x, y + 6, gift, { size: 30, gap: 36, depth: 53, fontSize: "12px" }).forEach((o) => bits.push(o));
     });
     const wipe = () => {
       bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
@@ -409,7 +395,7 @@ export class HubScene extends Phaser.Scene {
         this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
         this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
         this.paintEther();
-        if (res.ok) this.openInfoNote(this.giftLine(res.gift));
+        if (res.ok) this.openGiftNote(res.gift);
       }, 0xff6a22, 54);
       bits.push(ok.bg, ok.text, ok.gfx);
     } else {
@@ -422,6 +408,15 @@ export class HubScene extends Phaser.Scene {
       wipe();
     }, 0xe8dcc8, 54);
     bits.push(no.bg, no.text, no.gfx);
+  }
+
+  openGiftNote(gift) {
+    if (!gift) return;
+    const W = this.scale.width;
+    const bg = this.add.rectangle(W / 2, 128, 220, 72, 0xfff6ea, 0.98).setDepth(59);
+    bg.setStrokeStyle(2, 0xffb14a, 0.9);
+    const bits = [bg, ...paintGiftIcons(this, W / 2, 120, gift, { size: 34, gap: 52, depth: 60, fontSize: "14px" })];
+    this.time.delayedCall(1800, () => bits.forEach((o) => { if (o && o.destroy) o.destroy(); }));
   }
 
   openInfoNote(text) {

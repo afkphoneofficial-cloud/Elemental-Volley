@@ -7,7 +7,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
-import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js";
+import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local171";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";

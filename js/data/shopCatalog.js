@@ -31,7 +31,7 @@ export function matchCoins(mode, win, youScore, foeScore) {
 
 export const SHOP_USE_GOODS = [
   { id: "ether_vial", price: 35, currency: "coins" },
-  { id: "bodyfruit", price: 120, currency: "coins" },
+  { id: "bodyfruit", price: 200, currency: "coins" },
   { id: "namestone", price: 100, currency: "premium" }
 ];
 
