@@ -22,7 +22,7 @@ import { ResultScene } from "./scenes/ResultScene.js?v=local206";
 import { SettingsScene } from "./scenes/SettingsScene.js";
 import { CareerScene } from "./scenes/CareerScene.js";
 import { QueueScene } from "./scenes/QueueScene.js?v=local209";
-import { RankScene } from "./scenes/RankScene.js";
+import { RankScene } from "./scenes/RankScene.js?v=local212";
 import { SeasonScene } from "./scenes/SeasonScene.js?v=local210";
 import { ModeScene } from "./scenes/ModeScene.js";
 import { DressScene } from "./scenes/DressScene.js";

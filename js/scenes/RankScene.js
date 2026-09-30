@@ -329,13 +329,10 @@ export class RankScene extends Phaser.Scene {
     maskG.setVisible(false);
 
     const bits = [];
-    const title = this.add.text(W / 2, 100, t("rank.title"), {
+    const title = this.add.text(W / 2, 108, t("rank.title"), {
       fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    const sub = this.add.text(W / 2, 128, t("rank.sub"), {
-      fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30"
-    }).setOrigin(0.5);
-    bits.push(title, sub);
+    bits.push(title);
 
     const rank = SaveSystem.data.rank;
     const cal = isCalibrating(rank);
