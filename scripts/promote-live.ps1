@@ -1,6 +1,7 @@
 # Fast-forward origin/live to origin/main and push.
 # After 10 Oct 2026 this is the production cut. Run in the Wednesday 05:00-11:00 ICT window.
 # Hotfix: .\scripts\promote-live.ps1 -Force
+# After switching Vercel Production Branch to live, tell the agent so it can drop scripts/live-prod.pending.
 param(
   [switch]$Force
 )

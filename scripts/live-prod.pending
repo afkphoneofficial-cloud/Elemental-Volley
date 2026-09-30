@@ -1,0 +1,5 @@
+After launch day (2026-10-10, Bangkok) this file means Vercel Production is still on main.
+
+Switch evolley.dev: Vercel → Project → Settings → Git → Production Branch → live
+
+When that is done, tell the agent. It will delete this file and stop reminding.
