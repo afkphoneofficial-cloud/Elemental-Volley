@@ -19,7 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { emptyTitles } from "../data/titles.js";
-import { BETA, liveWipeDue } from "../data/beta.js";
+import { BETA, liveWipeDue, onBetaDay } from "../data/beta.js";
 import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
@@ -211,6 +211,8 @@ function finish(data) {
   data.titles = { owned: Array.isArray(data.titles.owned) ? data.titles.owned.filter((id) => typeof id === "string") : [], worn: typeof data.titles.worn === "string" ? data.titles.worn : "" };
   if (!data.beta || typeof data.beta !== "object" || Array.isArray(data.beta)) data.beta = { testPlay: false };
   data.beta.testPlay = Boolean(data.beta.testPlay);
+  data.beta.shopTry = Boolean(data.beta.shopTry);
+  data.tryCostumePowder = Boolean(data.tryCostumePowder);
   if (typeof data.wipeId !== "string") data.wipeId = "";
   TitleSystem.normalize(data);
   if (typeof data.ballFx !== "string") data.ballFx = "";
@@ -433,12 +435,16 @@ export const SaveSystem = {
   },
 
   grantTryPowder() {
-    if (this.data.tryCostumePowder) return 0;
+    if (!onBetaDay(dayKey(), BETA.testStart, BETA.testEnd)) return 0;
+    if (this.data.tryCostumePowder || (this.data.beta && this.data.beta.shopTry)) return 0;
+    if (!this.data.beta || typeof this.data.beta !== "object") this.data.beta = { testPlay: false };
+    this.data.beta.shopTry = true;
     this.data.tryCostumePowder = true;
-    this.data.currencies.premium = (this.data.currencies.premium | 0) + 3000;
-    this.recordTopup({ kind: "try", packId: "try", powder: 3000, bonus: 0, thb: 0 }, false);
+    const n = BETA.shopTryPowder | 0;
+    this.data.currencies.premium = (this.data.currencies.premium | 0) + n;
+    this.recordTopup({ kind: "try", packId: "beta-shop", powder: n, bonus: 0, thb: 0 }, false);
     this.persist();
-    return 3000;
+    return n;
   },
 
   passRow(id) {

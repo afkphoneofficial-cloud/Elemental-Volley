@@ -10,7 +10,8 @@ export const BETA = {
   coins: 200,
   fruit: 1,
   titleId: "beta-tester",
-  wipeId: "live-2026-10-10"
+  wipeId: "live-2026-10-10",
+  shopTryPowder: 2000
 };
 
 export function onBetaDay(key, start, end) {

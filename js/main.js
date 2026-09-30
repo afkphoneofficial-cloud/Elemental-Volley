@@ -1,14 +1,14 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
-import { I18n } from "./i18n/I18n.js?v=local232";
+import { I18n } from "./i18n/I18n.js?v=local233";
 import { mountLobbyStage } from "./web/LobbyStage.js";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
-import { BootScene } from "./scenes/BootScene.js?v=local232";
+import { BootScene } from "./scenes/BootScene.js?v=local233";
 import { AuthScene } from "./scenes/AuthScene.js";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
-import { HubScene } from "./scenes/HubScene.js?v=local232";
+import { HubScene } from "./scenes/HubScene.js?v=local233";
 import { WelcomePop } from "./systems/WelcomePop.js?v=local230";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local206";

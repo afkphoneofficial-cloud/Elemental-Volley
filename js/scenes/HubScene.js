@@ -3,7 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n, t, charName } from "../i18n/I18n.js?v=local232";
+import { I18n, t, charName } from "../i18n/I18n.js?v=local233";
 import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
@@ -51,7 +51,7 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
-    SaveSystem.grantTryPowder();
+    const tryPowder = SaveSystem.grantTryPowder();
     SaveSystem.settleBetaGift();
     NetPlay.ensure();
     drawGrid(this);
@@ -164,6 +164,16 @@ export class HubScene extends Phaser.Scene {
     };
     document.addEventListener("visibilitychange", this._onVis);
     this.time.delayedCall(280, () => WelcomePop.tryShow());
+    if (tryPowder) {
+      this.time.delayedCall(900, () => {
+        if (!this.sys || !this.sys.isActive()) return;
+        openRewardPop(this, {
+          title: t("hub.testPowderTitle"),
+          sub: t("hub.testPowderSub"),
+          gift: { powder: tryPowder }
+        });
+      });
+    }
   }
 
   mountHubShop(W) {
