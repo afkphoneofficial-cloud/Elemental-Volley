@@ -1349,3 +1349,100 @@ html[data-control="pc"] #game {
   .ticket-grid { grid-template-columns: 1fr; }
 }
 
+#social-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 146;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(18, 10, 8, 0.55);
+  pointer-events: all;
+}
+#social-overlay[hidden] { display: none; }
+.social-shell {
+  position: relative;
+  width: min(440px, 94%);
+  padding: 28px 22px 24px;
+  background: #fff6ea;
+  border-radius: 22px;
+  border: 3px solid #ffe08a;
+  box-shadow: 0 16px 40px rgba(20, 8, 4, 0.4);
+  font-family: Kanit, "Segoe UI", sans-serif;
+  color: #3a2418;
+  text-align: center;
+}
+.social-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #c45a16;
+}
+.social-shell h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 900;
+}
+.social-sub {
+  margin: 0 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a4a30;
+}
+.social-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 0;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+}
+.social-btn.fb {
+  background: #1877f2;
+  box-shadow: 0 4px 0 #0d4fa8;
+}
+.social-btn.discord {
+  background: #9aa3c7;
+  box-shadow: 0 4px 0 #6d7490;
+  cursor: not-allowed;
+  opacity: 0.92;
+}
+.social-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+.social-btn-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+}
+.social-soon {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.95;
+}
+.social-shell .welcome-close { top: 10px; right: 10px; }
+

@@ -3,7 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n, t, charName } from "../i18n/I18n.js?v=local233";
+import { I18n, t, charName } from "../i18n/I18n.js?v=local236";
 import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
@@ -14,6 +14,7 @@ import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
 import { WelcomePop } from "../systems/WelcomePop.js?v=local234";
 import { TicketPop } from "../systems/TicketPop.js?v=local229";
+import { SocialPop } from "../systems/SocialPop.js?v=local236";
 import { NetPlay } from "../systems/NetPlay.js";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local217";
@@ -199,6 +200,9 @@ export class HubScene extends Phaser.Scene {
 
   mountHubBag() {
     const x = 28 + 236 + 72;
+    this.mountHubSideBtn(x, 192, "vis_icon_social", "icon-social", "item-shard", t("hub.navSocial"), 0x5a9cff, () => {
+      SocialPop.show();
+    });
     this.mountHubSideBtn(x, 300, "item-bag", "item-bag", "item-shard", t("hub.navBag"), 0xffb14a, () => {
       this.scene.start("bag");
     });
@@ -623,6 +627,7 @@ export class HubScene extends Phaser.Scene {
     ChatSystem.bindHub(null);
     Leaderboard.hide();
     WelcomePop.hide();
+    SocialPop.hide();
   }
 
   layoutChip(box, icon, text) {

@@ -1,7 +1,7 @@
 import { TextureFactory } from "../systems/TextureFactory.js?v=local224";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local233";
+import { I18n } from "../i18n/I18n.js?v=local236";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
@@ -55,6 +55,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("icon-friends", "assets/sprites/items/icon-friends.png");
     this.load.image("icon-settings", "assets/sprites/items/icon-settings.png");
     this.load.image("icon-chat", "assets/sprites/items/icon-chat.png");
+    this.load.image("icon-social", "assets/sprites/items/icon-social.png");
     this.load.image("icon-namestone", "assets/sprites/items/icon-namestone.png");
     this.load.image("item-plate-champ", "assets/sprites/items/item-plate-champ.png");
     this.load.image("item-plate-runner", "assets/sprites/items/item-plate-runner.png");
@@ -120,6 +121,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "icon-friends", "vis_icon_friends");
       TextureFactory.applyChibi(this, "icon-settings", "vis_icon_settings");
       TextureFactory.applyChibi(this, "icon-chat", "vis_icon_chat");
+      TextureFactory.applyChibi(this, "icon-social", "vis_icon_social");
       TextureFactory.applyChibi(this, "icon-namestone", "icon-namestone");
       TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
       TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
