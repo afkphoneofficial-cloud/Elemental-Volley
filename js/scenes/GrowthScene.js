@@ -1,7 +1,7 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import {
-  STAT_IDS, STAT_CAP, GROWTH_MAX_LV, GROWTH_SPECIAL_LV,
+  STAT_IDS, STAT_CAP, GROWTH_MAX_LV,
   copyGrowth, growthEqual, trySpend, tryUnspend, sheetFromRow
 } from "../data/growth.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
@@ -54,8 +54,9 @@ export class GrowthScene extends Phaser.Scene {
     this.add.text(W / 2, 36, t("growth.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.sub = this.add.text(W / 2, 72, t("growth.sub"), {
-      fontFamily: UI_FONT, fontSize: "13px", color: "#7a4a30"
+
+    this.ptsText = this.add.text(W / 2, 158, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
 
     ROSTER_IDS.forEach((id, i) => {
@@ -78,14 +79,7 @@ export class GrowthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#c45a16",
       align: "center", wordWrap: { width: 240 }
     }).setOrigin(0.5);
-    this.ptsText = this.add.text(720, 160, "", {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008",
-      wordWrap: { width: 640 }, align: "center"
-    }).setOrigin(0.5);
-    this.specialText = this.add.text(720, 186, "", {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7d5cff"
-    }).setOrigin(0.5);
-    this.draftText = this.add.text(720, 208, "", {
+    this.draftText = this.add.text(720, 188, "", {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#9a3a18",
       wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
@@ -203,14 +197,9 @@ export class GrowthScene extends Phaser.Scene {
       n: sheet.gift,
       stat: t("growth.stat." + sheet.giftStat)
     }));
-    this.ptsText.setText(t("growth.unspent", {
-      n: sheet.unspent,
-      start: sheet.unspentStart,
-      lv: sheet.unspentLevel
-    }));
-    this.specialText.setText(sheet.specialReady
-      ? t("growth.specialOn")
-      : t("growth.specialOff", { n: GROWTH_SPECIAL_LV }));
+    const pickI = Math.max(0, ROSTER_IDS.indexOf(this.charId));
+    this.ptsText.setPosition(this.scale.width / 2 - 240 + pickI * 160, 158);
+    this.ptsText.setText(t("growth.leftPts", { n: sheet.unspent }));
     this.draftText.setText(dirty ? t("growth.draftNote") : "");
     this.rows.forEach((item) => {
       const gift = item.stat === sheet.giftStat ? sheet.gift : 0;
