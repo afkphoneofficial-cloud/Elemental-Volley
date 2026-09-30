@@ -6,7 +6,7 @@ import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 
-const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "career", "mode", "rank", "menu"]);
+const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "mode", "rank", "menu"]);
 
 function els() {
   return {
@@ -350,8 +350,9 @@ export const ChatSystem = {
     const r = box.getBoundingClientRect();
     const scale = r.height / 720;
     const onHub = Boolean(this.hubScene);
-    ui.dock.hidden = !this.visible || (onHub && !this.open);
-    if (ui.toggle) ui.toggle.hidden = onHub;
+    const show = Boolean(this.visible);
+    ui.dock.hidden = !show || (onHub && !this.open);
+    if (ui.toggle) ui.toggle.hidden = !show || onHub;
     ui.dock.classList.toggle("on-hub", onHub);
     ui.dock.style.width = Math.round(CHAT_PANEL_W * scale) + "px";
     ui.dock.style.setProperty("--chat-scale", String(scale));
