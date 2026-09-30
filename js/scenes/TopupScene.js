@@ -34,34 +34,20 @@ export class TopupScene extends Phaser.Scene {
     this.add.text(W / 2, 40, t("topup.title"), {
       fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 86, t("topup.sub"), {
-      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#7a4a30",
-      align: "center", wordWrap: { width: 920 }
-    }).setOrigin(0.5);
-
-    const box = this.add.graphics();
-    box.fillStyle(0xfff6ea, 0.96);
-    box.fillRoundedRect(W / 2 - 460, 118, 920, 88, 18);
-    box.lineStyle(2, 0x3ad6ff, 0.7);
-    box.strokeRoundedRect(W / 2 - 460, 118, 920, 88, 18);
-    this.add.text(W / 2, 162, t("topup.rate"), {
-      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#3a2418",
-      align: "center", wordWrap: { width: 860 }
-    }).setOrigin(0.5);
 
     const passBox = this.add.graphics();
     passBox.fillStyle(0xfff6ea, 0.96);
-    passBox.fillRoundedRect(W / 2 - 460, 214, 920, 72, 18);
+    passBox.fillRoundedRect(W / 2 - 460, 100, 920, 72, 18);
     passBox.lineStyle(2, 0xff8ab8, 0.8);
-    passBox.strokeRoundedRect(W / 2 - 460, 214, 920, 72, 18);
-    this.add.text(W / 2 - 200, 250, t("pass.title") + "  ·  " + t("pass.buy", { n: PASS.thb }), {
+    passBox.strokeRoundedRect(W / 2 - 460, 100, 920, 72, 18);
+    this.add.text(W / 2 - 200, 136, t("pass.title") + "  ·  " + t("pass.buy", { n: PASS.thb }), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#1a1008"
     }).setOrigin(0.5);
-    makeButton(this, W / 2 + 280, 250, 200, 40, t("topup.pass"), () => {
+    makeButton(this, W / 2 + 280, 136, 200, 40, t("topup.pass"), () => {
       AudioSystem.ui();
       this.scene.start("pass", { from: "topup" });
     }, 0xff8ab8);
-    this.add.zone(W / 2, 250, 920, 72).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+    this.add.zone(W / 2, 136, 920, 72).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
       AudioSystem.ui();
       this.scene.start("pass", { from: "topup" });
     });
@@ -70,7 +56,7 @@ export class TopupScene extends Phaser.Scene {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const x = W / 2 - 310 + col * 310;
-      const y = 398 + row * 148;
+      const y = 286 + row * 148;
       const g = this.add.graphics();
       g.fillStyle(0xfff6ea, 0.96);
       g.fillRoundedRect(x - 140, y - 70, 280, 140, 20);

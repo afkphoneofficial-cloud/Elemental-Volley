@@ -42,7 +42,7 @@ export class PassScene extends Phaser.Scene {
     const bought = SaveSystem.hasMonthPass(id);
     const row = SaveSystem.passRow(id);
 
-    this.add.text(W / 2, 82, t("pass.month", { id }) + "   ·   " + t("pass.sub"), {
+    this.add.text(W / 2, 82, t("pass.month", { id }), {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#4a2810",
       align: "center", wordWrap: { width: 880 }
     }).setOrigin(0.5).setDepth(8);
@@ -114,14 +114,12 @@ export class PassScene extends Phaser.Scene {
       }
     }
 
-    this.add.text(W / 2, 668, this.note || t("pass.payHint"), {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#4a2810",
-      align: "center", wordWrap: { width: 1100 }
-    }).setOrigin(0.5).setDepth(8);
-    this.add.text(W / 2, 696, t("pass.footer"), {
-      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#4a2810",
-      align: "center", wordWrap: { width: 1100 }
-    }).setOrigin(0.5).setDepth(8);
+    if (this.note) {
+      this.add.text(W / 2, 668, this.note, {
+        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#4a2810",
+        align: "center", wordWrap: { width: 1100 }
+      }).setOrigin(0.5).setDepth(8);
+    }
 
     if (this.got) {
       const g = this.got;
