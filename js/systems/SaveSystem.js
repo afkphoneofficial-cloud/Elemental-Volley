@@ -19,7 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js?v=local171";
-import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED } from "../data/dailyLogin.js?v=local181";
+import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -496,9 +496,17 @@ export const SaveSystem = {
     if (days >= DAILY_LOOK_NEED && row.costumeMonth !== mid) {
       const look = dailyLookOf(mid);
       if (look) {
-        this.giveDailyLook(look.id);
         row.costumeMonth = mid;
-        gift.lookId = look.id;
+        if (this.ownedShopLook(look.id)) {
+          this.data.currencies.premium = (this.data.currencies.premium | 0) + DAILY_DUP_POWDER;
+          gift.powder = (gift.powder | 0) + DAILY_DUP_POWDER;
+          gift.lookDup = true;
+          row.costumeKind = "powder";
+        } else {
+          this.giveDailyLook(look.id);
+          gift.lookId = look.id;
+          row.costumeKind = "look";
+        }
       }
     }
     this.persist();
@@ -688,7 +696,7 @@ export const SaveSystem = {
 
   ownedShopLook(id) {
     if (this.itemCount(id) > 0) return true;
-    return (this.data.shopLooks.owned || []).indexOf(id) >= 0;
+    return ((this.data.shopLooks && this.data.shopLooks.owned) || []).indexOf(id) >= 0;
   },
 
   wornShopLook(charId) {

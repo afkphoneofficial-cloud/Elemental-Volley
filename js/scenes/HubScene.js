@@ -22,7 +22,7 @@ import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local179";
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED } from "../data/dailyLogin.js?v=local183";
+import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local181";
 
 function chip(scene, x, y, w, color, onClick) {
@@ -377,13 +377,10 @@ export class HubScene extends Phaser.Scene {
     panel.lineStyle(3, 0xffb14a, 0.9);
     panel.strokeRoundedRect(W / 2 - 590, 40, 1180, 620, 24);
     bits.push(dim, panel);
-    bits.push(this.add.text(W / 2 - 80, 58, t("daily.title"), {
+    bits.push(this.add.text(W / 2 - 80, 78, t("daily.title"), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(Z + 2));
-    bits.push(this.add.text(W / 2 - 80, 86, t("daily.body"), {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#4a2810",
-      align: "center", wordWrap: { width: 780 }
-    }).setOrigin(0.5).setDepth(Z + 2));
+    this.mountDailyBody(bits, W / 2 - 80, 112, Z + 2);
     const ready = SaveSystem.dailyReady();
     const mid = monthId();
     const table = dailyMonthTable(mid);
@@ -400,9 +397,9 @@ export class HubScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#1a1008",
       align: "center", wordWrap: { width: 140 }
     }).setOrigin(0.5).setDepth(Z + 2));
-    const lookLine = SaveSystem.dailyLookGranted()
-      ? t("daily.lookGot")
-      : t("daily.lookNeed", { have: days, need: DAILY_LOOK_NEED });
+    const lookLine = !SaveSystem.dailyLookGranted()
+      ? t("daily.lookNeed", { have: days, need: DAILY_LOOK_NEED })
+      : (row.costumeKind === "powder" ? t("daily.lookDup") : t("daily.lookGot"));
     bits.push(this.add.text(1124, 164, lookLine, {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#0a6a88",
       align: "center", wordWrap: { width: 150 }
@@ -472,11 +469,33 @@ export class HubScene extends Phaser.Scene {
     bits.push(no.bg, no.text, no.gfx);
   }
 
+  mountDailyBody(bits, cx, y, depth) {
+    const style = { fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#4a2810" };
+    const lead = this.add.text(0, y, t("daily.bodyLead"), style).setOrigin(0, 0.5).setDepth(depth);
+    const pk = this.textures.exists("item-powder") ? "item-powder" : "item-shard";
+    const icon = this.add.image(0, y, pk).setDisplaySize(22, 22).setDepth(depth);
+    const tail = this.add.text(0, y, t("daily.bodyTail", { n: DAILY_DUP_POWDER }), style).setOrigin(0, 0.5).setDepth(depth);
+    const total = lead.width + 8 + 22 + 6 + tail.width;
+    if (total > 900) {
+      lead.setFontSize("12px");
+      tail.setFontSize("12px");
+    }
+    const w = lead.width + 8 + 22 + 6 + tail.width;
+    let x = cx - w / 2;
+    lead.setX(x);
+    x += lead.width + 8;
+    icon.setX(x + 11);
+    x += 22 + 6;
+    tail.setX(x);
+    bits.push(lead, icon, tail);
+  }
+
   openGiftNote(gift) {
     if (!gift) return;
     const W = this.scale.width;
+    const wide = !!(gift.lookId || gift.lookDup);
     const tall = gift.lookId ? 110 : 84;
-    const bg = this.add.rectangle(W / 2, 400, gift.lookId ? 280 : 240, tall, 0xfff6ea, 0.98).setDepth(160);
+    const bg = this.add.rectangle(W / 2, 400, wide ? 280 : 240, tall, 0xfff6ea, 0.98).setDepth(160);
     bg.setStrokeStyle(2, 0xffb14a, 0.9);
     const bits = [bg, ...paintGiftIcons(this, W / 2, gift.lookId ? 386 : 392, gift, { size: 36, gap: 56, depth: 161, fontSize: "13px" })];
     this.time.delayedCall(1800, () => bits.forEach((o) => { if (o && o.destroy) o.destroy(); }));

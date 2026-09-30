@@ -12,9 +12,10 @@ export const DAILY_CYCLE = [
 ];
 
 export const DAILY_LOOK_NEED = 20;
+export const DAILY_DUP_POWDER = 30;
 
 export function emptyDaily() {
-  return { lastClaim: "", lastSeen: "", claimed: {}, costumeMonth: "" };
+  return { lastClaim: "", lastSeen: "", claimed: {}, costumeMonth: "", costumeKind: "" };
 }
 
 export function daysInMonthId(id) {
