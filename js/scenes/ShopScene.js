@@ -15,6 +15,7 @@ import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
 import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local196";
+import { openOrbPreview, closeOrbPreview } from "../ui/shopOrbPreview.js?v=local199";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
 const CARD_W = 196;
@@ -71,6 +72,7 @@ export class ShopScene extends Phaser.Scene {
       closeShopNote(this);
       closeLookPreview(this);
       closeBallPreview(this);
+      closeOrbPreview(this);
     });
   }
 
@@ -244,10 +246,10 @@ export class ShopScene extends Phaser.Scene {
           AudioSystem.ui();
           shopNote(this, t("shop.needChar", { name: I18n.charName(look.charId) }), false);
         };
-      } else if (worn) stamp = t("shop.using");
-      else if (owned) {
-        priceMark = "▶";
-        onClick = () => {
+      } else if (owned) {
+        dim = true;
+        stamp = t("shop.owned");
+        onClick = worn ? null : () => {
           SaveSystem.wearShopLook(look.id);
           AudioSystem.ui();
           this.refresh();
@@ -355,7 +357,6 @@ export class ShopScene extends Phaser.Scene {
     const goods = BALL_FX.map((row) => ({ ...row, fxKind: "ball" })).concat(ULT_ORBS.map((row) => ({ ...row, fxKind: "orb" })));
     const cells = this.slots(goods.length);
     goods.forEach((row, i) => {
-      const armed = row.fxKind === "orb" ? SaveSystem.wearingOrb(row.id) : SaveSystem.wearingBall(row.id);
       const have = SaveSystem.itemCount(row.id);
       const icon = this.textures.exists(row.tex) ? row.tex : "ball";
       this.paintCard(cells[i].x, cells[i].y, {
@@ -365,11 +366,11 @@ export class ShopScene extends Phaser.Scene {
         hint: "",
         stroke: row.ring,
         accent: row.color,
-        stamp: armed ? t("shop.using") : null,
-        priceIcon: "item-powder",
-        price: row.price,
+        dim: have > 0,
+        stamp: have > 0 ? t("shop.owned") : null,
+        priceIcon: have > 0 ? null : "item-powder",
+        price: have > 0 ? null : row.price,
         onClick: () => {
-          if (armed) return;
           if (have) {
             const charId = row.char || SaveSystem.data.showcaseId || SaveSystem.data.starterId;
             SaveSystem.useItem(row.id, { charId });
@@ -391,10 +392,11 @@ export class ShopScene extends Phaser.Scene {
             after: (qty) => this.bought(t("item." + row.id + ".name"), qty)
           });
         },
-        zoom: row.fxKind === "ball" ? () => {
+        zoom: () => {
           AudioSystem.ui();
-          openBallPreview(this, row.id);
-        } : null
+          if (row.fxKind === "orb") openOrbPreview(this, row.id);
+          else openBallPreview(this, row.id);
+        }
       });
     });
   }
