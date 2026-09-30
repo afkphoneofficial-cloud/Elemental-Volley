@@ -32,7 +32,7 @@ import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
-import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js";
+import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local193";
 import {
   GAUGE_MAX,
   MATCH_FX,
@@ -1019,7 +1019,7 @@ export class PlayScene extends Phaser.Scene {
       this.ballFxG.clear();
       return;
     }
-    drawArmedBallFx(this.ballFxG, toScreenX(ball.x), toScreenY(ball.y), BALL / 2, row, this.time.now);
+    drawArmedBallFx(this.ballFxG, toScreenX(ball.x), toScreenY(ball.y), BALL / 2, row, this.time.now, this.justUlted ? "ult" : (ball.isPowerHit ? "smash" : "hit"));
   }
 
   pulseMatchPoint() {
