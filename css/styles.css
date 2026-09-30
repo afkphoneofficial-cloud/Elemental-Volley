@@ -1142,9 +1142,9 @@ html[data-control="pc"] #game {
 .welcome-tabs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 108px;
-  padding: 16px 10px;
+  gap: 6px;
+  width: 118px;
+  padding: 12px 8px;
   background: linear-gradient(180deg, #3a2418 0%, #1e140f 100%);
   flex-shrink: 0;
 }
@@ -1152,8 +1152,8 @@ html[data-control="pc"] #game {
   appearance: none;
   border: 0;
   border-radius: 12px;
-  min-height: 72px;
-  padding: 8px 6px;
+  min-height: 56px;
+  padding: 6px 6px;
   font-family: Kanit, "Segoe UI", sans-serif;
   font-weight: 800;
   font-size: 13px;

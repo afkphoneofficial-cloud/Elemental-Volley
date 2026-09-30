@@ -1,5 +1,21 @@
 export const WELCOME_SLIDES = [
   {
+    id: "beta",
+    img: "assets/welcome/welcome-promo-beta.jpg?v=local219",
+    tabTh: "เบต้า",
+    tabEn: "Beta",
+    capTh: "ทดสอบ 1–7 ต.ค. 2026  ·  พักเซิร์ฟ 8–9 ต.ค.  ·  ฉายา BetaTester และของขวัญช่วงพัก",
+    capEn: "Test 1–7 Oct 2026  ·  rest 8–9 Oct  ·  BetaTester title and rest-day gifts"
+  },
+  {
+    id: "live",
+    img: "assets/welcome/welcome-promo-live.jpg?v=local219",
+    tabTh: "เปิดเซิร์ฟ",
+    tabEn: "Live",
+    capTh: "เปิดเซิร์ฟจริง เสาร์ 10 ต.ค. 2026 เวลา 00:00 น. ตามเซิร์ฟไทย",
+    capEn: "Servers go live Saturday 10 Oct 2026 at 00:00 Bangkok time"
+  },
+  {
     id: "home",
     img: "assets/welcome/welcome-hero.jpg?v=local218",
     tabTh: "ต้อนรับ",
@@ -22,13 +38,5 @@ export const WELCOME_SLIDES = [
     tabEn: "Season",
     capTh: "อันดับรายสัปดาห์ ป้ายแชมป์ และของรางวัลซีซั่นรออยู่ที่ล็อบบี้",
     capEn: "Weekly ranks, champion plates, and season mail wait in the lobby"
-  },
-  {
-    id: "beta",
-    img: "assets/welcome/welcome-news-season.jpg",
-    tabTh: "เบต้า",
-    tabEn: "Beta",
-    capTh: "ทดสอบ 1–7 ต.ค.  ·  พัก 8–9 ต.ค.  ·  เปิดจริง 10 ต.ค. 2026",
-    capEn: "Test 1–7 Oct  ·  Rest 8–9 Oct  ·  Live 10 Oct 2026"
   }
 ];
