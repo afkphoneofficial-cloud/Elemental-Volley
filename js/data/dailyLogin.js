@@ -1,4 +1,5 @@
 import { dayKey, monthId, monthIndex, monthParts, passPool } from "./monthPass.js";
+import { bangkokWall } from "./rankWindows.js";
 
 export const DAILY_CYCLE = [
   { coins: 8 },
@@ -19,6 +20,11 @@ export function emptyDaily() {
 export function daysInMonthId(id) {
   const { y, m } = monthParts(id || monthId());
   return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+export function dailyMonthPad(id) {
+  const { y, m } = monthParts(id || monthId());
+  return bangkokWall(new Date(Date.UTC(y, m - 1, 1, 5, 0, 0))).dow;
 }
 
 function seedOf(id) {
