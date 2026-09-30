@@ -8,6 +8,14 @@ import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js";
 import { t } from "../i18n/I18n.js";
 import { avatarKey } from "../data/avatars.js";
+import { NetPlay } from "../systems/NetPlay.js";
+
+function dimBtn(btn, on) {
+  const a = on ? 1 : 0.4;
+  btn.gfx.setAlpha(a);
+  btn.text.setAlpha(on ? 1 : 0.55);
+  btn.bg.setAlpha(on ? 1 : 0.55);
+}
 
 export class FriendsScene extends Phaser.Scene {
   constructor() { super("friends"); }
@@ -32,7 +40,7 @@ export class FriendsScene extends Phaser.Scene {
       this.inputBound = true;
       this.input.on("wheel", (_p, _g, _dx, dy) => this.nudgeList(dy * 0.45));
       this.input.on("pointerdown", (p) => {
-        if (p.y < 330 || p.y > 675) return;
+        if (p.x > 620 || p.y < 318 || p.y > 678) return;
         this._drag = { y: p.y, s: this.listScroll };
       });
       this.input.on("pointerup", () => { this._drag = null; });
@@ -135,54 +143,88 @@ export class FriendsScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(6);
     }
 
+    const leftX = 322;
+    const rightX = 958;
+    const colY = 498;
+    roundPanel(this, leftX, colY, 596, 392, 0xff8ab8, 0xfff6ea);
+    roundPanel(this, rightX, colY, 596, 392, 0x7d5cff, 0xfff6ea);
+    this.add.text(leftX, 318, t("friends.listHead"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(rightX, 318, t("friends.findTitle"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(8);
+    this.add.text(rightX, 360, t("friends.findBody"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30",
+      align: "center", wordWrap: { width: 520 }
+    }).setOrigin(0.5).setDepth(8);
+
+    const coolLeft = Math.max(0, (NetPlay.exhibitCooldownUntil | 0) - Date.now());
+    this.findWait = this.add.text(rightX, 430, coolLeft ? t("friends.findWait", { n: Math.ceil(coolLeft / 1000) }) : "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(8);
+    const findOn = coolLeft <= 0;
+    const find = makeButton(this, rightX, 520, 280, 56, t("friends.findMatch"), () => {
+      if (!findOn) return;
+      AudioSystem.ui();
+      Session.mode = "exhibit";
+      Session.exhibitCasual = true;
+      Session.exhibitFriendId = null;
+      Session.rival = null;
+      Session.playerId = Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId || "ignis";
+      this.hideForm();
+      this.scene.start("queue");
+    }, findOn ? 0xff6a22 : 0xc8bdd8);
+    if (!findOn) dimBtn(find, false);
+
     if (!list.length) {
-      roundPanel(this, W / 2, 430, 640, 160, 0xff8ab8, 0xfff6ea);
-      this.add.text(W / 2, 410, t("friends.empty"), {
-        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 560 }
-      }).setOrigin(0.5).setDepth(6);
-      this.add.text(W / 2, 450, t("friends.emptySub"), {
-        fontFamily: UI_FONT, fontSize: "15px", color: "#7a4a30", align: "center", wordWrap: { width: 520 }
-      }).setOrigin(0.5).setDepth(6);
+      this.add.text(leftX, 480, t("friends.empty"), {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#3a2418", align: "center", wordWrap: { width: 520 }
+      }).setOrigin(0.5).setDepth(8);
+      this.add.text(leftX, 530, t("friends.emptySub"), {
+        fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 500 }
+      }).setOrigin(0.5).setDepth(8);
     } else {
-      const rowH = 100;
-      const listTop = 380;
-      const viewH = 320;
+      const rowH = 92;
+      const listTop = 370;
+      const viewH = 300;
       this.listMax = Math.max(0, list.length * rowH - viewH);
       this.listScroll = Phaser.Math.Clamp(this.listScroll || 0, 0, this.listMax);
       this.listBox = this.add.container(0, -this.listScroll);
       const maskG = this.make.graphics();
       maskG.fillStyle(0xffffff, 1);
-      maskG.fillRect(W / 2 - 510, listTop - 50, 1020, viewH);
+      maskG.fillRect(leftX - 286, listTop - 42, 572, viewH);
       this.listBox.setMask(maskG.createGeometryMask());
       maskG.setVisible(false);
       slice.forEach((pal, i) => {
         const y = listTop + i * rowH;
-        const panel = roundPanel(this, W / 2, y, 980, 88, 0xffb14a, 0xfff6ea);
+        const panel = roundPanel(this, leftX, y, 560, 82, 0xffb14a, 0xfff6ea);
         const av = this.textures.exists(avatarKey(pal.avatarId)) ? avatarKey(pal.avatarId) : avatarKey("av01");
-        const img = this.add.image(W / 2 - 420, y, av).setDisplaySize(64, 64).setDepth(8);
-        const ring = this.add.circle(W / 2 - 420, y, 36, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
-        const nm = this.add.text(W / 2 - 360, y - 14, pal.name || "—", {
-          fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#3a2418"
+        const img = this.add.image(leftX - 232, y, av).setDisplaySize(52, 52).setDepth(8);
+        const ring = this.add.circle(leftX - 232, y, 30, 0x000000, 0).setStrokeStyle(3, 0xff8ab8, 0.8).setDepth(9);
+        const nm = this.add.text(leftX - 188, y - 12, pal.name || "—", {
+          fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#3a2418"
         }).setOrigin(0, 0.5).setDepth(8);
-        const sub = this.add.text(W / 2 - 360, y + 14, t("friends.rowSub"), {
-          fontFamily: UI_FONT, fontSize: "13px", color: "#8a5a38"
+        const sub = this.add.text(leftX - 188, y + 12, t("friends.rowSub"), {
+          fontFamily: UI_FONT, fontSize: "11px", color: "#8a5a38"
         }).setOrigin(0, 0.5).setDepth(8);
-        const ex = makeButton(this, W / 2 + 140, y, 150, 40, t("friends.exhibit"), () => {
+        const ex = makeButton(this, leftX + 52, y, 108, 34, t("friends.exhibit"), () => {
           if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           Session.mode = "exhibit";
+          Session.exhibitCasual = false;
           Session.exhibitFriendId = pal.id;
           Session.rival = Friends.toRival(pal);
           Session.rival.live = true;
           this.hideForm();
           this.scene.start("select");
         }, 0x7d5cff);
-        const ch = makeButton(this, W / 2 + 290, y, 110, 40, t("friends.chat"), () => {
+        const ch = makeButton(this, leftX + 154, y, 78, 34, t("friends.chat"), () => {
           if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           ChatSystem.openDm(pal);
         }, 0x3ad6ff);
-        const rm = makeButton(this, W / 2 + 420, y, 100, 40, t("friends.remove"), () => {
+        const rm = makeButton(this, leftX + 236, y, 70, 34, t("friends.remove"), () => {
           if (!this.rowVisible(y, listTop, viewH)) return;
           AudioSystem.ui();
           Friends.remove(pal.id).then(() => this.draw());
@@ -194,6 +236,18 @@ export class FriendsScene extends Phaser.Scene {
       this.add.text(W / 2, 278, this.note, {
         fontFamily: UI_FONT, fontSize: "14px", color: "#c45a16"
       }).setOrigin(0.5);
+    }
+  }
+
+  update() {
+    if (!this.findWait) return;
+    const left = Math.max(0, (NetPlay.exhibitCooldownUntil | 0) - Date.now());
+    if (left > 0) {
+      this.findWait.setText(t("friends.findWait", { n: Math.ceil(left / 1000) }));
+      this._coolOn = true;
+    } else if (this._coolOn) {
+      this._coolOn = false;
+      this.draw();
     }
   }
 

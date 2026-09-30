@@ -12,6 +12,7 @@ export const Session = {
   netHost: false,
   exhibitFriendId: null,
   exhibitIncoming: false,
+  exhibitCasual: false,
   youSkin: 1,
   foeSkin: 1,
   youChamp: 0,

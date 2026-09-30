@@ -70,6 +70,7 @@ export const NetPlay = {
   snap: null,
   pingTimer: null,
   reconnectTimer: null,
+  exhibitCooldownUntil: 0,
 
   on(fn) {
     listeners.add(fn);
@@ -215,6 +216,12 @@ export const NetPlay = {
     this.flushWant();
   },
 
+  queueExhibit() {
+    this.ticks = [];
+    this.want = "exhibitQueue";
+    this.flushWant();
+  },
+
   exhibit(friendId) {
     this.want = { exhibit: friendId };
     this.flushWant();
@@ -229,6 +236,21 @@ export const NetPlay = {
       const rank = SaveSystem.data.rank || {};
       this.send({
         t: "queue",
+        fighter: Session.playerId,
+        skin: fighterSkin(),
+        champSet: fighterChamp(),
+        mmr: rank.mmr | 0,
+        wins: rank.wins | 0,
+        avatar: SaveSystem.data.avatarId || "av01",
+        mostUsed: mostUsed()
+      });
+      this.want = null;
+    } else if (this.want === "exhibitQueue") {
+      const rank = SaveSystem.data.rank || {};
+      this.send({
+        t: "queue",
+        mode: "exhibit",
+        open: true,
         fighter: Session.playerId,
         skin: fighterSkin(),
         champSet: fighterChamp(),

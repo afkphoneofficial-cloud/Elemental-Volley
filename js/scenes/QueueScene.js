@@ -74,7 +74,7 @@ export class QueueScene extends Phaser.Scene {
     this.cancelBtn = makeButton(this, 120, 48, 140, 40, t("queue.cancel"), () => {
       AudioSystem.ui();
       NetPlay.cancel();
-      this.scene.start("select");
+      this.scene.start(Session.exhibitCasual ? "friends" : "select");
     }, 0x7d5cff);
     makeButton(this, W - 140, 48, 180, 40, t("queue.how"), () => {
       AudioSystem.ui();
@@ -94,14 +94,25 @@ export class QueueScene extends Phaser.Scene {
       this.stopWaitClock();
       return;
     }
-    if (NetPlay.cooldownUntil > Date.now() && !Session.exhibitIncoming) {
+    if (NetPlay.cooldownUntil > Date.now() && !Session.exhibitIncoming && !Session.exhibitCasual) {
       this.status.setText(t("queue.cooldown", { n: Math.ceil((NetPlay.cooldownUntil - Date.now()) / 60000) }));
       this.stopWaitClock();
       return;
     }
     if (Session.exhibitIncoming) {
       Session.exhibitIncoming = false;
-      this.status.setText(t("queue.searching"));
+      this.status.setText(t("queue.searchExhibit"));
+      this.beginWait();
+    } else if (Session.mode === "exhibit" && Session.exhibitCasual) {
+      const left = (NetPlay.exhibitCooldownUntil | 0) - Date.now();
+      if (left > 0) {
+        this.status.setText(t("queue.coolSec", { n: Math.ceil(left / 1000) }));
+        this.stopWaitClock();
+        this.time.delayedCall(700, () => this.scene.start("friends"));
+        return;
+      }
+      this.status.setText(t("queue.searchExhibit"));
+      NetPlay.queueExhibit();
       this.beginWait();
     } else if (Session.mode === "exhibit" && Session.exhibitFriendId) {
       NetPlay.exhibit(Session.exhibitFriendId);
@@ -124,7 +135,7 @@ export class QueueScene extends Phaser.Scene {
     if (msg.t === "searching") {
       this.clearOffer();
       if (this.found) return;
-      this.status.setText(t("queue.searching"));
+      this.status.setText(Session.exhibitCasual ? t("queue.searchExhibit") : t("queue.searching"));
       this.beginWait();
     }
     if (msg.t === "cooldown") {
@@ -229,6 +240,8 @@ export class QueueScene extends Phaser.Scene {
     Session.foeChamp = Session.rival.champSet;
     Session.youSkin = clampSkin(SaveSystem.skinOf(Session.playerId));
     Session.youChamp = champSetOf(Session.playerId);
+    this.offerVoted = false;
+    this.offerId = msg.offerId;
     this.status.setText(t("queue.foundLive"));
     this.setWaitVisible(false);
     if (this.cancelBtn && this.cancelBtn.bg) this.cancelBtn.bg.setVisible(false);
@@ -269,6 +282,7 @@ export class QueueScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(32);
     const yes = makeChoiceButton(this, W / 2 - 118, H / 2 + 148, 210, 58, t("queue.accept"), "yes", () => {
       AudioSystem.ui();
+      this.offerVoted = true;
       NetPlay.vote(msg.offerId, true);
       this.status.setText(t("queue.waitAccept"));
       yes.bg.disableInteractive();
@@ -276,9 +290,16 @@ export class QueueScene extends Phaser.Scene {
     });
     const no = makeChoiceButton(this, W / 2 + 118, H / 2 + 148, 210, 58, t("queue.decline"), "no", () => {
       AudioSystem.ui();
+      this.offerVoted = true;
       NetPlay.vote(msg.offerId, false);
       this.clearOffer();
-      this.status.setText(t("queue.cooldown", { n: 5 }));
+      if (Session.exhibitCasual) {
+        NetPlay.queueExhibit();
+        this.status.setText(t("queue.searchExhibit"));
+        this.beginWait();
+      } else {
+        this.status.setText(t("queue.cooldown", { n: 5 }));
+      }
     });
     this.offerUntil = msg.deadline || (Date.now() + 30000);
     this.offerClock = this.add.text(W / 2, H / 2 + 198, t("queue.offerSec", { n: 30 }), {
@@ -314,6 +335,14 @@ export class QueueScene extends Phaser.Scene {
     if (this.offerClock && this.offerUntil) {
       const left = Math.max(0, Math.ceil((this.offerUntil - Date.now()) / 1000));
       this.offerClock.setText(t("queue.offerSec", { n: left }));
+      if (left <= 0 && !this.offerVoted && Session.exhibitCasual) {
+        this.offerVoted = true;
+        NetPlay.vote(this.offerId, false);
+        NetPlay.exhibitCooldownUntil = Date.now() + 60000;
+        NetPlay.cancel();
+        this.scene.start("friends");
+        return;
+      }
     }
     if (this.waitAt && !this.offerClock) this.paintWait();
     if (this.found) return;
