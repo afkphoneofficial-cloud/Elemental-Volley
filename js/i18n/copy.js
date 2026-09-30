@@ -136,6 +136,8 @@ export const COPY = {
       tooBig: "ภาพต้องไม่เกิน 5MB และไม่เกิน 3 ไฟล์",
       staff: "แอดมิน",
       you: "คุณ",
+      yourShots: "ภาพที่คุณส่ง",
+      staffShots: "ภาพจากแอดมิน",
       reply: "ตอบ",
       replyPh: "พิมพ์ถึงแอดมิน"
     },
@@ -1045,6 +1047,8 @@ export const COPY = {
       tooBig: "Images must be 5MB or less, and at most 3 files",
       staff: "Staff",
       you: "You",
+      yourShots: "Your screenshots",
+      staffShots: "Staff screenshots",
       reply: "Reply",
       replyPh: "Write to staff"
     },

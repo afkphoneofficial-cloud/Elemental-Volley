@@ -23,6 +23,16 @@ function shot(path) {
   return BACKEND.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/public/ticket-shots/" + path;
 }
 
+function shotThumbs(files, staff) {
+  return (files || []).filter((f) => Boolean(f.from_admin) === staff).map((f) => {
+    const u = shot(f.path);
+    return "<a href=\"" + u + "\" target=\"_blank\" rel=\"noopener\"><img src=\"" + u + "\" alt=\"\" /></a>";
+  }).join("");
+}
+
+const MAX_SHOTS = 3;
+const MAX_BYTES = 5 * 1024 * 1024;
+
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"]/g, (ch) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"
@@ -125,7 +135,8 @@ function paintTickets() {
   $("tk-list").innerHTML = tickets.map((row) => {
     const msgs = row.messages || [];
     const files = row.files || [];
-    const shots = files.map((f) => "<a href=\"" + shot(f.path) + "\" target=\"_blank\" rel=\"noopener\">ภาพ</a>").join(" ");
+    const mine = shotThumbs(files, false);
+    const staff = shotThumbs(files, true);
     const thread = msgs.map((m) =>
       "<p class=\"" + (m.from_admin ? "staff" : "me") + "\"><b>" + (m.from_admin ? "แอดมิน" : esc(row.name)) + "</b> " + esc(m.body) + "</p>"
     ).join("");
@@ -133,9 +144,11 @@ function paintTickets() {
       "<header><b>" + esc(row.category) + "</b> <span>" + esc(row.name) + "</span> <em>" + esc(row.status) + "</em></header>" +
       "<p class=\"meta\">" + esc(row.email) + "</p>" +
       thread +
-      (shots ? "<p class=\"shots\">" + shots + "</p>" : "<p class=\"meta\">ไม่มีภาพ (หรือถูกลบแล้วหลัง success)</p>") +
+      (mine ? "<p class=\"shot-lab\">ภาพผู้เล่น</p><div class=\"shots\">" + mine + "</div>" : "<p class=\"meta\">ผู้เล่นยังไม่มีภาพ (หรือถูกลบแล้วหลัง success)</p>") +
+      (staff ? "<p class=\"shot-lab\">ภาพที่แอดมินส่ง</p><div class=\"shots\">" + staff + "</div>" : "") +
       (row.status === "success" ? "" :
         "<textarea placeholder=\"ตอบผู้เล่น\"></textarea>" +
+        "<label class=\"meta\">แนบภาพ (ไม่เกิน 3 ไฟล์ ไฟล์ละ 5MB)<input type=\"file\" accept=\"image/jpeg,image/png,image/webp\" multiple /></label>" +
         "<div class=\"row\"><button data-reply>ตอบกลับ</button><button data-ok class=\"ghost\">ปิด success</button></div>") +
     "</article>";
   }).join("") || "<p>ยังไม่มี Ticket</p>";
@@ -146,8 +159,10 @@ function paintTickets() {
     if (reply) {
       reply.addEventListener("click", async () => {
         const body = card.querySelector("textarea").value;
+        const input = card.querySelector("input[type=file]");
+        const files = Array.from((input && input.files) || []).slice(0, MAX_SHOTS);
         try {
-          await rpc("admin_ticket_reply", { p_token: token, p_ticket: id, p_body: body });
+          await sendAdminReply(id, body, files);
           await loadTickets();
         } catch (e) { setMsg("tk-msg", e.message, true); }
       });
@@ -161,6 +176,28 @@ function paintTickets() {
       });
     }
   });
+}
+
+async function sendAdminReply(id, body, files) {
+  const text = String(body || "").trim();
+  if (files.some((f) => f.size > MAX_BYTES)) throw new Error("ภาพต้องไม่เกิน 5MB");
+  if (!text && !files.length) throw new Error("พิมพ์ข้อความหรือแนบภาพก่อน");
+  const db = await client();
+  for (let i = 0; i < files.length; i += 1) {
+    const file = files[i];
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const g = await rpc("admin_ticket_grant_upload", { p_token: token, p_ticket: id, p_ext: ext });
+    const up = await db.storage.from("ticket-shots").upload(g.path, file, { upsert: false, contentType: file.type || "image/jpeg" });
+    if (up.error) throw new Error(up.error.message);
+    await rpc("admin_ticket_attach", {
+      p_token: token,
+      p_ticket: id,
+      p_path: g.path,
+      p_bytes: file.size | 0
+    });
+  }
+  await rpc("admin_ticket_reply", { p_token: token, p_ticket: id, p_body: text || "(ภาพ)" });
+  setMsg("tk-msg", "ตอบแล้ว", false);
 }
 
 async function loadTickets() {

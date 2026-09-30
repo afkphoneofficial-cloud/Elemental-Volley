@@ -1,5 +1,5 @@
 import { AuthSystem } from "./AuthSystem.js";
-import { I18n, t } from "../i18n/I18n.js";
+import { I18n, t } from "../i18n/I18n.js?v=local229";
 import {
   TICKET_CATS,
   TICKET_MAX_SHOTS,
@@ -15,6 +15,13 @@ function shotUrl(path) {
   const base = (AuthSystem.backendUrl && AuthSystem.backendUrl()) || "";
   if (!path) return "";
   return base.replace(/\/$/, "") + "/storage/v1/object/public/ticket-shots/" + path;
+}
+
+function shotThumbs(files, staff) {
+  return (files || []).filter((f) => Boolean(f.from_admin) === staff).map((f) => {
+    const u = shotUrl(f.path);
+    return "<a class=\"shot\" href=\"" + u + "\" target=\"_blank\" rel=\"noopener\"><img src=\"" + u + "\" alt=\"\" /></a>";
+  }).join("");
 }
 
 export const TicketPop = {
@@ -132,9 +139,8 @@ export const TicketPop = {
     box.innerHTML = rows.map((row) => {
       const msgs = (row.ticket_messages || []).slice().sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
       const files = row.ticket_files || [];
-      const shots = files.map((f) =>
-        "<a href=\"" + shotUrl(f.path) + "\" target=\"_blank\" rel=\"noopener\">img</a>"
-      ).join(" ");
+      const mine = shotThumbs(files, false);
+      const staff = shotThumbs(files, true);
       const thread = msgs.map((m) =>
         "<p class=\"ticket-line " + (m.from_admin ? "staff" : "me") + "\">" +
           "<b>" + (m.from_admin ? t("ticket.staff") : t("ticket.you")) + "</b> " +
@@ -144,7 +150,8 @@ export const TicketPop = {
       return "<article class=\"ticket-card st-" + row.status + "\">" +
         "<header><span>" + escapeHtml(ticketCatLabel(row.category, L)) + "</span><em>" + row.status + "</em></header>" +
         thread +
-        (shots ? "<p class=\"ticket-shots\">" + shots + "</p>" : "") +
+        (mine ? "<p class=\"ticket-shot-lab\">" + t("ticket.yourShots") + "</p><div class=\"ticket-shots\">" + mine + "</div>" : "") +
+        (staff ? "<p class=\"ticket-shot-lab\">" + t("ticket.staffShots") + "</p><div class=\"ticket-shots\">" + staff + "</div>" : "") +
         (row.status === "success" ? "" :
           "<form data-reply=\"" + row.id + "\"><input maxlength=\"4000\" placeholder=\"" + t("ticket.replyPh") + "\" /><button type=\"submit\">" + t("ticket.reply") + "</button></form>") +
       "</article>";

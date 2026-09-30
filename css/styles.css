@@ -1303,6 +1303,9 @@ html[data-control="pc"] #game {
 .ticket-card header { display: flex; justify-content: space-between; font-weight: 800; }
 .ticket-line { margin: 6px 0; font-size: 13px; }
 .ticket-line.staff { color: #1a5a90; }
+.ticket-shot-lab { margin: 8px 0 4px; font-size: 12px; font-weight: 800; color: #7a4a30; }
+.ticket-shots { display: flex; flex-wrap: wrap; gap: 8px; }
+.ticket-shots a, .ticket-shots img { display: block; width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 1px solid #e8c090; }
 .ticket-card form { display: flex; gap: 6px; margin-top: 6px; }
 .ticket-card form input { flex: 1; }
 @media (max-width: 800px) {

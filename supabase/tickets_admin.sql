@@ -1,4 +1,5 @@
 -- รันครั้งเดียว: ตั๋วปัญหา + แอดมิน + ที่เก็บภาพ
+-- รันไฟล์นี้อีกรอบเมื่ออัปเดต (ภาพที่แอดมินส่งกลับ, grant อัปโหลด)
 -- Dashboard → Storage ถ้ายังไม่มี bucket ticket-shots บล็อกท้ายจะสร้างให้
 -- รหัสแอดมิน (เปลี่ยนได้หลังรัน)
 --   ID: isle-keeper
@@ -61,6 +62,8 @@ create table if not exists public.ticket_files (
   bytes integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+alter table public.ticket_files add column if not exists from_admin boolean not null default false;
 
 alter table public.tickets enable row level security;
 alter table public.ticket_messages enable row level security;
@@ -178,11 +181,11 @@ begin
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'ticket');
   end if;
-  select count(*) into n from public.ticket_files where ticket_id = p_ticket;
+  select count(*) into n from public.ticket_files where ticket_id = p_ticket and coalesce(from_admin, false) = false;
   if n >= 3 then
     return jsonb_build_object('ok', false, 'reason', 'full');
   end if;
-  insert into public.ticket_files (ticket_id, path, bytes) values (p_ticket, p_path, p_bytes);
+  insert into public.ticket_files (ticket_id, path, bytes, from_admin) values (p_ticket, p_path, p_bytes, false);
   update public.tickets set updated_at = now() where id = p_ticket;
   return jsonb_build_object('ok', true);
 end;
@@ -467,7 +470,9 @@ begin
             'id', m.id, 'from_admin', m.from_admin, 'body', m.body, 'created_at', m.created_at
           ) order by m.created_at)
            from public.ticket_messages m where m.ticket_id = t.id) as messages,
-          (select jsonb_agg(jsonb_build_object('id', f.id, 'path', f.path, 'bytes', f.bytes))
+          (select jsonb_agg(jsonb_build_object(
+            'id', f.id, 'path', f.path, 'bytes', f.bytes, 'from_admin', coalesce(f.from_admin, false)
+          ) order by f.created_at)
            from public.ticket_files f where f.ticket_id = t.id) as files
         from public.tickets t
         order by (t.status = 'success'), t.updated_at desc
@@ -492,7 +497,7 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'auth');
   end if;
   if length(txt) < 1 then
-    return jsonb_build_object('ok', false, 'reason', 'body');
+    txt := '(ภาพ)';
   end if;
   select user_id into uid from public.tickets where id = p_ticket;
   if uid is null then
@@ -688,3 +693,116 @@ drop policy if exists "ticket shots read" on storage.objects;
 create policy "ticket shots read" on storage.objects
   for select to public
   using (bucket_id = 'ticket-shots');
+
+create table if not exists public.ticket_upload_grants (
+  path text primary key,
+  ticket_id uuid not null references public.tickets (id) on delete cascade,
+  expires_at timestamptz not null
+);
+
+alter table public.ticket_upload_grants enable row level security;
+
+create or replace function public.ticket_shot_grant_ok(p_name text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.ticket_upload_grants
+    where path = p_name and expires_at > now()
+  );
+$$;
+
+create or replace function public.admin_ticket_grant_upload(p_token text, p_ticket uuid, p_ext text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ext text := lower(btrim(coalesce(p_ext, '')));
+  uid uuid;
+  n int;
+  pth text;
+begin
+  if not public.admin_ok(p_token) then
+    return jsonb_build_object('ok', false, 'reason', 'auth');
+  end if;
+  if ext not in ('jpg', 'jpeg', 'png', 'webp') then
+    return jsonb_build_object('ok', false, 'reason', 'type');
+  end if;
+  select user_id into uid from public.tickets where id = p_ticket and status <> 'success';
+  if uid is null then
+    return jsonb_build_object('ok', false, 'reason', 'ticket');
+  end if;
+  delete from public.ticket_upload_grants where expires_at < now();
+  select count(*) into n from public.ticket_files where ticket_id = p_ticket and from_admin = true;
+  select count(*) + n into n from public.ticket_upload_grants where ticket_id = p_ticket and expires_at > now();
+  if n >= 3 then
+    return jsonb_build_object('ok', false, 'reason', 'full');
+  end if;
+  pth := 'staff/' || uid::text || '/' || p_ticket::text || '/' || encode(gen_random_bytes(8), 'hex') || '.' || ext;
+  insert into public.ticket_upload_grants (path, ticket_id, expires_at)
+  values (pth, p_ticket, now() + interval '15 minutes');
+  return jsonb_build_object('ok', true, 'path', pth);
+end;
+$$;
+
+create or replace function public.admin_ticket_attach(p_token text, p_ticket uuid, p_path text, p_bytes integer)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  n int;
+  pth text := btrim(coalesce(p_path, ''));
+begin
+  if not public.admin_ok(p_token) then
+    return jsonb_build_object('ok', false, 'reason', 'auth');
+  end if;
+  if p_bytes is null or p_bytes <= 0 or p_bytes > 5242880 then
+    return jsonb_build_object('ok', false, 'reason', 'size');
+  end if;
+  if position(('staff/') in pth) <> 1 or position(p_ticket::text in pth) = 0 then
+    return jsonb_build_object('ok', false, 'reason', 'path');
+  end if;
+  perform 1 from public.tickets where id = p_ticket and status <> 'success';
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'ticket');
+  end if;
+  perform 1 from public.ticket_upload_grants where path = pth and ticket_id = p_ticket and expires_at > now();
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'grant');
+  end if;
+  perform 1 from storage.objects where bucket_id = 'ticket-shots' and name = pth;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'missing');
+  end if;
+  select count(*) into n from public.ticket_files where ticket_id = p_ticket and from_admin = true;
+  if n >= 3 then
+    return jsonb_build_object('ok', false, 'reason', 'full');
+  end if;
+  insert into public.ticket_files (ticket_id, path, bytes, from_admin) values (p_ticket, pth, p_bytes, true);
+  delete from public.ticket_upload_grants where path = pth;
+  update public.tickets set updated_at = now() where id = p_ticket;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+drop policy if exists "ticket shots insert grant" on storage.objects;
+create policy "ticket shots insert grant" on storage.objects
+  for insert to anon, authenticated
+  with check (
+    bucket_id = 'ticket-shots'
+    and public.ticket_shot_grant_ok(name)
+  );
+
+revoke all on function public.ticket_shot_grant_ok(text) from public;
+revoke all on function public.admin_ticket_grant_upload(text, uuid, text) from public;
+revoke all on function public.admin_ticket_attach(text, uuid, text, integer) from public;
+grant execute on function public.ticket_shot_grant_ok(text) to anon, authenticated;
+grant execute on function public.admin_ticket_grant_upload(text, uuid, text) to anon, authenticated;
+grant execute on function public.admin_ticket_attach(text, uuid, text, integer) to anon, authenticated;

@@ -33,6 +33,10 @@ tr.on, tr[data-id]:hover { background: #243044; }
 .tk header { border: 0; padding: 0 0 8px; }
 .tk .meta { color: var(--dim); font-size: 12px; }
 .tk .staff { color: #8fd4ff; }
+.tk .shot-lab { margin: 8px 0 4px; font-size: 12px; color: var(--dim); font-weight: 700; }
+.tk .shots { display: flex; flex-wrap: wrap; gap: 8px; }
+.tk .shots a, .tk .shots img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.tk input[type=file] { font-size: 12px; color: var(--dim); }
 .st-success { opacity: .7; }
 .chk { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
 .bad { color: #ff8aa8; }
