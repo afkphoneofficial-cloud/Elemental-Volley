@@ -22,8 +22,8 @@ import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local179";
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
-import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local171";
-import { paintGiftIcons } from "../ui/giftIcons.js?v=local171";
+import { dailyGiftOn, dailyMonthTable, dailyLookOf, DAILY_LOOK_NEED } from "../data/dailyLogin.js?v=local181";
+import { paintGiftIcons } from "../ui/giftIcons.js?v=local181";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -309,8 +309,7 @@ export class HubScene extends Phaser.Scene {
     const h = HUB_PASS_H;
     const y = HUB_BAR_TOP + h / 2;
     const ready = SaveSystem.dailyReady();
-    const streak = SaveSystem.dailyStreakNow();
-    const gift = dailyGiftOf(streak);
+    const gift = dailyGiftOn();
     const g = keep(this.add.graphics().setDepth(28));
     const draw = (hot) => {
       g.clear();
@@ -320,8 +319,8 @@ export class HubScene extends Phaser.Scene {
       g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
     };
     draw(false);
-    paintGiftIcons(this, x, y - 10, gift, { size: 24, gap: 34, depth: 29, fontSize: "11px" }).forEach(keep);
-    keep(this.add.text(x, y + 30, ready ? t("daily.take") : t("daily.done"), {
+    paintGiftIcons(this, x, y - 8, gift, { size: 22, gap: 32, depth: 29, hideQty: true }).forEach(keep);
+    keep(this.add.text(x, y + 26, ready ? t("daily.take") : t("daily.done"), {
       fontFamily: UI_FONT, fontSize: "10px", fontStyle: "800", color: ready ? "#c45a16" : "#146b32",
       align: "center", wordWrap: { width: w - 12 }
     }).setOrigin(0.5).setDepth(29));
@@ -341,45 +340,76 @@ export class HubScene extends Phaser.Scene {
     const bits = [];
     const W = this.scale.width;
     const H = this.scale.height;
-    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.55).setDepth(50).setInteractive();
-    const panel = this.add.graphics().setDepth(51);
+    const Z = 140;
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.55).setDepth(Z).setInteractive();
+    const panel = this.add.graphics().setDepth(Z + 1);
     panel.fillStyle(0xfff6ea, 0.98);
-    panel.fillRoundedRect(W / 2 - 430, 150, 860, 400, 24);
+    panel.fillRoundedRect(W / 2 - 590, 40, 1180, 620, 24);
     panel.lineStyle(3, 0xffb14a, 0.9);
-    panel.strokeRoundedRect(W / 2 - 430, 150, 860, 400, 24);
+    panel.strokeRoundedRect(W / 2 - 590, 40, 1180, 620, 24);
     bits.push(dim, panel);
-    bits.push(this.add.text(W / 2, 186, t("daily.title"), {
-      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#1a1008"
-    }).setOrigin(0.5).setDepth(52));
-    bits.push(this.add.text(W / 2, 220, t("daily.body"), {
-      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#4a2810",
-      align: "center", wordWrap: { width: 760 }
-    }).setOrigin(0.5).setDepth(52));
+    bits.push(this.add.text(W / 2, 62, t("daily.title"), {
+      fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(Z + 2));
+    bits.push(this.add.text(W / 2, 92, t("daily.body"), {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#4a2810",
+      align: "center", wordWrap: { width: 1080 }
+    }).setOrigin(0.5).setDepth(Z + 2));
     const ready = SaveSystem.dailyReady();
-    const streak = SaveSystem.dailyStreakNow();
-    const todayI = dailyIndex(streak);
-    DAILY_GIFTS.forEach((gift, i) => {
-      const x = W / 2 - 330 + i * 110;
-      const y = 320;
-      const on = i === todayI;
-      const g = this.add.graphics().setDepth(52);
-      g.fillStyle(on ? 0xffe0b0 : 0xfff3e4, 1);
-      g.fillRoundedRect(x - 48, y - 58, 96, 116, 14);
-      g.lineStyle(2, on ? 0xff6a22 : 0xe8c8a8, 1);
-      g.strokeRoundedRect(x - 48, y - 58, 96, 116, 14);
+    const mid = monthId();
+    const table = dailyMonthTable(mid);
+    const today = dayKey();
+    const row = SaveSystem.dailyRow();
+    const days = SaveSystem.dailyClaimCount();
+    const look = dailyLookOf(mid);
+    const vis = look ? shopLookVis(look.id, "select") : "";
+    const gx = 86;
+    const gy = 168;
+    const cw = 74;
+    const ch = 58;
+    table.forEach((gift, i) => {
+      const d = i + 1;
+      const key = mid + "-" + (d < 10 ? "0" + d : String(d));
+      const col = i % 7;
+      const rw = Math.floor(i / 7);
+      const x = gx + col * cw + cw / 2;
+      const y = gy + rw * ch + ch / 2;
+      const on = key === today;
+      const got = !!(row.claimed && row.claimed[key]);
+      const g = this.add.graphics().setDepth(Z + 2);
+      g.fillStyle(on ? 0xffe0b0 : got ? 0xe8f6ea : 0xfff3e4, 1);
+      g.fillRoundedRect(x - 32, y - 24, 64, 50, 10);
+      g.lineStyle(2, on ? 0xff6a22 : got ? 0x7ad0a8 : 0xe8c8a8, 1);
+      g.strokeRoundedRect(x - 32, y - 24, 64, 50, 10);
       bits.push(g);
-      bits.push(this.add.text(x, y - 42, t("daily.day", { n: i + 1 }), {
-        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#1a1008"
-      }).setOrigin(0.5).setDepth(53));
-      paintGiftIcons(this, x, y + 6, gift, { size: 30, gap: 36, depth: 53, fontSize: "12px" }).forEach((o) => bits.push(o));
+      bits.push(this.add.text(x, y - 16, String(d), {
+        fontFamily: UI_FONT, fontSize: "11px", fontStyle: "900", color: "#1a1008"
+      }).setOrigin(0.5).setDepth(Z + 3));
+      const dual = Object.keys(gift).length > 1;
+      paintGiftIcons(this, x, y + 8, gift, { size: dual ? 15 : 20, gap: dual ? 16 : 22, depth: Z + 3, hideQty: true }).forEach((o) => bits.push(o));
     });
+    bits.push(this.add.circle(1048, 300, 70, 0xffe8c8, 1).setStrokeStyle(3, 0x7ad0ff, 0.9).setDepth(Z + 2));
+    if (vis && this.textures.exists(vis)) {
+      bits.push(this.add.image(1048, 298, vis).setDisplaySize(120, 120).setDepth(Z + 3));
+    }
+    bits.push(this.add.text(1048, 386, look ? shopLookLabel(look, I18n.lang) : t("daily.lookNeed", { have: days, need: DAILY_LOOK_NEED }), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a1008",
+      align: "center", wordWrap: { width: 220 }
+    }).setOrigin(0.5).setDepth(Z + 2));
+    const lookLine = SaveSystem.dailyLookGranted()
+      ? t("daily.lookGot")
+      : t("daily.lookNeed", { have: days, need: DAILY_LOOK_NEED });
+    bits.push(this.add.text(1048, 430, lookLine, {
+      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#0a6a88",
+      align: "center", wordWrap: { width: 220 }
+    }).setOrigin(0.5).setDepth(Z + 2));
     const wipe = () => {
       bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
       this.dailyLock = false;
     };
     dim.on("pointerdown", () => { AudioSystem.ui(); wipe(); });
     if (ready) {
-      const ok = makeButton(this, W / 2 - 110, 480, 200, 44, t("daily.take"), () => {
+      const ok = makeButton(this, W / 2 - 110, 610, 200, 44, t("daily.take"), () => {
         AudioSystem.ui();
         const res = SaveSystem.claimDaily();
         wipe();
@@ -389,26 +419,27 @@ export class HubScene extends Phaser.Scene {
         this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
         this.paintEther();
         if (res.ok) this.openGiftNote(res.gift);
-      }, 0xff6a22, 54);
+      }, 0xff6a22, Z + 4);
       bits.push(ok.bg, ok.text, ok.gfx);
     } else {
-      bits.push(this.add.text(W / 2, 470, t("daily.done"), {
+      bits.push(this.add.text(W / 2 - 110, 610, t("daily.done"), {
         fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#146b32"
-      }).setOrigin(0.5).setDepth(52));
+      }).setOrigin(0.5).setDepth(Z + 2));
     }
-    const no = makeButton(this, W / 2 + 110, 480, 200, 44, t("career.close"), () => {
+    const no = makeButton(this, W / 2 + 110, 610, 200, 44, t("career.close"), () => {
       AudioSystem.ui();
       wipe();
-    }, 0xe8dcc8, 54);
+    }, 0xe8dcc8, Z + 4);
     bits.push(no.bg, no.text, no.gfx);
   }
 
   openGiftNote(gift) {
     if (!gift) return;
     const W = this.scale.width;
-    const bg = this.add.rectangle(W / 2, 128, 220, 72, 0xfff6ea, 0.98).setDepth(59);
+    const tall = gift.lookId ? 110 : 84;
+    const bg = this.add.rectangle(W / 2, 400, gift.lookId ? 280 : 240, tall, 0xfff6ea, 0.98).setDepth(160);
     bg.setStrokeStyle(2, 0xffb14a, 0.9);
-    const bits = [bg, ...paintGiftIcons(this, W / 2, 120, gift, { size: 34, gap: 52, depth: 60, fontSize: "14px" })];
+    const bits = [bg, ...paintGiftIcons(this, W / 2, gift.lookId ? 386 : 392, gift, { size: 36, gap: 56, depth: 161, fontSize: "13px" })];
     this.time.delayedCall(1800, () => bits.forEach((o) => { if (o && o.destroy) o.destroy(); }));
   }
 

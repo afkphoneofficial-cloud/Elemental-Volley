@@ -19,7 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js?v=local171";
-import { emptyDaily, nextDailyStreak, dailyGiftOf } from "../data/dailyLogin.js?v=local171";
+import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED } from "../data/dailyLogin.js?v=local181";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -191,6 +191,12 @@ function finish(data) {
   if (!data.passMonths || typeof data.passMonths !== "object" || Array.isArray(data.passMonths)) data.passMonths = {};
   if (!data.dailyLogin || typeof data.dailyLogin !== "object" || Array.isArray(data.dailyLogin)) data.dailyLogin = emptyDaily();
   data.dailyLogin = { ...emptyDaily(), ...data.dailyLogin };
+  if (!data.dailyLogin.claimed || typeof data.dailyLogin.claimed !== "object" || Array.isArray(data.dailyLogin.claimed)) {
+    data.dailyLogin.claimed = {};
+  }
+  if (data.dailyLogin.lastClaim && !data.dailyLogin.claimed[data.dailyLogin.lastClaim]) {
+    data.dailyLogin.claimed[data.dailyLogin.lastClaim] = 1;
+  }
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -420,7 +426,10 @@ export const SaveSystem = {
 
   dailyRow() {
     if (!this.data.dailyLogin || typeof this.data.dailyLogin !== "object") this.data.dailyLogin = emptyDaily();
-    return this.data.dailyLogin;
+    const row = this.data.dailyLogin;
+    if (!row.claimed || typeof row.claimed !== "object" || Array.isArray(row.claimed)) row.claimed = {};
+    if (row.lastClaim && !row.claimed[row.lastClaim]) row.claimed[row.lastClaim] = 1;
+    return row;
   },
 
   notePlayDay() {
@@ -433,7 +442,10 @@ export const SaveSystem = {
   },
 
   dailyClaimedToday() {
-    return this.dailyRow().lastClaim === dayKey();
+    const row = this.dailyRow();
+    const key = dayKey();
+    if (row.claimed && row.claimed[key]) return true;
+    return row.lastClaim === key;
   },
 
   dailyReady() {
@@ -441,17 +453,36 @@ export const SaveSystem = {
     return !this.dailyClaimedToday();
   },
 
-  dailyStreakNow() {
-    return nextDailyStreak(this.dailyRow());
+  dailyClaimCount() {
+    return claimedDaysOf(this.dailyRow(), monthId());
+  },
+
+  dailyLookGranted() {
+    return this.dailyRow().costumeMonth === monthId();
+  },
+
+  giveDailyLook(id) {
+    const look = lookRow(id);
+    if (!look) return false;
+    if (!this.data.shopLooks) this.data.shopLooks = emptyShopLooks();
+    if ((this.data.shopLooks.owned || []).indexOf(id) < 0) this.data.shopLooks.owned.push(id);
+    if (!this.data.inventory) this.data.inventory = {};
+    this.data.inventory[id] = (this.data.inventory[id] | 0) + 1;
+    if (this.isUnlocked(look.charId) && !this.wornShopLook(look.charId)) {
+      if (!this.data.champEquipped) this.data.champEquipped = {};
+      this.data.champEquipped[look.charId] = 0;
+      this.data.shopLooks.worn[look.charId] = id;
+    }
+    return true;
   },
 
   claimDaily() {
     if (this.dailyClaimedToday()) return { ok: false, reason: "done" };
     const today = dayKey();
+    const mid = monthId();
     const row = this.dailyRow();
-    const streak = nextDailyStreak(row);
-    const gift = dailyGiftOf(streak);
-    row.streak = streak;
+    const gift = { ...dailyGiftOn() };
+    row.claimed[today] = 1;
     row.lastClaim = today;
     row.lastSeen = today;
     if (gift.coins) this.data.currencies.coins = (this.data.currencies.coins | 0) + (gift.coins | 0);
@@ -461,8 +492,17 @@ export const SaveSystem = {
       if (!this.data.inventory) this.data.inventory = {};
       this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + (gift.vial | 0);
     }
+    const days = claimedDaysOf(row, mid);
+    if (days >= DAILY_LOOK_NEED && row.costumeMonth !== mid) {
+      const look = dailyLookOf(mid);
+      if (look) {
+        this.giveDailyLook(look.id);
+        row.costumeMonth = mid;
+        gift.lookId = look.id;
+      }
+    }
     this.persist();
-    return { ok: true, streak, gift };
+    return { ok: true, days, gift };
   },
 
   addTokens(amount) {
