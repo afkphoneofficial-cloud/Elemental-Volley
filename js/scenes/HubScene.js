@@ -19,7 +19,7 @@ import { mountHubMenu } from "../ui/hubMenu.js";
 import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
-import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_DAILY_W, HUB_CLOCK_W, hubPassX, hubDailyX } from "../ui/hubLayout.js?v=local176";
+import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local177";
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local171";
@@ -305,9 +305,8 @@ export class HubScene extends Phaser.Scene {
   paintDailyChip() {
     this.wipeDaily();
     const keep = (o) => { this.dailyBits.push(o); return o; };
-    const w = HUB_DAILY_W;
+    const { x, w } = hubDailyLayout(this.scale.width);
     const h = HUB_PASS_H;
-    const x = hubDailyX();
     const y = HUB_BAR_TOP + h / 2;
     const ready = SaveSystem.dailyReady();
     const streak = SaveSystem.dailyStreakNow();

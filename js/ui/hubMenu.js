@@ -4,7 +4,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
-import { hubMenuY, HUB_MENU } from "./hubLayout.js?v=local176";
+import { hubMenuY, HUB_MENU } from "./hubLayout.js?v=local177";
 
 const D = 92;
 

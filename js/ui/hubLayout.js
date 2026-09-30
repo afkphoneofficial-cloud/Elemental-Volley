@@ -36,8 +36,12 @@ export function hubPassX(width) {
   return hubClockLeft(width) - hubTopGap(width) - HUB_PASS_W / 2;
 }
 
-export function hubDailyX() {
-  return HUB_MENU.x + HUB_MENU.w / 2 + 10 + HUB_DAILY_W / 2;
+export function hubDailyLayout(width) {
+  const menuRight = HUB_MENU.x + HUB_MENU.w / 2;
+  const passLeft = hubPassX(width) - HUB_PASS_W / 2;
+  const w = HUB_DAILY_W;
+  const gap = (passLeft - menuRight - w) / 2;
+  return { x: menuRight + gap + w / 2, w, gap };
 }
 
 export function hubNavX(i, width) {
