@@ -108,7 +108,7 @@ export const TextureFactory = {
     g.destroy();
   },
 
-  applyChibi(scene, srcKey, destKey) {
+  applyChibi(scene, srcKey, destKey, knockDark) {
     if (!scene.textures.exists(srcKey)) return;
     try {
       const img = scene.textures.get(srcKey).getSourceImage();
@@ -130,6 +130,8 @@ export const TextureFactory = {
         if (r >= 70 && g <= 55 && b >= 28 && (r - g) >= 40 && r >= b) return true;
         const mn = Math.min(r, g, b), mx = Math.max(r, g, b);
         const sat = mx - mn;
+        if (knockDark && mx <= 44 && sat <= 30) return true;
+        if (knockDark && mx <= 22) return true;
         if (mn > 226 && sat < 32) return true;
         if (r > 228 && g > 214 && b > 218 && sat < 42) return true;
         if (sat <= 24 && mx >= 160 && mx <= 252) return true;

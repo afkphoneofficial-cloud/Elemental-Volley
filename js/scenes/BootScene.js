@@ -1,4 +1,4 @@
-import { TextureFactory } from "../systems/TextureFactory.js?v=local209";
+import { TextureFactory } from "../systems/TextureFactory.js?v=local224";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
@@ -111,7 +111,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
       TextureFactory.applyChibi(this, "icon-mail", "vis_icon_mail");
       TextureFactory.applyChibi(this, "icon-shop", "vis_icon_shop");
-      TextureFactory.applyChibi(this, "icon-ticket", "vis_icon_ticket");
+      TextureFactory.applyChibi(this, "icon-ticket", "vis_icon_ticket", true);
       TextureFactory.applyChibi(this, "icon-map", "vis_icon_map");
       TextureFactory.applyChibi(this, "icon-friends", "vis_icon_friends");
       TextureFactory.applyChibi(this, "icon-settings", "vis_icon_settings");
