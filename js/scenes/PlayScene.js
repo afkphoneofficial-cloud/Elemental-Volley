@@ -52,6 +52,7 @@ export class PlayScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    SaveSystem.notePlayDay();
     this.youSide = Session.youSide === 2 ? 2 : 1;
     this.youData = getCharacter(Session.playerId);
     this.botData = getCharacter(Session.botId);

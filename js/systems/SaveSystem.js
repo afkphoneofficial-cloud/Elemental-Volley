@@ -19,6 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn } from "../data/monthPass.js";
+import { emptyDaily, nextDailyStreak, dailyGiftOf } from "../data/dailyLogin.js?v=local170";
 
 const BASE_KEY = "elemental-volley-save-v1";
 
@@ -61,7 +62,8 @@ const empty = () => ({
   champEquipped: {},
   shopLooks: emptyShopLooks(),
   topupLog: [],
-  passMonths: {}
+  passMonths: {},
+  dailyLogin: emptyDaily()
 });
 
 function stackN(raw) {
@@ -187,6 +189,8 @@ function finish(data) {
   };
   if (!Array.isArray(data.topupLog)) data.topupLog = [];
   if (!data.passMonths || typeof data.passMonths !== "object" || Array.isArray(data.passMonths)) data.passMonths = {};
+  if (!data.dailyLogin || typeof data.dailyLogin !== "object" || Array.isArray(data.dailyLogin)) data.dailyLogin = emptyDaily();
+  data.dailyLogin = { ...emptyDaily(), ...data.dailyLogin };
   data.shopLooks.owned.forEach((id) => {
     if (lookRow(id) && !(data.inventory[id] | 0)) data.inventory[id] = 1;
   });
@@ -410,6 +414,53 @@ export const SaveSystem = {
     }
     this.persist();
     return { ok: true, powder: PASS.dailyPowder, vial: vial ? PASS.vialN : 0 };
+  },
+
+  dailyRow() {
+    if (!this.data.dailyLogin || typeof this.data.dailyLogin !== "object") this.data.dailyLogin = emptyDaily();
+    return this.data.dailyLogin;
+  },
+
+  notePlayDay() {
+    const today = dayKey();
+    const row = this.dailyRow();
+    if (row.lastSeen === today) return false;
+    row.lastSeen = today;
+    this.persist();
+    return true;
+  },
+
+  dailyClaimedToday() {
+    return this.dailyRow().lastClaim === dayKey();
+  },
+
+  dailyReady() {
+    this.notePlayDay();
+    return !this.dailyClaimedToday();
+  },
+
+  dailyStreakNow() {
+    return nextDailyStreak(this.dailyRow());
+  },
+
+  claimDaily() {
+    if (this.dailyClaimedToday()) return { ok: false, reason: "done" };
+    const today = dayKey();
+    const row = this.dailyRow();
+    const streak = nextDailyStreak(row);
+    const gift = dailyGiftOf(streak);
+    row.streak = streak;
+    row.lastClaim = today;
+    row.lastSeen = today;
+    if (gift.coins) this.data.currencies.coins = (this.data.currencies.coins | 0) + (gift.coins | 0);
+    if (gift.shards) this.data.currencies.tokens = (this.data.currencies.tokens | 0) + (gift.shards | 0);
+    if (gift.powder) this.data.currencies.premium = (this.data.currencies.premium | 0) + (gift.powder | 0);
+    if (gift.vial) {
+      if (!this.data.inventory) this.data.inventory = {};
+      this.data.inventory.ether_vial = (this.data.inventory.ether_vial | 0) + (gift.vial | 0);
+    }
+    this.persist();
+    return { ok: true, streak, gift };
   },
 
   addTokens(amount) {

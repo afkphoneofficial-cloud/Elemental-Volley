@@ -19,8 +19,10 @@ import { mountHubMenu } from "../ui/hubMenu.js";
 import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
-import { PASS, monthId, passLookOf } from "../data/monthPass.js";
+import { HUB_BAR_TOP, HUB_PASS_H, HUB_MENU } from "../ui/hubLayout.js?v=local170";
+import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
+import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local170";
 
 function chip(scene, x, y, w, color, onClick) {
   const h = 48;
@@ -137,12 +139,21 @@ export class HubScene extends Phaser.Scene {
     this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
     this.mountClock(W);
     this.mountPassBanner(W);
+    this.mountDailyLogin();
     mountHubMenu(this);
     mountMailboxHud(this);
     mountHubBoardWidgets(this);
     mountHubNav(this);
     Friends.sync();
     AudioSystem.playMenu();
+    SaveSystem.notePlayDay();
+    this.hubDay = dayKey();
+    this._onVis = () => {
+      if (document.visibilityState !== "visible") return;
+      SaveSystem.notePlayDay();
+      this.paintDailyChip();
+    };
+    document.addEventListener("visibilitychange", this._onVis);
   }
 
   mountPlay(W) {
@@ -243,10 +254,10 @@ export class HubScene extends Phaser.Scene {
 
   mountPassBanner(W) {
     const clockLeft = W / 2 - 100;
-    const w = 300;
-    const h = 100;
-    const x = clockLeft - 16 - w / 2;
-    const y = 52;
+    const w = 248;
+    const h = HUB_PASS_H;
+    const x = clockLeft - 14 - w / 2;
+    const y = HUB_BAR_TOP + h / 2;
     const look = passLookOf(monthId());
     const bought = SaveSystem.hasMonthPass();
     const claim = bought && !SaveSystem.passClaimedToday();
@@ -257,20 +268,20 @@ export class HubScene extends Phaser.Scene {
     const draw = (hot) => {
       g.clear();
       g.fillStyle(hot ? 0xffe0b0 : 0xfff6ea, 0.98);
-      g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+      g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 18);
       g.lineStyle(3, claim ? 0x3ad6ff : 0xff8ab8, hot ? 1 : 0.92);
-      g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 22);
+      g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
     };
     draw(false);
-    this.add.image(x - 86, y, icon).setDisplaySize(88, 88).setDepth(29);
-    this.add.text(x + 42, y - 22, t("pass.short"), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#1a1008"
+    this.add.image(x - 74, y, icon).setDisplaySize(66, 66).setDepth(29);
+    this.add.text(x + 36, y - 16, t("pass.short"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(29);
-    this.add.text(x + 42, y + 10, look ? shopLookLabel(look, I18n.lang) : t("pass.title"), {
-      fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#4a2810"
+    this.add.text(x + 36, y + 6, look ? shopLookLabel(look, I18n.lang) : t("pass.title"), {
+      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#4a2810"
     }).setOrigin(0.5).setDepth(29);
-    this.add.text(x + 42, y + 32, claim ? t("pass.claim") : (bought ? t("pass.bought") : t("pass.buy", { n: PASS.thb })), {
-      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: claim ? "#0a6a88" : "#c45a16"
+    this.add.text(x + 36, y + 24, claim ? t("pass.claim") : (bought ? t("pass.bought") : t("pass.buy", { n: PASS.thb })), {
+      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: claim ? "#0a6a88" : "#c45a16"
     }).setOrigin(0.5).setDepth(29);
     const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30);
     zone.on("pointerover", () => draw(true));
@@ -279,6 +290,148 @@ export class HubScene extends Phaser.Scene {
       AudioSystem.ui();
       this.scene.start("pass", { from: "hub" });
     });
+  }
+
+  mountDailyLogin() {
+    this.dailyBits = [];
+    this.paintDailyChip();
+  }
+
+  wipeDaily() {
+    (this.dailyBits || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
+    this.dailyBits = [];
+  }
+
+  giftLine(gift) {
+    const bits = [];
+    if (gift.coins) bits.push(t("daily.coins", { n: gift.coins }));
+    if (gift.shards) bits.push(t("daily.shards", { n: gift.shards }));
+    if (gift.vial) bits.push(t("daily.vial", { n: gift.vial }));
+    if (gift.powder) bits.push(t("daily.powder", { n: gift.powder }));
+    return bits.join("  ·  ");
+  }
+
+  paintDailyChip() {
+    this.wipeDaily();
+    const keep = (o) => { this.dailyBits.push(o); return o; };
+    const menuRight = HUB_MENU.x + HUB_MENU.w / 2;
+    const passLeft = this.scale.width / 2 - 100 - 14 - 248;
+    const gap = 10;
+    const w = Math.max(120, passLeft - gap - (menuRight + gap));
+    const h = HUB_PASS_H;
+    const x = menuRight + gap + w / 2;
+    const y = HUB_BAR_TOP + h / 2;
+    const ready = SaveSystem.dailyReady();
+    const streak = SaveSystem.dailyStreakNow();
+    const g = keep(this.add.graphics().setDepth(28));
+    const draw = (hot) => {
+      g.clear();
+      g.fillStyle(hot ? 0xffe0b0 : 0xfff6ea, 0.98);
+      g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 18);
+      g.lineStyle(3, ready ? 0xffb14a : 0xc8bdd8, hot ? 1 : 0.9);
+      g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
+    };
+    draw(false);
+    const icon = this.textures.exists("item-coin") ? "item-coin" : "item-shard";
+    keep(this.add.image(x - w / 2 + 28, y, icon).setDisplaySize(36, 36).setDepth(29));
+    keep(this.add.text(x + 10, y - 16, t("daily.short"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(29));
+    keep(this.add.text(x + 10, y + 4, t("daily.streak", { n: ((dailyIndex(streak) + 1)) }), {
+      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: "#4a2810"
+    }).setOrigin(0.5).setDepth(29));
+    keep(this.add.text(x + 10, y + 22, ready ? t("daily.take") : t("daily.done"), {
+      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: ready ? "#c45a16" : "#146b32"
+    }).setOrigin(0.5).setDepth(29));
+    const zone = keep(this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30));
+    zone.on("pointerover", () => draw(true));
+    zone.on("pointerout", () => draw(false));
+    zone.on("pointerdown", () => {
+      AudioSystem.ui();
+      this.openDaily();
+    });
+    this.dailyChip = { x, y, w, h };
+  }
+
+  openDaily() {
+    if (this.dailyLock) return;
+    this.dailyLock = true;
+    const bits = [];
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x12080e, 0.55).setDepth(50).setInteractive();
+    const panel = this.add.graphics().setDepth(51);
+    panel.fillStyle(0xfff6ea, 0.98);
+    panel.fillRoundedRect(W / 2 - 430, 150, 860, 400, 24);
+    panel.lineStyle(3, 0xffb14a, 0.9);
+    panel.strokeRoundedRect(W / 2 - 430, 150, 860, 400, 24);
+    bits.push(dim, panel);
+    bits.push(this.add.text(W / 2, 186, t("daily.title"), {
+      fontFamily: UI_FONT, fontSize: "24px", fontStyle: "900", color: "#1a1008"
+    }).setOrigin(0.5).setDepth(52));
+    bits.push(this.add.text(W / 2, 220, t("daily.body"), {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#4a2810",
+      align: "center", wordWrap: { width: 760 }
+    }).setOrigin(0.5).setDepth(52));
+    const ready = SaveSystem.dailyReady();
+    const streak = SaveSystem.dailyStreakNow();
+    const todayI = dailyIndex(streak);
+    DAILY_GIFTS.forEach((gift, i) => {
+      const x = W / 2 - 330 + i * 110;
+      const y = 320;
+      const on = i === todayI;
+      const g = this.add.graphics().setDepth(52);
+      g.fillStyle(on ? 0xffe0b0 : 0xfff3e4, 1);
+      g.fillRoundedRect(x - 48, y - 58, 96, 116, 14);
+      g.lineStyle(2, on ? 0xff6a22 : 0xe8c8a8, 1);
+      g.strokeRoundedRect(x - 48, y - 58, 96, 116, 14);
+      bits.push(g);
+      bits.push(this.add.text(x, y - 38, t("daily.day", { n: i + 1 }), {
+        fontFamily: UI_FONT, fontSize: "13px", fontStyle: "900", color: "#1a1008"
+      }).setOrigin(0.5).setDepth(53));
+      bits.push(this.add.text(x, y + 8, this.giftLine(gift), {
+        fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#4a2810",
+        align: "center", wordWrap: { width: 88 }
+      }).setOrigin(0.5).setDepth(53));
+    });
+    const wipe = () => {
+      bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
+      this.dailyLock = false;
+    };
+    dim.on("pointerdown", () => { AudioSystem.ui(); wipe(); });
+    if (ready) {
+      const ok = makeButton(this, W / 2 - 110, 480, 200, 44, t("daily.take"), () => {
+        AudioSystem.ui();
+        const res = SaveSystem.claimDaily();
+        wipe();
+        this.paintDailyChip();
+        this.layoutChip(this.coinBox, this.coinIcon, this.coinText);
+        this.layoutChip(this.tokenBox, this.tokenIcon, this.tokenText);
+        this.layoutChip(this.stoneBox, this.stoneIcon, this.stoneText);
+        this.paintEther();
+        if (res.ok) this.openInfoNote(this.giftLine(res.gift));
+      }, 0xff6a22, 54);
+      bits.push(ok.bg, ok.text, ok.gfx);
+    } else {
+      bits.push(this.add.text(W / 2, 470, t("daily.done"), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#146b32"
+      }).setOrigin(0.5).setDepth(52));
+    }
+    const no = makeButton(this, W / 2 + 110, 480, 200, 44, t("career.close"), () => {
+      AudioSystem.ui();
+      wipe();
+    }, 0xe8dcc8, 54);
+    bits.push(no.bg, no.text, no.gfx);
+  }
+
+  openInfoNote(text) {
+    if (!text) return;
+    const W = this.scale.width;
+    const note = this.add.text(W / 2, 132, text, {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#1a1008",
+      backgroundColor: "#fff6ea", padding: { x: 14, y: 8 }
+    }).setOrigin(0.5).setDepth(60);
+    this.time.delayedCall(1800, () => { if (note && note.destroy) note.destroy(); });
   }
 
   paintClock() {
@@ -314,6 +467,12 @@ export class HubScene extends Phaser.Scene {
     if (this.time.now - (this.clockAt || 0) > 1000) {
       this.clockAt = this.time.now;
       this.paintClock();
+      const today = dayKey();
+      if (today !== this.hubDay) {
+        this.hubDay = today;
+        SaveSystem.notePlayDay();
+        this.paintDailyChip();
+      }
     }
     if (this.playDraw) {
       const pulse = (Math.sin(now / 380) + 1) / 2;
@@ -333,6 +492,7 @@ export class HubScene extends Phaser.Scene {
   }
 
   shutdown() {
+    if (this._onVis) document.removeEventListener("visibilitychange", this._onVis);
     ChatSystem.bindHub(null);
     Leaderboard.hide();
   }

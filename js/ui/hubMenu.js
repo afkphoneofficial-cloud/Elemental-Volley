@@ -4,6 +4,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { Mailbox } from "../systems/Mailbox.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { avatarKey } from "../data/avatars.js";
+import { hubMenuY, HUB_MENU } from "./hubLayout.js?v=local170";
 
 const D = 92;
 
@@ -52,10 +53,10 @@ export function mountHubMenu(scene) {
 export function paintHubMenu(scene) {
   wipe(scene);
   const open = Boolean(scene.hubMenuOpen);
-  const bx = 56;
-  const by = 44;
-  const tabW = 72;
-  const tabH = 70;
+  const bx = HUB_MENU.x;
+  const by = hubMenuY();
+  const tabW = HUB_MENU.w;
+  const tabH = HUB_MENU.h;
 
   const tab = keep(scene, scene.add.graphics().setDepth(D));
   const drawTab = (hot) => {

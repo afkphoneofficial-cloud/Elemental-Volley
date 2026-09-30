@@ -521,6 +521,19 @@ export const COPY = {
       claimOk: "รับของวันนี้แล้ว  ·  +1 ผง",
       claimVial: "รับของวันนี้แล้ว  ·  +1 ผง  ·  ขวดเอเธอร์ +1"
     },
+    daily: {
+      short: "ล็อกอินวันนี้",
+      title: "ของขวัญล็อกอินรายวัน",
+      body: "ฟรีทุกวันตามเวลาเซิร์ฟไทย  ค้างล็อกอินข้ามคืนได้  ระบบนับวันที่เปลี่ยน ไม่ได้นับการล็อกอินใหม่  ขาดวันสตรีคเริ่มใหม่",
+      streak: "วันที่ {n} / 7",
+      day: "วัน {n}",
+      take: "รับของวันนี้",
+      done: "รับแล้ว  กลับมาวันถัดไป",
+      coins: "เหรียญ +{n}",
+      shards: "เศษ +{n}",
+      vial: "ขวดเอเธอร์ +{n}",
+      powder: "ผง +{n}"
+    },
     result: {
       pvp: "หินประหลาด +{pvp}{bonus}",
       rank: "แต้มสนาม {delta}   ·   {name} {star}",
@@ -1305,6 +1318,19 @@ export const COPY = {
       grant: "Isle Pass {id} unlocked",
       claimOk: "Claimed today  ·  +1 powder",
       claimVial: "Claimed today  ·  +1 powder  ·  +1 Ether vial"
+    },
+    daily: {
+      short: "Daily login",
+      title: "Daily login gift",
+      body: "Free each Bangkok day. Staying signed in overnight is fine. We count the calendar day, not a new login. Miss a day and the streak resets.",
+      streak: "Day {n} / 7",
+      day: "Day {n}",
+      take: "Claim today",
+      done: "Claimed  ·  come back tomorrow",
+      coins: "Isle Coins +{n}",
+      shards: "Shards +{n}",
+      vial: "Ether vial +{n}",
+      powder: "Etheria Powder +{n}"
     },
     result: {
       pvp: "Odd Stones +{pvp}{bonus}",
