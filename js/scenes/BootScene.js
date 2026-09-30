@@ -1,4 +1,4 @@
-import { TextureFactory } from "../systems/TextureFactory.js?v=local196";
+import { TextureFactory } from "../systems/TextureFactory.js?v=local209";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js";
@@ -118,6 +118,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
       TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
       TextureFactory.applyChibi(this, "item-plate-frame", "item-plate-frame");
+      TextureFactory.applyChibi(this, "item-cheer-champ", "item-cheer-champ");
       SEASON_ART.forEach((id) => {
         let dest = id;
         if (id.indexOf("select-champ-") === 0) {

@@ -125,6 +125,8 @@ export const TextureFactory = {
       const isBg = (i) => {
         const r = px[i], g = px[i + 1], b = px[i + 2], a = px[i + 3];
         if (a < 12) return true;
+        if (g < 90 && r > 170 && b > 50 && (r - g) >= 80 && r > b + 40) return true;
+        if (g < 120 && r > 150 && b > 140 && (r - g) >= 50 && (b - g) >= 40) return true;
         if (r >= 70 && g <= 55 && b >= 28 && (r - g) >= 40 && r >= b) return true;
         const mn = Math.min(r, g, b), mx = Math.max(r, g, b);
         const sat = mx - mn;
