@@ -1,7 +1,7 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import {
-  STAT_IDS, GROWTH_MAX_LV, GROWTH_SPECIAL_LV,
+  STAT_IDS, STAT_CAP, GROWTH_MAX_LV, GROWTH_SPECIAL_LV,
   copyGrowth, growthEqual, trySpend, tryUnspend, sheetFromRow
 } from "../data/growth.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
@@ -9,6 +9,25 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js";
 import { texHeroSelect } from "../data/seasonLooks.js";
+
+function paintStatBar(g, x, y, w, h, total, gift) {
+  const r = 9;
+  const totW = w * Math.max(0, Math.min(1, (total | 0) / STAT_CAP));
+  const giftW = w * Math.max(0, Math.min(1, (gift | 0) / STAT_CAP));
+  g.clear();
+  g.fillStyle(0x3a2418, 0.14);
+  g.fillRoundedRect(x, y - h / 2, w, h, r);
+  if (totW > 0.5) {
+    g.fillStyle(0xffb14a, 1);
+    g.fillRoundedRect(x, y - h / 2, totW, h, r);
+  }
+  if (giftW > 0.5) {
+    g.fillStyle(0xff8ab8, 1);
+    g.fillRoundedRect(x, y - h / 2, giftW, h, r);
+  }
+  g.lineStyle(2, 0xff8ab8, 0.55);
+  g.strokeRoundedRect(x, y - h / 2, w, h, r);
+}
 
 function setBtnLive(btn, on) {
   const a = on ? 1 : 0.38;
@@ -74,21 +93,22 @@ export class GrowthScene extends Phaser.Scene {
     this.rows = STAT_IDS.map((stat, i) => {
       const y = 236 + i * 62;
       roundPanel(this, 720, y, 640, 56, 0xffb14a, 0xfff6ea);
-      const name = this.add.text(418, y - 11, "", {
-        fontFamily: UI_FONT, fontSize: "20px", fontStyle: "900", color: "#1a1008",
+      const name = this.add.text(418, y, "", {
+        fontFamily: UI_FONT, fontSize: "18px", fontStyle: "900", color: "#1a1008",
         stroke: "#fff6ea", strokeThickness: 4
       }).setOrigin(0, 0.5).setDepth(8);
-      const val = this.add.text(418, y + 13, "", {
-        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418",
-        stroke: "#fff6ea", strokeThickness: 3
-      }).setOrigin(0, 0.5).setDepth(8);
+      const barG = this.add.graphics().setDepth(8);
+      const barLabel = this.add.text(700, y, "", {
+        fontFamily: UI_FONT, fontSize: "14px", fontStyle: "900", color: "#1a1008",
+        stroke: "#fff6ea", strokeThickness: 4
+      }).setOrigin(0.5).setDepth(9);
       const minus = makeButton(this, 900, y, 56, 36, "−", () => {
         this.nudge(stat, -1);
       }, 0xff8ab8);
       const plus = makeButton(this, 980, y, 56, 36, "+", () => {
         this.nudge(stat, 1);
       }, 0x7d5cff);
-      return { stat, name, val, plus, minus };
+      return { stat, name, barG, barLabel, plus, minus };
     });
 
     this.confirmBtn = makeButton(this, 560, 498, 250, 40, t("growth.confirm"), () => {
@@ -193,13 +213,11 @@ export class GrowthScene extends Phaser.Scene {
       : t("growth.specialOff", { n: GROWTH_SPECIAL_LV }));
     this.draftText.setText(dirty ? t("growth.draftNote") : "");
     this.rows.forEach((item) => {
+      const gift = item.stat === sheet.giftStat ? sheet.gift : 0;
+      const total = sheet.totals[item.stat] | 0;
       item.name.setText(t("growth.stat." + item.stat));
-      item.val.setText(t("growth.statLine", {
-        spent: sheet.spent[item.stat],
-        gift: item.stat === sheet.giftStat ? sheet.gift : 0,
-        total: sheet.totals[item.stat],
-        cap: sheet.caps[item.stat]
-      }));
+      paintStatBar(item.barG, 530, item.barLabel.y, 340, 20, total, gift);
+      item.barLabel.setText(t("growth.statFill", { n: total, max: STAT_CAP }));
     });
     this.respecStartBtn.text.setFontSize(15).setText(t("growth.respecStart"));
     this.respecLevelBtn.text.setFontSize(15).setText(sheet.freeLevelRespec ? t("growth.respecLevel") : t("growth.useFruit"));

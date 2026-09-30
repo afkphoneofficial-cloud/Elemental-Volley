@@ -355,6 +355,7 @@ export const COPY = {
         spring: "สปริง"
       },
       statLine: "คุณกดบวก {spent}  ·  โบนัสธาตุ {gift}  ·  รวม {total}  ·  กดบวกช่องนี้ได้สูงสุด {cap}",
+      statFill: "{n}/{max}",
       hint1Title: "ธาตุกายคืออะไร",
       hint1Body: "ธาตุกายคือเลเวลและสเตตัสของตัวละครแต่ละตัว ใช้ร่วมกันไม่ได้\n\nฟังก์ชันนี้ใช้ได้ในโหมดฝึกฝน สำรวจโลก และ Rank Special เท่านั้น",
       hint2Title: "ความแตกต่างของ Status",
@@ -1209,6 +1210,7 @@ export const COPY = {
         spring: "Spring"
       },
       statLine: "Spent {spent}  ·  Gift {gift}  ·  Total {total}  ·  Cap {cap}",
+      statFill: "{n}/{max}",
       hint1Title: "What is Element Body?",
       hint1Body: "Element Body is each fighter's own level and stats. They cannot be shared.\n\nThis feature works in Training, World Explore, and Rank Special only.",
       hint2Title: "How the stats differ",
