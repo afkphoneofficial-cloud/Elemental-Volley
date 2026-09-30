@@ -19,7 +19,7 @@ import { mountHubMenu } from "../ui/hubMenu.js";
 import { mountHubNav } from "../ui/hubNavStrip.js";
 import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
-import { HUB_BAR_TOP, HUB_PASS_H, HUB_MENU } from "../ui/hubLayout.js?v=local171";
+import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_DAILY_W, HUB_CLOCK_W, hubPassX, hubDailyX } from "../ui/hubLayout.js?v=local176";
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { DAILY_GIFTS, dailyGiftOf, dailyIndex } from "../data/dailyLogin.js?v=local171";
@@ -211,7 +211,7 @@ export class HubScene extends Phaser.Scene {
   mountClock(W) {
     const x = W / 2;
     const y = 40;
-    const w = 200;
+    const w = HUB_CLOCK_W;
     const h = 54;
     this.clockGfx = this.add.graphics().setDepth(24);
     const draw = (hot) => {
@@ -254,10 +254,9 @@ export class HubScene extends Phaser.Scene {
   }
 
   mountPassBanner(W) {
-    const clockLeft = W / 2 - 100;
-    const w = 248;
+    const w = HUB_PASS_W;
     const h = HUB_PASS_H;
-    const x = clockLeft - 14 - w / 2;
+    const x = hubPassX(W);
     const y = HUB_BAR_TOP + h / 2;
     const look = passLookOf(monthId());
     const bought = SaveSystem.hasMonthPass();
@@ -306,12 +305,9 @@ export class HubScene extends Phaser.Scene {
   paintDailyChip() {
     this.wipeDaily();
     const keep = (o) => { this.dailyBits.push(o); return o; };
-    const menuRight = HUB_MENU.x + HUB_MENU.w / 2;
-    const passLeft = this.scale.width / 2 - 100 - 14 - 248;
-    const gap = 10;
-    const w = Math.max(120, passLeft - gap - (menuRight + gap));
+    const w = HUB_DAILY_W;
     const h = HUB_PASS_H;
-    const x = menuRight + gap + w / 2;
+    const x = hubDailyX();
     const y = HUB_BAR_TOP + h / 2;
     const ready = SaveSystem.dailyReady();
     const streak = SaveSystem.dailyStreakNow();
@@ -325,12 +321,10 @@ export class HubScene extends Phaser.Scene {
       g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18);
     };
     draw(false);
-    keep(this.add.text(x, y - 26, t("daily.short"), {
-      fontFamily: UI_FONT, fontSize: "12px", fontStyle: "900", color: "#1a1008"
-    }).setOrigin(0.5).setDepth(29));
-    paintGiftIcons(this, x, y + 2, gift, { size: 26, gap: 38, depth: 29, fontSize: "11px" }).forEach(keep);
-    keep(this.add.text(x, y + 28, ready ? t("daily.take") : t("daily.done"), {
-      fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: ready ? "#c45a16" : "#146b32"
+    paintGiftIcons(this, x, y - 10, gift, { size: 24, gap: 34, depth: 29, fontSize: "11px" }).forEach(keep);
+    keep(this.add.text(x, y + 30, ready ? t("daily.take") : t("daily.done"), {
+      fontFamily: UI_FONT, fontSize: "10px", fontStyle: "800", color: ready ? "#c45a16" : "#146b32",
+      align: "center", wordWrap: { width: w - 12 }
     }).setOrigin(0.5).setDepth(29));
     const zone = keep(this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30));
     zone.on("pointerover", () => draw(true));
