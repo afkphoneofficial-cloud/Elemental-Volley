@@ -16,7 +16,7 @@ import { TopupScene } from "./scenes/TopupScene.js";
 import { PassScene } from "./scenes/PassScene.js?v=local172";
 import { PlayScene } from "./scenes/PlayScene.js";
 import { LuckScene } from "./scenes/LuckScene.js";
-import { WikiScene } from "./scenes/WikiScene.js";
+import { WikiScene } from "./scenes/WikiScene.js?v=local180";
 import { ExploreScene } from "./scenes/ExploreScene.js";
 import { ResultScene } from "./scenes/ResultScene.js?v=local175";
 import { SettingsScene } from "./scenes/SettingsScene.js";

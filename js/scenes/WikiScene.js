@@ -4,10 +4,10 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { MAP_LOCS } from "../data/worldMap.js";
 import { paintTabs } from "../ui/sceneTabs.js";
-import { ITEM_IDS, itemIconKey } from "../data/items.js";
-
-const WIKI_ITEMS = ITEM_IDS.filter((id) => id.indexOf("champ-") !== 0);
+import { ITEM_IDS, itemIconKey, bagTabOf } from "../data/items.js";
 import { pinHit } from "../ui/mapPins.js";
+
+const WIKI_ITEMS = ITEM_IDS.filter((id) => bagTabOf(id) === "use" || bagTabOf(id) === "mat");
 
 export class WikiScene extends Phaser.Scene {
   constructor() { super("wiki"); }
@@ -41,9 +41,9 @@ export class WikiScene extends Phaser.Scene {
     }, 0x7d5cff);
     paintTabs(this, 52, [
       { id: "map", label: t("wiki.tabMap"), color: 0xffb14a, go: () => this.scene.start("wiki", { from: this.from, tab: "map" }) },
-      { id: "items", label: t("wiki.tabItems"), color: 0xff8a3a, go: () => this.scene.start("wiki", { from: this.from, tab: "items" }) },
       { id: "story", label: t("wiki.tabStory"), color: 0x7d5cff, again: true, go: () => this.openStory() },
       { id: "cast", label: t("wiki.tabCast"), color: 0x3ad6ff, again: true, go: () => this.openCast() },
+      { id: "items", label: t("wiki.tabItems"), color: 0xff8a3a, go: () => this.scene.start("wiki", { from: this.from, tab: "items" }) },
       { id: "secret", label: t("wiki.tabSecret"), color: 0xff8ab8, again: true, go: () => this.openSecret() }
     ], this.wikiTab === "items" ? "items" : "map", 168);
 
