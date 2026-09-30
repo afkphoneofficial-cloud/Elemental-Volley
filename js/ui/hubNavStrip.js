@@ -3,7 +3,7 @@ import { ChatSystem } from "../systems/ChatSystem.js";
 import { Presence } from "../systems/Presence.js";
 import { t } from "../i18n/I18n.js";
 import { UI_FONT } from "./Ui.js";
-import { HUB_NAV, HUB_CHAT, HUB_ONLINE_W } from "./hubLayout.js?v=local178";
+import { HUB_NAV, HUB_CHAT, HUB_ONLINE_W, HUB_ONLINE_H } from "./hubLayout.js?v=local179";
 
 function keep(scene, obj) {
   if (!scene.hubNavBits) scene.hubNavBits = [];
@@ -12,6 +12,7 @@ function keep(scene, obj) {
 }
 
 function wipe(scene) {
+  if (scene.onlineGlow) scene.tweens.killTweensOf(scene.onlineGlow);
   (scene.hubNavBits || []).forEach((o) => { if (o && o.destroy) o.destroy(); });
   scene.hubNavBits = [];
 }
@@ -78,18 +79,31 @@ export function paintHubNav(scene) {
     }));
 
   const ow = HUB_ONLINE_W;
+  const oh = HUB_ONLINE_H;
   const ox = x + bw / 2 + HUB_CHAT.gap + ow / 2;
+  const oy = y + (bh - oh) / 2;
+  const glow = keep(scene, scene.add.graphics().setDepth(19));
+  glow.lineStyle(8, 0x8cff7a, 0.28);
+  glow.strokeRoundedRect(ox - ow / 2 - 4, oy - oh / 2 - 4, ow + 8, oh + 8, 16);
+  glow.lineStyle(4, 0xb8ff9a, 0.45);
+  glow.strokeRoundedRect(ox - ow / 2 - 1, oy - oh / 2 - 1, ow + 2, oh + 2, 13);
+  scene.onlineGlow = glow;
+  scene.tweens.add({
+    targets: glow,
+    alpha: { from: 0.4, to: 1 },
+    duration: 1100,
+    yoyo: true,
+    repeat: -1
+  });
   const og = keep(scene, scene.add.graphics().setDepth(20));
-  og.fillStyle(0x1f9a52, 0.98);
-  og.fillRoundedRect(ox - ow / 2, y - bh / 2, ow, bh, 18);
-  og.lineStyle(2, 0xc8ff3a, 0.92);
-  og.strokeRoundedRect(ox - ow / 2, y - bh / 2, ow, bh, 18);
+  og.lineStyle(2, 0x9dff88, 0.95);
+  og.strokeRoundedRect(ox - ow / 2, oy - oh / 2, ow, oh, 12);
   const oIcon = scene.textures.exists("vis_icon_online") ? "vis_icon_online" : (scene.textures.exists("vis_icon_friends") ? "vis_icon_friends" : "");
   if (oIcon) {
-    keep(scene, scene.add.image(ox - ow / 2 + 30, y, oIcon).setDisplaySize(36, 36).setDepth(21));
+    keep(scene, scene.add.image(ox - ow / 2 + 16, oy, oIcon).setDisplaySize(20, 20).setTint(0x3dcc6a).setDepth(21));
   }
-  scene.onlineText = keep(scene, scene.add.text(ox - ow / 2 + 54, y, t("hub.online", { n: Presence.n }), {
-    fontFamily: UI_FONT, fontSize: "16px", fontStyle: "900", color: "#fff6ea"
+  scene.onlineText = keep(scene, scene.add.text(ox - ow / 2 + 30, oy, t("hub.online", { n: Presence.n }), {
+    fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: "#1a7a3a"
   }).setOrigin(0, 0.5).setDepth(21));
 
   paintBadge(scene);

@@ -715,52 +715,58 @@ html[data-control="pc"] #game {
   z-index: 18;
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 52px;
-  padding: 0 16px 0 12px;
-  border-radius: 16px;
-  border: 2px solid rgba(200, 255, 58, 0.9);
-  background: #1f9a52;
-  color: #fff6ea;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px 0 8px;
+  border-radius: 12px;
+  border: 2px solid #9dff88;
+  background: transparent;
+  color: #1a7a3a;
   font-family: "Kanit", "Segoe UI", sans-serif;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 12px;
   pointer-events: none;
   transform: scale(var(--chat-scale, 1));
   transform-origin: left bottom;
-  box-shadow: 0 6px 16px rgba(58, 36, 24, 0.12);
+  box-shadow: 0 0 8px rgba(120, 255, 110, 0.45);
+  animation: online-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes online-glow {
+  from { box-shadow: 0 0 6px rgba(140, 255, 120, 0.28); }
+  to { box-shadow: 0 0 16px rgba(140, 255, 120, 0.85); }
 }
 
 #online-chip[hidden] { display: none; }
 
 .online-ico {
-  width: 28px;
-  height: 28px;
+  width: 16px;
+  height: 16px;
   position: relative;
-  flex: 0 0 28px;
+  flex: 0 0 16px;
 }
 
 .online-ico::before,
 .online-ico::after {
   content: "";
   position: absolute;
-  background: #fff6ea;
+  background: #3dcc6a;
   border-radius: 50%;
 }
 
 .online-ico::before {
-  width: 12px;
-  height: 12px;
-  left: 8px;
-  top: 2px;
+  width: 7px;
+  height: 7px;
+  left: 4px;
+  top: 1px;
 }
 
 .online-ico::after {
-  width: 22px;
-  height: 14px;
-  left: 3px;
-  bottom: 1px;
-  border-radius: 11px 11px 4px 4px;
+  width: 14px;
+  height: 8px;
+  left: 1px;
+  bottom: 0;
+  border-radius: 8px 8px 3px 3px;
 }
 
 .chat-tabs {
