@@ -8,7 +8,7 @@ import { applyContrast } from "./systems/GameSettings.js";
 import { BootScene } from "./scenes/BootScene.js?v=local206";
 import { AuthScene } from "./scenes/AuthScene.js";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
-import { HubScene } from "./scenes/HubScene.js?v=local221";
+import { HubScene } from "./scenes/HubScene.js?v=local222";
 import { WelcomePop } from "./systems/WelcomePop.js?v=local219";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local206";

@@ -19,7 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { emptyTitles } from "../data/titles.js";
-import { BETA } from "../data/beta.js";
+import { BETA, liveWipeDue } from "../data/beta.js";
 import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
@@ -71,7 +71,8 @@ const empty = () => ({
   gear: {},
   welcomeDay: "",
   titles: emptyTitles(),
-  beta: { testPlay: false }
+  beta: { testPlay: false },
+  wipeId: ""
 });
 
 function stackN(raw) {
@@ -210,6 +211,7 @@ function finish(data) {
   data.titles = { owned: Array.isArray(data.titles.owned) ? data.titles.owned.filter((id) => typeof id === "string") : [], worn: typeof data.titles.worn === "string" ? data.titles.worn : "" };
   if (!data.beta || typeof data.beta !== "object" || Array.isArray(data.beta)) data.beta = { testPlay: false };
   data.beta.testPlay = Boolean(data.beta.testPlay);
+  if (typeof data.wipeId !== "string") data.wipeId = "";
   TitleSystem.normalize(data);
   if (typeof data.ballFx !== "string") data.ballFx = "";
   if (!data.gear || typeof data.gear !== "object" || Array.isArray(data.gear)) data.gear = {};
@@ -249,6 +251,54 @@ function finish(data) {
   return data;
 }
 
+function giftWaiting(data) {
+  return (data.seasonInbox || []).some((row) => row && row.id === BETA.giftId);
+}
+
+function giftPaid(data) {
+  return (data.seasonIssued || []).includes(BETA.giftId) && !giftWaiting(data);
+}
+
+function applyLiveWipe(prev) {
+  if (!prev || !liveWipeDue(dayKey(), prev.wipeId)) return prev;
+  const keep = finish(empty());
+  keep.settings = { ...empty().settings, ...(prev.settings || {}) };
+  keep.settings.bgmPages = { ...empty().settings.bgmPages, ...(prev.settings && prev.settings.bgmPages || {}) };
+  keep.beta = {
+    testPlay: Boolean(prev.beta && prev.beta.testPlay),
+    testAt: prev.beta && prev.beta.testAt ? prev.beta.testAt : 0
+  };
+  keep.titles = emptyTitles();
+  if (keep.beta.testPlay || (prev.titles && (prev.titles.owned || []).includes(BETA.titleId))) {
+    keep.titles.owned = [BETA.titleId];
+    if (prev.titles && prev.titles.worn === BETA.titleId) keep.titles.worn = BETA.titleId;
+  }
+  keep.cosmetics = prev.cosmetics && typeof prev.cosmetics === "object" ? prev.cosmetics : keep.cosmetics;
+  keep.shopLooks = prev.shopLooks && typeof prev.shopLooks === "object" ? prev.shopLooks : keep.shopLooks;
+  keep.champEquipped = prev.champEquipped && typeof prev.champEquipped === "object" ? prev.champEquipped : {};
+  keep.gear = prev.gear && typeof prev.gear === "object" ? prev.gear : {};
+  keep.ballFx = typeof prev.ballFx === "string" ? prev.ballFx : "";
+  keep.unlockedAvatars = Array.isArray(prev.unlockedAvatars) ? prev.unlockedAvatars.slice() : [];
+  keep.avatarId = prev.avatarId || keep.avatarId;
+  keep.topupLog = Array.isArray(prev.topupLog) ? prev.topupLog.slice() : [];
+  Object.keys(prev.inventory || {}).forEach((id) => {
+    if (isLookItem(id) && (prev.inventory[id] | 0) > 0) keep.inventory[id] = prev.inventory[id] | 0;
+  });
+  if (keep.beta.testPlay) {
+    if (giftPaid(prev)) {
+      keep.currencies.premium = BETA.powder;
+      keep.currencies.coins = BETA.coins;
+      keep.inventory.bodyfruit = BETA.fruit;
+      keep.seasonIssued = [BETA.giftId];
+    } else if (giftWaiting(prev) || (prev.seasonIssued || []).includes(BETA.giftId)) {
+      keep.seasonIssued = [BETA.giftId];
+      keep.seasonInbox = [TitleSystem.giftMail()];
+    }
+  }
+  keep.wipeId = BETA.wipeId;
+  return finish(keep);
+}
+
 function thisUnlock(data, id) {
   if (!id) return false;
   if (data.starterId === id) return true;
@@ -257,10 +307,12 @@ function thisUnlock(data, id) {
 
 export const SaveSystem = {
   accountId: null,
+  justLiveWipe: false,
   data: empty(),
 
   bootEmpty() {
     this.accountId = null;
+    this.justLiveWipe = false;
     this.data = finish(empty());
     return this.data;
   },
@@ -278,6 +330,10 @@ export const SaveSystem = {
     } catch (e) {
       this.data = finish(empty());
     }
+    const before = this.data.wipeId;
+    this.data = applyLiveWipe(this.data);
+    this.justLiveWipe = this.data.wipeId === BETA.wipeId && before !== BETA.wipeId;
+    if (this.justLiveWipe) this.persist({ push: false });
     return this.data;
   },
 
@@ -305,7 +361,9 @@ export const SaveSystem = {
       next.gear[id] = b;
     });
     restoreOutfitItems(next);
-    this.data = next;
+    const before = next.wipeId;
+    this.data = applyLiveWipe(next);
+    this.justLiveWipe = this.justLiveWipe || (this.data.wipeId === BETA.wipeId && before !== BETA.wipeId);
     this.persist();
   },
 
@@ -1033,9 +1091,17 @@ export const SaveSystem = {
       if (this.data.seasonInbox.some((row) => row.id === mail.id)) return;
       this.data.seasonInbox.push(mail);
     });
-    if (this.data.seasonIssued.length > 24) this.data.seasonIssued = this.data.seasonIssued.slice(-24);
+    if (this.data.seasonIssued.length > 24) {
+      const keepGift = this.data.seasonIssued.includes(BETA.giftId);
+      this.data.seasonIssued = this.data.seasonIssued.slice(-24);
+      if (keepGift && this.data.seasonIssued.indexOf(BETA.giftId) < 0) this.data.seasonIssued.unshift(BETA.giftId);
+    }
     if (dirty) this.persist();
     this.settleBetaGift();
+  },
+
+  liveWiped() {
+    return Boolean(this.data && this.data.wipeId === BETA.wipeId);
   },
 
   settleBetaGift() {

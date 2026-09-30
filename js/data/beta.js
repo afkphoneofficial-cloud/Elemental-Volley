@@ -9,9 +9,14 @@ export const BETA = {
   powder: 80,
   coins: 200,
   fruit: 1,
-  titleId: "beta-tester"
+  titleId: "beta-tester",
+  wipeId: "live-2026-10-10"
 };
 
 export function onBetaDay(key, start, end) {
   return key >= start && key <= end;
+}
+
+export function liveWipeDue(key, wipeId) {
+  return key >= BETA.live && wipeId !== BETA.wipeId;
 }

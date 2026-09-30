@@ -1,6 +1,8 @@
 import { BACKEND, backendReady } from "../config/backend.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { t } from "../i18n/I18n.js";
+import { BETA } from "../data/beta.js";
+import { dayKey } from "../data/monthPass.js?v=local190";
 
 let supabase = null;
 let session = null;
@@ -150,7 +152,7 @@ export const AuthSystem = {
     }
     if (this.needsName()) {
       showPanel("name");
-      setAuthMsg(t("web.authSetName"), false);
+      setAuthMsg(t(SaveSystem.justLiveWipe || SaveSystem.liveWiped() ? "web.authLiveName" : "web.authSetName"), false);
     } else {
       showPanel("google");
       setAuthMsg(backendReady()
@@ -180,7 +182,7 @@ export const AuthSystem = {
     await this.adoptUser(data.user, data.session);
     if (this.needsName()) {
       showPanel("name");
-      setAuthMsg(t("web.authWelcome"), false);
+      setAuthMsg(t(SaveSystem.justLiveWipe || SaveSystem.liveWiped() ? "web.authLiveName" : "web.authWelcome"), false);
     } else {
       this.hideOverlay();
       this.onAuthed();
@@ -210,6 +212,7 @@ export const AuthSystem = {
     } else if (SaveSystem.hasStarter()) {
       this.schedulePush();
     }
+    await this.syncLiveWipe();
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
     try {
       const { NetPlay } = await import("./NetPlay.js");
@@ -271,7 +274,23 @@ export const AuthSystem = {
     const { data, error } = await sb.from("profiles").select("save_data").eq("id", session.id).maybeSingle();
     if (error || !data || !data.save_data) return null;
     SaveSystem.applyCloud(data.save_data);
+    await this.syncLiveWipe();
     return data.save_data;
+  },
+
+  async syncLiveWipe() {
+    if (dayKey() < BETA.live) return;
+    const sb = await getSb();
+    if (!sb || !session || !session.id) return;
+    await sb.rpc("claim_live_wipe");
+    if (SaveSystem.justLiveWipe) {
+      await sb.from("profiles").update({
+        display_name: null,
+        display_name_set_at: null
+      }).eq("id", session.id);
+      profile = { ...(profile || {}), display_name: "" };
+      await this.pushSave();
+    }
   },
 
   async pushSave() {
