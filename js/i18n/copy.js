@@ -486,13 +486,18 @@ export const COPY = {
     topup: {
       title: "เติมผงอีเธเรีย",
       sub: "ผงอีเธเรียได้จากการเติมเงินเท่านั้น ไม่ดรอปจากแมตช์ ใช้ซื้อคอสตูมและแพ็กเศษธาตุ",
-      rate: "เรทตั้งต้นประมาณ 2 ผงต่อ 1 บาท แพ็กใหญ่มีโบนัส  ·  ยังไม่เปิดชำระจริง หน้านี้โชว์เรทและรายละเอียดไว้ก่อน",
+      rate: "เรทตั้งต้นประมาณ 2 ผงต่อ 1 บาท แพ็กใหญ่มีโบนัส  ·  กดช่องผงแล้วสแกน PromptPay (โหมดซ้อม Stripe)",
       powder: "{n} ผง",
       bonus: "รวมโบนัส +{n}",
       noBonus: "ไม่มีโบนัส",
       thb: "฿{n}",
       foot: "เมื่อเปิดชำระ จะซื้อผ่านหน้านี้อย่างเดียว ไม่มีปุ่มเสกผงในร้าน",
-      pass: "พาสเดือนนี้"
+      pass: "พาสเดือนนี้",
+      waitPay: "กำลังเปิด QR PromptPay…",
+      paid: "เติมสำเร็จ +{n} ผง",
+      fail: "เติมไม่สำเร็จ ลองใหม่",
+      canceled: "ยกเลิกการสแกน",
+      needLogin: "ต้องล็อกอินก่อนเติม"
     },
     pass: {
       title: "พาสเกาะรายเดือน",
@@ -1288,13 +1293,18 @@ export const COPY = {
     topup: {
       title: "Etheria Powder",
       sub: "Etheria Powder comes from real-money packs only. It does not drop from matches. Spend it on costumes and shard packs.",
-      rate: "Base rate is about 2 powder per 1 THB, with bonuses on larger packs.  Payment is not live yet. This page is the rate sheet.",
+      rate: "Base rate is about 2 powder per 1 THB, with bonuses on larger packs. Tap a pack and scan PromptPay (Stripe test mode).",
       powder: "{n} powder",
       bonus: "Includes +{n} bonus",
       noBonus: "No bonus",
       thb: "฿{n}",
       foot: "When checkout opens, packs are bought here only. The shop has no mock grant button.",
-      pass: "This month's pass"
+      pass: "This month's pass",
+      waitPay: "Opening PromptPay QR…",
+      paid: "Paid +{n} powder",
+      fail: "Top-up failed. Try again.",
+      canceled: "Scan canceled",
+      needLogin: "Sign in before topping up"
     },
     pass: {
       title: "Isle Monthly Pass",

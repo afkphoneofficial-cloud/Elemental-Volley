@@ -265,6 +265,15 @@ export const AuthSystem = {
     pushTimer = setTimeout(() => this.pushSave(), 700);
   },
 
+  async pullSave() {
+    const sb = await getSb();
+    if (!sb || !session || !session.id) return null;
+    const { data, error } = await sb.from("profiles").select("save_data").eq("id", session.id).maybeSingle();
+    if (error || !data || !data.save_data) return null;
+    SaveSystem.applyCloud(data.save_data);
+    return data.save_data;
+  },
+
   async pushSave() {
     const sb = await getSb();
     if (!sb || !session || !session.id) return;

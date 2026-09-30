@@ -247,3 +247,26 @@ select public.admin_restore_save(
   แผนฟรีมักไม่มีประวัติย้อนวัน  ตาราง save_snapshots จึงเป็นตาข่ายหลัก
   ก่อนรัน SQL ใหญ่ ควร Export ตาราง profiles ด้วย
 
+
+------------------------------------------------------------
+10) เติมผง Stripe PromptPay (sandbox)
+------------------------------------------------------------
+SQL Editor → วางทั้งไฟล์ supabase/topup.sql → Run
+
+Secrets ที่ต้องมีแล้ว
+  STRIPE_SECRET_KEY
+  STRIPE_PUBLISHABLE_KEY
+
+จากนั้น deploy Edge Functions (ทำครั้งเดียว / ตอนอัปเดตฟังก์ชัน)
+  npx supabase functions deploy create-topup --project-ref njuhuhfehbrbmatfpxcf
+  npx supabase functions deploy claim-topup --project-ref njuhuhfehbrbmatfpxcf
+  npx supabase functions deploy stripe-webhook --project-ref njuhuhfehbrbmatfpxcf --no-verify-jwt
+
+Webhook (หลัง deploy)
+  Stripe Developers → Webhooks → Add endpoint
+  URL = https://njuhuhfehbrbmatfpxcf.supabase.co/functions/v1/stripe-webhook
+  event = payment_intent.succeeded
+  คัด Signing secret ไปใส่ Secret ชื่อ STRIPE_WEBHOOK_SECRET
+
+ทดสอบในเกม หน้าเติมผง กดแพ็ก จะขึ้น QR แล้วกด Simulate scan ในโหมดซ้อม
+

@@ -6,12 +6,14 @@ import { t } from "../i18n/I18n.js";
 import { TOPUP_PACKS } from "../data/shopCatalog.js";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { PASS } from "../data/monthPass.js";
+import { TopupPay } from "../systems/TopupPay.js?v=local186";
 
 export class TopupScene extends Phaser.Scene {
   constructor() { super("topup"); }
 
   init(data) {
     this.from = (data && data.from) || "shop";
+    this.payNote = (data && data.note) || "";
   }
 
   create() {
@@ -86,6 +88,33 @@ export class TopupScene extends Phaser.Scene {
       this.add.text(x, y + 42, t("topup.thb", { n: pack.thb }), {
         fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5);
+      const zone = this.add.zone(x, y, 280, 140).setInteractive({ useHandCursor: true });
+      zone.on("pointerdown", () => this.buyPack(pack));
     });
+    if (this.payNote) {
+      this.add.text(W / 2, 688, this.payNote, {
+        fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#146b32"
+      }).setOrigin(0.5).setDepth(40);
+    }
+  }
+
+  async buyPack(pack) {
+    if (this.payLock) return;
+    this.payLock = true;
+    AudioSystem.ui();
+    const W = this.scale.width;
+    const note = this.add.text(W / 2, 690, t("topup.waitPay"), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#0a6a88"
+    }).setOrigin(0.5).setDepth(40);
+    try {
+      await TopupPay.buyPack(pack.id);
+      this.scene.start("topup", { from: this.from, note: t("topup.paid", { n: pack.powder }) });
+    } catch (err) {
+      const msg = (err && err.message) || t("topup.fail");
+      note.setColor("#c45a16");
+      note.setText(msg);
+      this.time.delayedCall(2800, () => { if (note && note.destroy) note.destroy(); });
+    }
+    this.payLock = false;
   }
 }
