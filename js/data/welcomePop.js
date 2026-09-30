@@ -4,8 +4,8 @@ export const WELCOME_SLIDES = [
     img: "assets/welcome/welcome-promo-beta.jpg?v=local219",
     tabTh: "เบต้า",
     tabEn: "Beta",
-    capTh: "ทดสอบ 1–7 ต.ค. 2026  ·  พักเซิร์ฟ 8–9 ต.ค.  ·  ฉายา BetaTester และของขวัญช่วงพัก",
-    capEn: "Test 1–7 Oct 2026  ·  rest 8–9 Oct  ·  BetaTester title and rest-day gifts"
+    capTh: "ทดสอบ 1–7 ต.ค. 2026  ·  พักเซิร์ฟ 8–9 ต.ค.  ·  เข้าเล่นแจกผงอีเธเรีย 2,000 ลองร้านค้า  ·  ฉายา BetaTester  ·  ของขวัญช่วงพัก: ผง 80 + เหรียญเกาะ 200 + ผลคืนกาย 1",
+    capEn: "Test 1–7 Oct 2026  ·  rest 8–9 Oct  ·  2,000 Etheria Powder on login to try the shop  ·  BetaTester title  ·  rest-day gift: 80 powder + 200 Isle Coins + 1 Bodyfruit"
   },
   {
     id: "live",

@@ -1188,7 +1188,8 @@ html[data-control="pc"] #game {
   border-radius: 14px;
   font-family: Kanit, "Segoe UI", sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
+  line-height: 1.45;
   color: #fff8ee;
   background: rgba(26, 18, 16, 0.72);
   pointer-events: none;

@@ -1,4 +1,4 @@
-import { WELCOME_SLIDES } from "../data/welcomePop.js?v=local230";
+import { WELCOME_SLIDES } from "../data/welcomePop.js?v=local234";
 import { SaveSystem } from "./SaveSystem.js";
 import { dayKey } from "../data/monthPass.js?v=local171";
 import { I18n, t } from "../i18n/I18n.js";
