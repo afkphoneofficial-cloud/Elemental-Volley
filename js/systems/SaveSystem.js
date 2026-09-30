@@ -1047,7 +1047,7 @@ export const SaveSystem = {
     }
     if (fresh.length || gift) this.persist();
     return gift;
-  },,
+  },
 
   claimSeasonMail(id) {
     const raw = String(id || "").replace(/^local:/, "");
