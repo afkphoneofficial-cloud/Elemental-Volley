@@ -19,7 +19,8 @@ function els() {
     note: document.getElementById("chat-note"),
     pals: document.getElementById("chat-friends"),
     tabWorld: document.getElementById("chat-tab-world"),
-    tabFriends: document.getElementById("chat-tab-friends")
+    tabFriends: document.getElementById("chat-tab-friends"),
+    close: document.getElementById("chat-close")
   };
 }
 
@@ -62,6 +63,7 @@ export const ChatSystem = {
     }
     ui.dock.dataset.bound = "1";
     ui.toggle.addEventListener("click", () => this.setOpen(!this.open));
+    if (ui.close) ui.close.addEventListener("click", () => this.setOpen(false));
     ui.tabWorld.addEventListener("click", () => this.setTab("world"));
     ui.tabFriends.addEventListener("click", () => this.setTab("friends"));
     ui.form.addEventListener("submit", (ev) => {
@@ -142,6 +144,7 @@ export const ChatSystem = {
     const badge = this.unread > 0 && !this.open ? " · " + (this.unread > 9 ? "9+" : this.unread) : "";
     const title = t("chat.title") + badge;
     if (ui.toggle) ui.toggle.textContent = (this.open ? "▾ " : "▸ ") + title;
+    if (ui.close) ui.close.textContent = t("chat.close");
     if (this.hubScene && this.hubScene.paintChatBadge) this.hubScene.paintChatBadge();
     ui.tabWorld.textContent = t("chat.world");
     ui.tabFriends.textContent = t("chat.friends");
@@ -353,7 +356,7 @@ export const ChatSystem = {
     if (!ui.dock || !box) return;
     const r = box.getBoundingClientRect();
     const scale = r.height / 720;
-    const onHub = Boolean(this.hubScene);
+    const onHub = Boolean(this.hubScene && this.hubScene.sys && this.hubScene.sys.isActive());
     const show = Boolean(this.visible);
     ui.dock.hidden = !show || (onHub && !this.open);
     if (ui.toggle) ui.toggle.hidden = !show || onHub;

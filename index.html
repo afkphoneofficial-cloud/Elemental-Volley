@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local179" />
+  <link rel="stylesheet" href="css/styles.css?v=local213" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -124,6 +124,9 @@
   <div id="chat-dock" hidden>
     <button type="button" id="chat-toggle">แชท</button>
     <div id="chat-panel">
+      <div class="chat-head">
+        <button type="button" id="chat-close">ปิด</button>
+      </div>
       <div class="chat-tabs">
         <button type="button" id="chat-tab-world">เซิร์ฟ</button>
         <button type="button" id="chat-tab-friends">เพื่อน</button>
@@ -166,6 +169,6 @@
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="js/main.js?v=local213"></script>
+  <script type="module" src="js/main.js?v=local214"></script>
 </body>
 </html>

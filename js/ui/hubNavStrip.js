@@ -1,5 +1,5 @@
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { ChatSystem } from "../systems/ChatSystem.js";
+import { ChatSystem } from "../systems/ChatSystem.js?v=local213";
 import { Presence } from "../systems/Presence.js";
 import { t } from "../i18n/I18n.js";
 import { UI_FONT } from "./Ui.js";
