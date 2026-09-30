@@ -11,7 +11,7 @@ import { MenuScene } from "./scenes/MenuScene.js";
 import { HubScene } from "./scenes/HubScene.js?v=local197";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js";
-import { ShopScene } from "./scenes/ShopScene.js?v=local199";
+import { ShopScene } from "./scenes/ShopScene.js?v=local200";
 import { TopupScene } from "./scenes/TopupScene.js?v=local190";
 import { PassScene } from "./scenes/PassScene.js?v=local190";
 import { PlayScene } from "./scenes/PlayScene.js?v=local198";
