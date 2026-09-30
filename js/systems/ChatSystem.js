@@ -6,7 +6,7 @@ import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
 import { Presence } from "./Presence.js";
 
-const SHOW = new Set(["hub", "friends", "shop", "wiki", "explore", "settings", "mode", "rank", "menu", "topup", "pass"]);
+const SHOW = new Set(["hub"]);
 
 function els() {
   return {
@@ -91,6 +91,7 @@ export const ChatSystem = {
         key = live && live.sys ? live.sys.settings.key : "";
       }
       this.setVisible(SHOW.has(key) && typeof AuthSystem.canPlay === "function" && AuthSystem.canPlay());
+      if (!this.visible && this.open && key && key !== "hub") this.setOpen(false);
       Presence.tick();
       if (this.visible && this.open && Date.now() - (this.pollAt || 0) > 6000) {
         this.pollAt = Date.now();
@@ -130,6 +131,11 @@ export const ChatSystem = {
     this.toId = pal.id;
     this.toName = pal.name || "";
     this.tab = "friends";
+    const game = window.game;
+    const live = game && game.scene ? game.scene.getScenes(true)[0] : null;
+    if (live && live.sys && live.sys.settings.key !== "hub") {
+      live.scene.start("hub");
+    }
     this.setVisible(true);
     this.setOpen(true);
     this.paintChrome();

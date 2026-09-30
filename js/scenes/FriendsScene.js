@@ -5,7 +5,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { Session } from "../systems/Session.js";
 import { Friends } from "../systems/Friends.js";
-import { ChatSystem } from "../systems/ChatSystem.js?v=local213";
+import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
 import { t } from "../i18n/I18n.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";

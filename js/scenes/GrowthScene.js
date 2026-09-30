@@ -108,7 +108,7 @@ export class GrowthScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "700", color: "#c45a16",
       align: "center", wordWrap: { width: 240 }
     }).setOrigin(0.5);
-    this.draftText = this.add.text(720, 468, "", {
+    this.draftText = this.add.text(720, 518, "", {
       fontFamily: UI_FONT, fontSize: "13px", fontStyle: "800", color: "#9a3a18",
       wordWrap: { width: 640 }, align: "center"
     }).setOrigin(0.5);
@@ -136,33 +136,33 @@ export class GrowthScene extends Phaser.Scene {
       return { stat, name, barG, barLabel, plus, minus };
     });
 
-    this.giftAsk = makeButton(this, 418, 454, 36, 32, "?", () => {
+    this.giftAsk = makeButton(this, 418, 486, 36, 32, "?", () => {
       this.hintPart = 2;
       this.paintHint();
     }, 0xff8ab8);
     this.giftAsk.text.setFontSize(16);
-    this.giftHint = this.add.text(446, 454, "", {
+    this.giftHint = this.add.text(446, 486, "", {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "700", color: "#9a3a58",
       wordWrap: { width: 560 }
     }).setOrigin(0, 0.5);
 
-    this.confirmBtn = makeButton(this, 560, 498, 250, 40, t("growth.confirm"), () => {
+    this.confirmBtn = makeButton(this, 560, 560, 250, 40, t("growth.confirm"), () => {
       this.commitDraft();
     }, 0x3ad6ff);
-    this.cancelBtn = makeButton(this, 880, 498, 250, 40, t("growth.cancelDraft"), () => {
+    this.cancelBtn = makeButton(this, 880, 560, 250, 40, t("growth.cancelDraft"), () => {
       this.discardDraft();
     }, 0xc8bdd8);
     this.confirmBtn.text.setFontSize(15);
     this.cancelBtn.text.setFontSize(15);
 
-    this.respecStartBtn = makeButton(this, 720, 546, 580, 40, t("growth.respecStart"), () => {
+    this.respecStartBtn = makeButton(this, 720, 610, 580, 40, t("growth.respecStart"), () => {
       this.discardDraft(false);
       if (SaveSystem.respecStartGrowth(this.charId)) {
         AudioSystem.ui();
         this.refresh();
       }
     }, 0xff8ab8);
-    this.respecLevelBtn = makeButton(this, 720, 594, 580, 40, t("growth.respecLevel"), () => {
+    this.respecLevelBtn = makeButton(this, 720, 658, 580, 40, t("growth.respecLevel"), () => {
       this.discardDraft(false);
       const res = SaveSystem.respecLevelGrowth(this.charId);
       if (res && res.ok) {
@@ -308,7 +308,7 @@ export class GrowthScene extends Phaser.Scene {
 
   showBagHint(reason) {
     const key = reason === "none" || reason === "needFruit" ? "growth.needFruit" : "bag.err." + (reason || "no");
-    const msg = this.add.text(this.scale.width / 2, 670, t(key), {
+    const msg = this.add.text(this.scale.width / 2, 702, t(key), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c42a4a"
     }).setOrigin(0.5).setDepth(30);
     this.time.delayedCall(1800, () => { if (msg && msg.destroy) msg.destroy(); });

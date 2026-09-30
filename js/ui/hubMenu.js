@@ -98,7 +98,7 @@ export function paintHubMenu(scene) {
       if (scene.paintMailbox) scene.paintMailbox();
     } },
     { label: t("career.title"), icon: avatarKey(avId), go: () => scene.scene.start("career") },
-    { label: t("hub.navGrowth"), icon: "item-fruit", go: () => scene.scene.start("growth") },
+    { label: t("hub.navGrowth"), icon: "vis_icon_growth", go: () => scene.scene.start("growth") },
     { label: t("hub.navBag"), icon: "item-bag", go: () => scene.scene.start("bag") },
     { label: t("hub.navDress"), icon: "vis_icon_mirror", go: () => scene.scene.start("bag", { tab: "look" }) },
     { label: t("hub.navShop"), icon: "vis_icon_shop", go: () => scene.scene.start("shop") },

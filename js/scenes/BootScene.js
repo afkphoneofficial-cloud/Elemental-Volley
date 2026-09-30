@@ -48,6 +48,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("icon-mirror", "assets/sprites/items/icon-mirror.png");
     this.load.image("icon-mail", "assets/sprites/items/icon-mail.png");
     this.load.image("icon-shop", "assets/sprites/items/icon-shop.png");
+    this.load.image("icon-growth", "assets/sprites/items/icon-growth.png");
     this.load.image("icon-ticket", "assets/sprites/items/icon-ticket.jpg");
     this.load.image("icon-map", "assets/sprites/items/icon-map.png");
     this.load.image("icon-friends", "assets/sprites/items/icon-friends.png");
@@ -111,6 +112,7 @@ export class BootScene extends Phaser.Scene {
       TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
       TextureFactory.applyChibi(this, "icon-mail", "vis_icon_mail");
       TextureFactory.applyChibi(this, "icon-shop", "vis_icon_shop");
+      TextureFactory.applyChibi(this, "icon-growth", "vis_icon_growth", true);
       TextureFactory.applyChibi(this, "icon-ticket", "vis_icon_ticket", true);
       TextureFactory.applyChibi(this, "icon-map", "vis_icon_map");
       TextureFactory.applyChibi(this, "icon-friends", "vis_icon_friends");
