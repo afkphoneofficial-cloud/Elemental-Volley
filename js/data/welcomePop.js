@@ -25,11 +25,11 @@ export const WELCOME_SLIDES = [
   },
   {
     id: "home",
-    img: "assets/welcome/welcome-hero.jpg?v=local218",
+    img: "assets/welcome/welcome-promo-play.jpg?v=local230",
     tabTh: "ต้อนรับ",
     tabEn: "Hello",
-    capTh: "ยินดีต้อนรับสู่ Elemental Volley : Spike It !!",
-    capEn: "Welcome to Elemental Volley : Spike It !!"
+    capTh: "เล่นได้ทั้ง PC มือถือแนวตั้งและแนวนอน · ติดตั้งลงมือถือจากเว็บทางการ ง่าย ปลอดภัย 100%",
+    capEn: "Play on PC, portrait, and landscape. Add to Home Screen from the official site — simple and safe."
   },
   {
     id: "shop",
