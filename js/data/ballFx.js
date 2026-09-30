@@ -56,45 +56,47 @@ function tongue(g, x, y, ang, len, half, col, a) {
 }
 
 function drawEmber(g, x, y, r, t, pow) {
-  const count = Math.round(9 * pow);
+  g.fillStyle(0xff4a12, 0.28);
+  g.fillEllipse(x, y + r * 0.12, r * 1.7 * pow, r * 1.15);
+  g.fillStyle(0xff9a2a, 0.32);
+  g.fillEllipse(x, y + r * 0.05, r * 1.15, r * 0.85);
+  const count = Math.round(8 * pow);
   for (let i = 0; i < count; i++) {
-    const sway = Math.sin(t / 90 + i) * 0.35;
-    const ang = -Math.PI / 2 + sway + (i - count / 2) * 0.42;
-    const len = (r * (1.1 + flicker(t, i, 70) * 1.15)) * pow;
-    tongue(g, x, y - r * 0.15, ang, len, 5 + pow * 3, 0xff3a12, 0.42 + flicker(t, i, 80) * 0.28);
-    tongue(g, x, y - r * 0.1, ang, len * 0.72, 3.2 + pow * 2, 0xffb14a, 0.55);
-    tongue(g, x, y - r * 0.05, ang, len * 0.42, 2, 0xfff4e8, 0.7);
+    const u = (i + 0.5) / count;
+    const sx = x + (u - 0.5) * r * 1.55;
+    const sy = y + r * (0.35 - Math.abs(u - 0.5) * 0.35);
+    const sway = Math.sin(t / 70 + i * 1.4) * 0.38;
+    const ang = -Math.PI / 2 + sway + (u - 0.5) * 0.55;
+    const len = r * (1.35 + flicker(t, i, 55) * 1.1) * pow;
+    tongue(g, sx, sy, ang, len, 6 + pow * 3.2, 0xff2a08, 0.5 + flicker(t, i, 80) * 0.25);
+    tongue(g, sx, sy - 2, ang, len * 0.72, 3.6 + pow * 2, 0xffb14a, 0.7);
+    tongue(g, sx, sy - 4, ang, len * 0.4, 2, 0xfff6e8, 0.85);
   }
-  for (let i = 0; i < 5 + pow * 3; i++) {
-    const a = t / 80 + i * 1.1;
-    const lift = (t / 18 + i * 13) % (r * 1.8 + 18);
-    g.fillStyle(0xffe08a, 0.75 - lift / 80);
-    g.fillCircle(x + Math.sin(a) * (r * 0.35), y - r * 0.2 - lift, 1.6 + (i % 3) * 0.8);
+  for (let i = 0; i < 7 + pow * 4; i++) {
+    const lift = (t / 16 + i * 11) % (r * 2.2 + 24);
+    const drift = Math.sin(t / 90 + i) * r * 0.55;
+    g.fillStyle(0xffe08a, Math.max(0, 0.8 - lift / 70));
+    g.fillCircle(x + drift, y - r * 0.15 - lift, 1.4 + (i % 3) * 0.7);
   }
 }
 
 function drawMist(g, x, y, r, t, pow) {
-  for (let i = 0; i < 7; i++) {
-    const a = t / 160 + i * 0.9;
-    const wob = Math.sin(t / 110 + i) * r * 0.18;
-    g.fillStyle(0x9af6ff, 0.16 + (i % 3) * 0.06);
-    g.fillEllipse(x + Math.cos(a) * (r * 0.55 + wob), y + Math.sin(a * 0.8) * (r * 0.35), 18 * pow, 10 * pow);
+  g.fillStyle(0x6ad8ff, 0.18);
+  g.fillEllipse(x, y + r * 0.08, r * 2.1 * pow, r * 1.35);
+  for (let i = 0; i < 8; i++) {
+    const drift = Math.sin(t / 140 + i * 0.8) * r * 0.7;
+    const bob = Math.cos(t / 110 + i) * r * 0.22;
+    g.fillStyle(0xb8f6ff, 0.12 + (i % 3) * 0.07);
+    g.fillEllipse(x + drift, y + bob - r * 0.05, 22 * pow + (i % 4) * 5, 12 * pow + (i % 3) * 4);
   }
-  const drops = Math.round(6 * pow);
+  const drops = Math.round(7 * pow);
   for (let i = 0; i < drops; i++) {
-    const fall = (t / 14 + i * 17) % (r * 1.6 + 22);
-    const dx = Math.sin(i * 1.8 + t / 200) * r * 0.7;
-    g.fillStyle(0x3ad6ff, 0.7);
-    g.fillEllipse(x + dx, y + r * 0.15 + fall, 4.5, 7 + pow);
-    g.fillStyle(0xffffff, 0.85);
-    g.fillCircle(x + dx - 1, y + r * 0.1 + fall - 1, 1.4);
-  }
-  g.lineStyle(2.5, 0x7ae8ff, 0.7);
-  for (let i = 0; i < 3; i++) {
-    const a0 = t / 180 + i * 2.1;
-    g.beginPath();
-    g.arc(x, y, r + 6 + i * 5, a0, a0 + 1.1, false);
-    g.strokePath();
+    const fall = (t / 14 + i * 17) % (r * 1.8 + 26);
+    const dx = Math.sin(i * 1.8 + t / 200) * r * 0.75;
+    g.fillStyle(0x3ad6ff, 0.75);
+    g.fillEllipse(x + dx, y + r * 0.2 + fall, 4.2, 8 + pow * 1.5);
+    g.fillStyle(0xffffff, 0.9);
+    g.fillCircle(x + dx - 1.2, y + r * 0.14 + fall - 1.5, 1.3);
   }
 }
 
@@ -139,19 +141,27 @@ function leaf(g, x, y, ang, len, col, a) {
 }
 
 function drawTerra(g, x, y, r, t, pow) {
-  const n = Math.round(6 * pow);
-  for (let i = 0; i < n; i++) {
-    const ang = t / 240 + i * ((Math.PI * 2) / n);
-    const ox = Math.cos(ang) * r * 0.85;
-    const oy = Math.sin(ang) * r * 0.85;
-    leaf(g, x + ox, y + oy, ang - 0.4, r * (0.55 + flicker(t, i, 160) * 0.2) * pow, i % 2 ? 0x5aa84a : 0x8fd06a, 0.8);
-    g.fillStyle(0x3d6b28, 0.55);
-    g.fillCircle(x + ox * 0.92, y + oy * 0.92, 3 + (i % 3));
-  }
+  g.fillStyle(0x3d6b28, 0.22);
+  g.fillEllipse(x, y + r * 0.25, r * 1.6, r * 0.7);
   for (let i = 0; i < 4; i++) {
-    const fall = (t / 22 + i * 19) % (r + 16);
-    g.fillStyle(0xc07830, 0.7);
-    g.fillCircle(x + Math.sin(i * 2.2) * r * 0.5, y + r * 0.4 + fall * 0.4, 2);
+    const a0 = 0.4 + i * 0.7 + Math.sin(t / 220 + i) * 0.2;
+    g.lineStyle(2.4, 0x5a3a18, 0.75);
+    g.beginPath();
+    g.moveTo(x + Math.cos(a0) * r * 0.2, y + r * 0.55);
+    g.lineTo(x + Math.cos(a0) * r * 0.95, y - r * (0.15 + (i % 2) * 0.25));
+    g.strokePath();
+  }
+  const n = Math.round(7 * pow);
+  for (let i = 0; i < n; i++) {
+    const side = i % 2 ? 1 : -1;
+    const ox = side * r * (0.35 + (i % 3) * 0.22);
+    const oy = r * 0.15 - (i % 4) * r * 0.22 + Math.sin(t / 180 + i) * 4;
+    leaf(g, x + ox, y + oy, -Math.PI / 2 + side * 0.55 + Math.sin(t / 160 + i) * 0.2, r * (0.5 + flicker(t, i, 160) * 0.18) * pow, i % 2 ? 0x5aa84a : 0x8fd06a, 0.85);
+  }
+  for (let i = 0; i < 5; i++) {
+    const fall = (t / 22 + i * 19) % (r + 18);
+    g.fillStyle(0xc07830, 0.75);
+    g.fillCircle(x + Math.sin(i * 2.2) * r * 0.45, y + r * 0.45 + fall * 0.35, 2);
   }
 }
 
@@ -173,15 +183,18 @@ function starPoly(g, x, y, r, rot, col, a) {
 }
 
 function drawStarFx(g, x, y, r, t, pow) {
-  const n = Math.round(5 * pow);
+  g.fillStyle(0xfff6ea, 0.16 + 0.08 * flicker(t, 0, 90));
+  g.fillEllipse(x, y, r * 1.4 * pow, r * 1.15);
+  const n = Math.round(4 * pow);
   for (let i = 0; i < n; i++) {
-    const ang = t / 180 + i * ((Math.PI * 2) / n);
-    const dist = r * (0.85 + 0.2 * Math.sin(t / 90 + i));
-    starPoly(g, x + Math.cos(ang) * dist, y + Math.sin(ang) * dist, 5 + pow * 2, t / 200 + i, i % 2 ? 0xff8ab8 : 0xffe08a, 0.9);
+    const px = x + Math.sin(t / 160 + i * 1.7) * r * 0.55;
+    const py = y + Math.cos(t / 140 + i * 1.1) * r * 0.4;
+    starPoly(g, px, py, 6 + pow * 2.4, t / 180 + i, i % 2 ? 0xff8ab8 : 0xffe08a, 0.92);
   }
-  for (let i = 0; i < 8; i++) {
-    const a = t / 50 + i * 0.7;
-    g.fillStyle(0xfff6ea, 0.35 + flicker(t, i, 60) * 0.5);
-    g.fillCircle(x + Math.cos(a) * r * 0.4, y + Math.sin(a * 1.3) * r * 0.4, 1.4);
+  for (let i = 0; i < 10; i++) {
+    const lift = (t / 28 + i * 9) % (r * 1.6 + 16);
+    const dx = Math.sin(i * 2.1 + t / 80) * r * 0.7;
+    g.fillStyle(0xfff6ea, 0.3 + flicker(t, i, 50) * 0.55);
+    g.fillCircle(x + dx, y + r * 0.1 - lift, 1.2 + (i % 3) * 0.6);
   }
 }

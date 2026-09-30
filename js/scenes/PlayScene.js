@@ -32,7 +32,7 @@ import { NetPlay } from "../systems/NetPlay.js";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
-import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local193";
+import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local194";
 import {
   GAUGE_MAX,
   MATCH_FX,

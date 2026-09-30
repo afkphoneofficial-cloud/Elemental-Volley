@@ -8,12 +8,12 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { itemIconKey } from "../data/items.js";
 import { SHOP_TABS, SHOP_USE_GOODS, SHOP_TRADE_GOODS } from "../data/shopCatalog.js?v=local190";
-import { BALL_FX } from "../data/ballFx.js?v=local193";
+import { BALL_FX } from "../data/ballFx.js?v=local194";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { SELECT_PLATE } from "../fx/SelectHover.js";
 import { openShopBuy, closeShopBuy, closeShopNote, shopNote } from "../ui/shopBuyPopup.js";
 import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
-import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js";
+import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local194";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
 
 const CARD_W = 196;
