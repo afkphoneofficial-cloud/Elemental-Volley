@@ -1,4 +1,4 @@
-/** Visual-only serve-ball cosmetics. No physics. */
+/** Visual-only serve-ball cosmetics. No physics. Compact twinkle glints, not auras. */
 
 export const BALL_FX = [
   { id: "ball_ember", price: 45, color: 0xff6a22, ring: 0xffb14a, kind: "ember", tex: "vis_ball_ember", art: "ball-ember-art", src: "assets/sprites/balls/ball_ember.png" },
@@ -33,7 +33,7 @@ export function drawArmedBallFx(g, x, y, r, row, now, style) {
   g.clear();
   if (!row) return;
   const t = now || 0;
-  const pow = style === "ult" ? 1.55 : style === "smash" ? 1.22 : 1;
+  const pow = style === "ult" ? 1.35 : style === "smash" ? 1.18 : 1;
   const n = row.kind;
   if (n === "ember") drawEmber(g, x, y, r, t, pow);
   else if (n === "mist") drawMist(g, x, y, r, t, pow);
@@ -42,159 +42,116 @@ export function drawArmedBallFx(g, x, y, r, row, now, style) {
   else drawStarFx(g, x, y, r, t, pow);
 }
 
-function flicker(t, i, spd) {
-  return 0.55 + 0.45 * Math.sin(t / spd + i * 1.7);
+/** Sharp on/off flash — mostly dark, brief pop. */
+function flash(t, i, period) {
+  const u = ((t / period + i * 0.271) % 1 + 1) % 1;
+  return Math.max(0, 1 - Math.abs(u - 0.06) * 18);
 }
 
-function tongue(g, x, y, ang, len, half, col, a) {
-  const tx = x + Math.cos(ang) * len;
-  const ty = y + Math.sin(ang) * len;
-  const ox = Math.cos(ang + Math.PI / 2) * half;
-  const oy = Math.sin(ang + Math.PI / 2) * half;
+function rim(x, y, r, i, t, spin) {
+  const ang = i * 2.399 + t * spin;
+  const d = r * (0.62 + (i % 4) * 0.09);
+  return { x: x + Math.cos(ang) * d, y: y + Math.sin(ang) * d, ang };
+}
+
+/** Four-point glint used in pickup / sparkle packs. */
+function glint(g, x, y, s, col, a) {
+  if (a < 0.08) return;
+  g.fillStyle(col, a * 0.85);
+  g.fillTriangle(x, y - s, x + s * 0.22, y, x - s * 0.22, y);
+  g.fillTriangle(x, y + s, x + s * 0.22, y, x - s * 0.22, y);
+  g.fillTriangle(x - s * 0.72, y, x, y + s * 0.18, x, y - s * 0.18);
+  g.fillTriangle(x + s * 0.72, y, x, y + s * 0.18, x, y - s * 0.18);
+  g.fillStyle(0xffffff, a);
+  g.fillCircle(x, y, Math.max(0.7, s * 0.12));
+}
+
+function speckle(g, x, y, col, a) {
   g.fillStyle(col, a);
-  g.fillTriangle(x + ox, y + oy, x - ox, y - oy, tx, ty);
+  g.fillCircle(x, y, 1.15);
 }
 
 function drawEmber(g, x, y, r, t, pow) {
-  g.fillStyle(0xff4a12, 0.28);
-  g.fillEllipse(x, y + r * 0.12, r * 1.7 * pow, r * 1.15);
-  g.fillStyle(0xff9a2a, 0.32);
-  g.fillEllipse(x, y + r * 0.05, r * 1.15, r * 0.85);
-  const count = Math.round(8 * pow);
-  for (let i = 0; i < count; i++) {
-    const u = (i + 0.5) / count;
-    const sx = x + (u - 0.5) * r * 1.55;
-    const sy = y + r * (0.35 - Math.abs(u - 0.5) * 0.35);
-    const sway = Math.sin(t / 70 + i * 1.4) * 0.38;
-    const ang = -Math.PI / 2 + sway + (u - 0.5) * 0.55;
-    const len = r * (1.35 + flicker(t, i, 55) * 1.1) * pow;
-    tongue(g, sx, sy, ang, len, 6 + pow * 3.2, 0xff2a08, 0.5 + flicker(t, i, 80) * 0.25);
-    tongue(g, sx, sy - 2, ang, len * 0.72, 3.6 + pow * 2, 0xffb14a, 0.7);
-    tongue(g, sx, sy - 4, ang, len * 0.4, 2, 0xfff6e8, 0.85);
+  g.fillStyle(0xff7a28, 0.14 + 0.08 * flash(t, 0, 220));
+  g.fillCircle(x, y + r * 0.06, r * 0.42);
+  const n = Math.round(5 + pow * 2);
+  for (let i = 0; i < n; i++) {
+    const p = rim(x, y, r, i, t, 0.0011);
+    const a = flash(t, i, 160 + i * 11);
+    glint(g, p.x, p.y, 3.2 + pow * 1.1, i % 2 ? 0xffb14a : 0xfff4e0, a);
   }
-  for (let i = 0; i < 7 + pow * 4; i++) {
-    const lift = (t / 16 + i * 11) % (r * 2.2 + 24);
-    const drift = Math.sin(t / 90 + i) * r * 0.55;
-    g.fillStyle(0xffe08a, Math.max(0, 0.8 - lift / 70));
-    g.fillCircle(x + drift, y - r * 0.15 - lift, 1.4 + (i % 3) * 0.7);
+  for (let i = 0; i < 3; i++) {
+    const a = flash(t, i + 9, 90);
+    if (a < 0.2) continue;
+    const sx = x + (i - 1) * r * 0.22;
+    g.fillStyle(0xffe08a, a * 0.9);
+    g.fillTriangle(sx - 1.4, y - r * 0.15, sx + 1.4, y - r * 0.15, sx, y - r * (0.55 + a * 0.25 * pow));
   }
 }
 
 function drawMist(g, x, y, r, t, pow) {
-  g.fillStyle(0x6ad8ff, 0.18);
-  g.fillEllipse(x, y + r * 0.08, r * 2.1 * pow, r * 1.35);
-  for (let i = 0; i < 8; i++) {
-    const drift = Math.sin(t / 140 + i * 0.8) * r * 0.7;
-    const bob = Math.cos(t / 110 + i) * r * 0.22;
-    g.fillStyle(0xb8f6ff, 0.12 + (i % 3) * 0.07);
-    g.fillEllipse(x + drift, y + bob - r * 0.05, 22 * pow + (i % 4) * 5, 12 * pow + (i % 3) * 4);
+  g.fillStyle(0xffffff, 0.22);
+  g.fillEllipse(x - r * 0.22, y - r * 0.28, r * 0.38, r * 0.2);
+  const n = Math.round(5 + pow);
+  for (let i = 0; i < n; i++) {
+    const p = rim(x, y, r, i + 2, t, 0.0007);
+    glint(g, p.x, p.y, 2.8 + pow, 0xffffff, flash(t, i, 190));
+    speckle(g, p.x + 2, p.y + 1, 0x7ae8ff, flash(t, i + 4, 140) * 0.85);
   }
-  const drops = Math.round(7 * pow);
-  for (let i = 0; i < drops; i++) {
-    const fall = (t / 14 + i * 17) % (r * 1.8 + 26);
-    const dx = Math.sin(i * 1.8 + t / 200) * r * 0.75;
-    g.fillStyle(0x3ad6ff, 0.75);
-    g.fillEllipse(x + dx, y + r * 0.2 + fall, 4.2, 8 + pow * 1.5);
-    g.fillStyle(0xffffff, 0.9);
-    g.fillCircle(x + dx - 1.2, y + r * 0.14 + fall - 1.5, 1.3);
+  for (let i = 0; i < 2; i++) {
+    const a = flash(t, i + 12, 280);
+    if (a < 0.15) continue;
+    g.fillStyle(0x3ad6ff, 0.55 * a);
+    g.fillEllipse(x + (i ? 6 : -5), y + r * 0.38, 2.6, 4.2);
   }
-}
-
-function bolt(g, x, y, ang, len, t, i) {
-  const steps = 5;
-  g.beginPath();
-  g.moveTo(x, y);
-  for (let s = 1; s <= steps; s++) {
-    const u = s / steps;
-    const zig = ((s % 2) ? 1 : -1) * (3 + ((t / 20 + i * 5 + s * 9) % 6));
-    g.lineTo(
-      x + Math.cos(ang) * len * u + Math.cos(ang + Math.PI / 2) * zig,
-      y + Math.sin(ang) * len * u + Math.sin(ang + Math.PI / 2) * zig
-    );
-  }
-  g.strokePath();
 }
 
 function drawVolt(g, x, y, r, t, pow) {
-  const n = Math.round(5 * pow);
-  for (let i = 0; i < n; i++) {
-    const ang = t / 70 + i * ((Math.PI * 2) / n);
-    const len = (r * 1.35 + flicker(t, i, 40) * r * 0.7) * pow;
-    g.lineStyle(4 * pow, 0x7d5cff, 0.35);
-    bolt(g, x, y, ang, len, t, i);
-    g.lineStyle(2.2, 0xe8ff3a, 0.95);
-    bolt(g, x, y, ang, len, t, i + 3);
-    g.lineStyle(1.2, 0xffffff, 1);
-    bolt(g, x, y, ang, len * 0.86, t, i + 1);
+  const pop = flash(t, 1, 110);
+  if (pop > 0.35) {
+    g.fillStyle(0xffffee, 0.18 * pop);
+    g.fillCircle(x, y, r * 0.38);
   }
-  g.fillStyle(0xffffcc, 0.85);
-  g.fillCircle(x, y, 4 + pow * 2);
-}
-
-function leaf(g, x, y, ang, len, col, a) {
-  const tx = x + Math.cos(ang) * len;
-  const ty = y + Math.sin(ang) * len;
-  const ox = Math.cos(ang + Math.PI / 2) * (len * 0.28);
-  const oy = Math.sin(ang + Math.PI / 2) * (len * 0.28);
-  g.fillStyle(col, a);
-  g.fillTriangle(x, y, tx + ox, ty + oy, tx - ox, ty - oy);
+  const n = Math.round(4 + pow);
+  for (let i = 0; i < n; i++) {
+    const p = rim(x, y, r, i, t, 0.0024);
+    glint(g, p.x, p.y, 3 + pow, 0xe8ff3a, flash(t, i, 95));
+  }
+  for (let i = 0; i < 2; i++) {
+    const a = flash(t, i + 20, 70);
+    if (a < 0.45) continue;
+    const ang = t * 0.01 + i * 1.9;
+    const len = r * (0.38 + 0.12 * pow);
+    const zig = 2.2 * (i ? -1 : 1);
+    g.lineStyle(1.6, 0xffffff, a);
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + Math.cos(ang) * len * 0.5 + zig, y + Math.sin(ang) * len * 0.5);
+    g.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    g.strokePath();
+  }
 }
 
 function drawTerra(g, x, y, r, t, pow) {
-  g.fillStyle(0x3d6b28, 0.22);
-  g.fillEllipse(x, y + r * 0.25, r * 1.6, r * 0.7);
-  for (let i = 0; i < 4; i++) {
-    const a0 = 0.4 + i * 0.7 + Math.sin(t / 220 + i) * 0.2;
-    g.lineStyle(2.4, 0x5a3a18, 0.75);
-    g.beginPath();
-    g.moveTo(x + Math.cos(a0) * r * 0.2, y + r * 0.55);
-    g.lineTo(x + Math.cos(a0) * r * 0.95, y - r * (0.15 + (i % 2) * 0.25));
-    g.strokePath();
-  }
-  const n = Math.round(7 * pow);
+  const n = Math.round(4 + pow);
   for (let i = 0; i < n; i++) {
-    const side = i % 2 ? 1 : -1;
-    const ox = side * r * (0.35 + (i % 3) * 0.22);
-    const oy = r * 0.15 - (i % 4) * r * 0.22 + Math.sin(t / 180 + i) * 4;
-    leaf(g, x + ox, y + oy, -Math.PI / 2 + side * 0.55 + Math.sin(t / 160 + i) * 0.2, r * (0.5 + flicker(t, i, 160) * 0.18) * pow, i % 2 ? 0x5aa84a : 0x8fd06a, 0.85);
+    const p = rim(x, y, r, i + 1, t, 0.0005);
+    const a = flash(t, i, 210);
+    glint(g, p.x, p.y, 2.6 + pow, 0xc8ff9a, a * 0.9);
+    if (a > 0.4) {
+      g.fillStyle(0x7ad06a, a * 0.8);
+      g.fillTriangle(p.x, p.y, p.x + 3.2, p.y - 1.2, p.x + 1.4, p.y - 4.5);
+    }
   }
-  for (let i = 0; i < 5; i++) {
-    const fall = (t / 22 + i * 19) % (r + 18);
-    g.fillStyle(0xc07830, 0.75);
-    g.fillCircle(x + Math.sin(i * 2.2) * r * 0.45, y + r * 0.45 + fall * 0.35, 2);
-  }
-}
-
-function starPoly(g, x, y, r, rot, col, a) {
-  g.fillStyle(col, a);
-  for (let i = 0; i < 5; i++) {
-    const a0 = rot + i * Math.PI * 2 / 5 - Math.PI / 2;
-    const a1 = a0 + Math.PI / 5;
-    const a2 = a0 - Math.PI / 5;
-    g.fillTriangle(
-      x + Math.cos(a0) * r,
-      y + Math.sin(a0) * r,
-      x + Math.cos(a1) * r * 0.38,
-      y + Math.sin(a1) * r * 0.38,
-      x + Math.cos(a2) * r * 0.38,
-      y + Math.sin(a2) * r * 0.38
-    );
-  }
+  speckle(g, x + r * 0.18, y - r * 0.12, 0xffe08a, flash(t, 8, 160));
+  speckle(g, x - r * 0.2, y + r * 0.1, 0xc07830, flash(t, 9, 180));
 }
 
 function drawStarFx(g, x, y, r, t, pow) {
-  g.fillStyle(0xfff6ea, 0.16 + 0.08 * flicker(t, 0, 90));
-  g.fillEllipse(x, y, r * 1.4 * pow, r * 1.15);
-  const n = Math.round(4 * pow);
+  const n = Math.round(7 + pow * 3);
   for (let i = 0; i < n; i++) {
-    const px = x + Math.sin(t / 160 + i * 1.7) * r * 0.55;
-    const py = y + Math.cos(t / 140 + i * 1.1) * r * 0.4;
-    starPoly(g, px, py, 6 + pow * 2.4, t / 180 + i, i % 2 ? 0xff8ab8 : 0xffe08a, 0.92);
-  }
-  for (let i = 0; i < 10; i++) {
-    const lift = (t / 28 + i * 9) % (r * 1.6 + 16);
-    const dx = Math.sin(i * 2.1 + t / 80) * r * 0.7;
-    g.fillStyle(0xfff6ea, 0.3 + flicker(t, i, 50) * 0.55);
-    g.fillCircle(x + dx, y + r * 0.1 - lift, 1.2 + (i % 3) * 0.6);
+    const p = rim(x, y, r, i, t, 0.0016);
+    const a = flash(t, i, 120 + (i % 3) * 25);
+    glint(g, p.x, p.y, 2.4 + (i % 3) + pow, i % 2 ? 0xff8ab8 : 0xfff6ea, a);
   }
 }

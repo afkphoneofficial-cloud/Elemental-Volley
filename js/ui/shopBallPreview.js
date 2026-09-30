@@ -1,7 +1,7 @@
 import { makeButton, UI_FONT } from "./Ui.js";
 import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local194";
+import { ballFxOf, drawArmedBallFx } from "../data/ballFx.js?v=local195";
 
 export function closeBallPreview(scene) {
   if (scene._ballPrevTw && scene._ballPrevTw.stop) scene._ballPrevTw.stop();
@@ -68,22 +68,8 @@ export function openBallPreview(scene, fxId) {
     for (let i = 0; i < pts.length; i++) {
       const u = (i + 1) / pts.length;
       const p = pts[i];
-      if (row.kind === "ember") {
-        trail.fillStyle(0xff6a22, 0.06 + u * 0.28);
-        trail.fillTriangle(p.x - 5, p.y + 4, p.x + 5, p.y + 4, p.x, p.y - 10 - u * 8);
-      } else if (row.kind === "mist") {
-        trail.fillStyle(0x3ad6ff, 0.08 + u * 0.22);
-        trail.fillEllipse(p.x, p.y, 10 * u, 6 * u);
-      } else if (row.kind === "volt") {
-        trail.lineStyle(2, 0xe8ff3a, 0.15 + u * 0.45);
-        if (i) trail.lineBetween(pts[i - 1].x, pts[i - 1].y, p.x, p.y);
-      } else if (row.kind === "terra") {
-        trail.fillStyle(0x7ad06a, 0.1 + u * 0.25);
-        trail.fillCircle(p.x, p.y, 4 * u);
-      } else {
-        trail.fillStyle(0xffe08a, 0.1 + u * 0.3);
-        trail.fillCircle(p.x, p.y, 3 * u);
-      }
+      trail.fillStyle(row.color, 0.04 + u * 0.22);
+      trail.fillCircle(p.x, p.y, 1.2 + u * 1.4);
     }
   };
 
