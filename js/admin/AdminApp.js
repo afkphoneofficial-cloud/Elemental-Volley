@@ -101,9 +101,15 @@ async function loadPlayers() {
 
 async function loadRank() {
   const d = await rpc("admin_rank", { p_token: token });
-  $("rk-table").innerHTML = "<tr><th>ชื่อ</th><th>MMR</th><th>ชนะ</th><th>เกม</th></tr>" +
-    (d.rows || []).map((p) =>
+  const pvp = d.pvp || d.rows || [];
+  const special = d.special || [];
+  $("rk-pvp").innerHTML = "<tr><th>ชื่อ</th><th>MMR</th><th>ชนะ</th><th>เกม</th></tr>" +
+    pvp.map((p) =>
       "<tr><td>" + esc(p.display_name) + "</td><td>" + esc(p.mmr) + "</td><td>" + esc(p.rank_wins) + "</td><td>" + esc(p.rank_games) + "</td></tr>"
+    ).join("");
+  $("rk-special").innerHTML = "<tr><th>ชื่อ</th><th>ชนะ</th><th>เกม Elements</th></tr>" +
+    special.map((p) =>
+      "<tr><td>" + esc(p.display_name) + "</td><td>" + esc(p.wins) + "</td><td>" + esc(p.games) + "</td></tr>"
     ).join("");
 }
 

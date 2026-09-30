@@ -181,7 +181,12 @@ export const TicketPop = {
     this.setMsg(t("ticket.sending"), false);
     const { data, error } = await sb.rpc("ticket_create", { p_category: cat, p_body: body });
     if (error) throw new Error(error.message);
-    if (!data || !data.ok) throw new Error(t("ticket.fail"));
+    if (!data || !data.ok) {
+      const why = data && data.reason;
+      if (why === "body") throw new Error(t("ticket.failBody"));
+      if (why === "auth") throw new Error(t("web.authNoBackend"));
+      throw new Error(t("ticket.fail"));
+    }
     const tid = data.id;
     for (let i = 0; i < files.length; i += 1) {
       const file = files[i];

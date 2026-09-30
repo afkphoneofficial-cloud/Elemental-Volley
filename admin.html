@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>EV Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/admin.css?v=local223" />
+  <link rel="stylesheet" href="css/admin.css?v=local225" />
 </head>
 <body>
   <form id="admin-login" class="login">
@@ -52,7 +52,12 @@
       <p id="pl-msg"></p>
       <div class="scroll"><table id="pl-table"></table></div>
     </section>
-    <section data-panel="rank" hidden><div class="scroll"><table id="rk-table"></table></div></section>
+    <section data-panel="rank" hidden>
+      <h2 class="rk-h">Rank Mode</h2>
+      <div class="scroll"><table id="rk-pvp"></table></div>
+      <h2 class="rk-h">Elements Rank</h2>
+      <div class="scroll"><table id="rk-special"></table></div>
+    </section>
     <section data-panel="tickets" hidden>
       <p id="tk-msg"></p>
       <div id="tk-list"></div>
@@ -69,7 +74,7 @@
     <section data-panel="buys" hidden><div class="scroll"><table id="by-table"></table></div></section>
   </div>
   <script type="module">
-    import { bootAdmin } from "./js/admin/AdminApp.js?v=local224";
+    import { bootAdmin } from "./js/admin/AdminApp.js?v=local225";
     bootAdmin();
   </script>
 </body>

@@ -142,7 +142,7 @@ begin
   if cat not in ('account', 'pay', 'play', 'item', 'report', 'other') then
     return jsonb_build_object('ok', false, 'reason', 'cat');
   end if;
-  if length(txt) < 8 or length(txt) > 4000 then
+  if char_length(txt) < 4 or char_length(txt) > 4000 then
     return jsonb_build_object('ok', false, 'reason', 'body');
   end if;
   select display_name, email into nm, em from public.profiles where id = me;
@@ -382,13 +382,37 @@ begin
   end if;
   return jsonb_build_object(
     'ok', true,
-    'rows', coalesce((
+    'pvp', coalesce((
       select jsonb_agg(row_to_json(x))
       from (
         select display_name, email, mmr, rank_wins, rank_games, last_seen_at
         from public.profiles
         where display_name is not null
         order by mmr desc, rank_wins desc
+        limit 50
+      ) x
+    ), '[]'::jsonb),
+    'special', coalesce((
+      select jsonb_agg(row_to_json(x))
+      from (
+        select
+          p.display_name,
+          p.email,
+          p.last_seen_at,
+          coalesce((
+            select count(*)::int
+            from jsonb_array_elements(coalesce(p.save_data->'matchLog', '[]'::jsonb)) e
+            where e->>'mode' = 'special'
+          ), 0) as games,
+          coalesce((
+            select count(*)::int
+            from jsonb_array_elements(coalesce(p.save_data->'matchLog', '[]'::jsonb)) e
+            where e->>'mode' = 'special'
+              and (e->>'win') in ('true', 't', '1')
+          ), 0) as wins
+        from public.profiles p
+        where p.display_name is not null
+        order by 4 desc, 5 desc, p.display_name asc
         limit 50
       ) x
     ), '[]'::jsonb)
