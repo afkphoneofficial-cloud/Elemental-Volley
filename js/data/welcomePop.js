@@ -25,7 +25,7 @@ export const WELCOME_SLIDES = [
   },
   {
     id: "home",
-    img: "assets/welcome/welcome-promo-play.jpg?v=local230",
+    img: "assets/welcome/welcome-promo-play.jpg?v=local250",
     tabTh: "ต้อนรับ",
     tabEn: "Hello",
     capTh: "เล่นได้ทั้ง PC มือถือแนวตั้งและแนวนอน · ติดตั้งลงมือถือจากเว็บทางการ ง่าย ปลอดภัย 100%",
