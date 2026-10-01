@@ -3,7 +3,7 @@ import { ECONOMY } from "../data/economy.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n, t, charName } from "../i18n/I18n.js?v=local236";
+import { I18n, t, charName } from "../i18n/I18n.js?v=local238";
 import { formatEtherWait } from "../systems/Ether.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
@@ -24,6 +24,7 @@ import { wantFx, settings } from "../systems/GameSettings.js";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local179";
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
+import { topupOpen } from "../data/beta.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
@@ -365,7 +366,7 @@ export class HubScene extends Phaser.Scene {
     this.add.text(x + 36, y + 6, look ? shopLookLabel(look, I18n.lang) : t("pass.title"), {
       fontFamily: UI_FONT, fontSize: "12px", fontStyle: "800", color: "#4a2810"
     }).setOrigin(0.5).setDepth(29);
-    this.add.text(x + 36, y + 24, claim ? t("pass.claim") : (bought ? t("pass.bought") : t("pass.buy", { n: PASS.thb })), {
+    this.add.text(x + 36, y + 24, claim ? t("pass.claim") : (bought ? t("pass.bought") : (topupOpen() ? t("pass.buy", { n: PASS.thb }) : t("topup.closedShort"))), {
       fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: claim ? "#0a6a88" : "#c45a16"
     }).setOrigin(0.5).setDepth(29);
     const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(30);

@@ -614,7 +614,9 @@ export const COPY = {
       gotDone: "เรียบร้อยแล้วค่ะ",
       fail: "เติมไม่สำเร็จ ลองใหม่",
       canceled: "ยกเลิกการสแกน",
-      needLogin: "ต้องล็อกอินก่อนเติม"
+      needLogin: "ต้องล็อกอินก่อนเติม",
+      closed: "ช่วงทดสอบยังไม่เปิดเติมเงิน  เปิดเซิร์ฟจริง 10 ต.ค. 2026 จึงเติมและซื้อพาสได้",
+      closedShort: "เปิดเติม 10 ต.ค."
     },
     pass: {
       title: "พาสเกาะรายเดือน",
@@ -1547,7 +1549,9 @@ export const COPY = {
       gotDone: "All done",
       fail: "Top-up failed. Try again.",
       canceled: "Scan canceled",
-      needLogin: "Sign in before topping up"
+      needLogin: "Sign in before topping up",
+      closed: "Top-up is closed during the test. Real payments open when the live server starts on 10 Oct 2026.",
+      closedShort: "Opens 10 Oct"
     },
     pass: {
       title: "Isle Monthly Pass",

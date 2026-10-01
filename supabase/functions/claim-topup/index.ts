@@ -9,6 +9,15 @@ function corsHeaders(req: Request) {
   };
 }
 
+function bangkokDay() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
 Deno.serve(async (req) => {
   const cors = corsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -30,6 +39,7 @@ Deno.serve(async (req) => {
     const { data: row, error } = await admin.from("purchases").select("*").eq("id", orderId).maybeSingle();
     if (error || !row || row.user_id !== userData.user.id) return json({ ok: false, error: "order" }, 404, cors);
     if (row.status === "paid") return json({ ok: true, already: true, powder: row.powder }, 200, cors);
+    if (bangkokDay() < "2026-10-10") return json({ ok: false, error: "closed" }, 403, cors);
     if (!row.stripe_pi) return json({ ok: false, error: "pi" }, 400, cors);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-11-20.acacia", httpClient: Stripe.createFetchHttpClient() });

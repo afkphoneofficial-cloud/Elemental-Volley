@@ -269,6 +269,7 @@ Webhook (หลัง deploy)
   คัด Signing secret ไปใส่ Secret ชื่อ STRIPE_WEBHOOK_SECRET
 
 ทดสอบในเกม หน้าเติมผง กดแพ็ก จะขึ้น QR แล้วกด Simulate scan ในโหมดซ้อม
+ช่วง Beta ถึงก่อน 10 ต.ค. ฟังก์ชันจะตอบ closed ไม่สร้าง QR  ต้อง deploy ใหม่หลังแก้ create-topup / claim-topup / stripe-webhook
 
 
 ------------------------------------------------------------

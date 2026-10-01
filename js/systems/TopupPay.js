@@ -1,6 +1,7 @@
 import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
-import { t } from "../i18n/I18n.js";
+import { t } from "../i18n/I18n.js?v=local238";
+import { topupOpen } from "../data/beta.js";
 
 let stripeLib = null;
 
@@ -21,12 +22,13 @@ async function invoke(name, body) {
   if (!sb) throw new Error(t("topup.needLogin"));
   const { data, error } = await sb.functions.invoke(name, { body });
   if (error) throw new Error(error.message || t("topup.fail"));
-  if (!data || data.ok === false) throw new Error((data && data.error) || t("topup.fail"));
+  if (!data || data.ok === false) throw new Error((data && data.error) === "closed" ? t("topup.closed") : ((data && data.error) || t("topup.fail")));
   return data;
 }
 
 export const TopupPay = {
   async paySku(packId) {
+    if (!topupOpen()) throw new Error(t("topup.closed"));
     const started = await invoke("create-topup", { packId });
     const StripeCtor = await loadStripeJs();
     const stripe = StripeCtor(started.publishableKey);

@@ -1,7 +1,8 @@
-import { COPY, LORE, WIKI_CAST, SECRET_CAST, CHAR_COPY } from "./copy.js?v=local236";
+import { COPY, LORE, WIKI_CAST, SECRET_CAST, CHAR_COPY } from "./copy.js?v=local238";
 import { RULES } from "./rules.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { ROSTER } from "../data/roster.js";
+import { paintPayChrome } from "../data/beta.js";
 
 function lookup(tree, path) {
   return path.split(".").reduce((o, k) => (o == null ? o : o[k]), tree);
@@ -92,6 +93,7 @@ export const I18n = {
     document.querySelectorAll("[data-lang]").forEach((btn) => {
       btn.classList.toggle("on", btn.getAttribute("data-lang") === this.lang);
     });
+    paintPayChrome();
   },
 
   mountToggle() {

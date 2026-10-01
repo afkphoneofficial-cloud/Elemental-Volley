@@ -11,6 +11,15 @@ const TOPUP_PACKS: Record<string, { thb: number; powder: number }> = {
   pass: { thb: 59, powder: 0 }
 };
 
+function bangkokDay() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
 function corsHeaders(req: Request) {
   return {
     "Access-Control-Allow-Origin": req.headers.get("Origin") || "*",
@@ -42,6 +51,7 @@ Deno.serve(async (req) => {
     const packId = String(body.packId || "");
     const pack = TOPUP_PACKS[packId];
     if (!pack) return json({ ok: false, error: "pack" }, 400, cors);
+    if (bangkokDay() < "2026-10-10") return json({ ok: false, error: "closed" }, 403, cors);
 
     const admin = createClient(supabaseUrl, service);
     const { data: order, error: insErr } = await admin.from("purchases").insert({

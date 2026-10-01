@@ -1,4 +1,6 @@
 /** Bangkok calendar for the Oct 2026 test wave. */
+import { dayKey } from "./monthPass.js?v=local190";
+
 export const BETA = {
   testStart: "2026-10-01",
   testEnd: "2026-10-07",
@@ -20,4 +22,13 @@ export function onBetaDay(key, start, end) {
 
 export function liveWipeDue(key, wipeId) {
   return key >= BETA.live && wipeId !== BETA.wipeId;
+}
+
+export function topupOpen(key) {
+  return String(key || dayKey()) >= BETA.live;
+}
+
+export function paintPayChrome() {
+  const el = document.getElementById("site-stripe");
+  if (el) el.hidden = !topupOpen();
 }

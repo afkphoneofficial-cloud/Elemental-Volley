@@ -2,13 +2,14 @@ import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local238";
 import { paintWalletBar } from "../ui/walletBar.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { PASS, monthId, passLookOf, msUntilMonthEnd, formatRemain, vialDaysLabel, passInstantGift } from "../data/monthPass.js?v=local190";
-import { TopupPay } from "../systems/TopupPay.js?v=local190";
+import { TopupPay } from "../systems/TopupPay.js?v=local238";
 import { openRewardPop } from "../ui/rewardPop.js?v=local190";
+import { topupOpen } from "../data/beta.js";
 
 export class PassScene extends Phaser.Scene {
   constructor() { super("pass"); }
@@ -93,11 +94,12 @@ export class PassScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(8);
 
     if (!bought) {
-      makeButton(this, 940, 500, 280, 48, t("pass.buy", { n: PASS.thb }), () => {
+      const canPay = topupOpen();
+      makeButton(this, 940, 500, 280, 48, canPay ? t("pass.buy", { n: PASS.thb }) : t("topup.closedShort"), () => {
         if (this.lock) return;
         AudioSystem.ui();
         this.openBuy();
-      }, 0xff6a22);
+      }, canPay ? 0xff6a22 : 0xe8dcc8);
     } else {
       this.add.text(940, 470, t("pass.bought"), {
         fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#146b32"
@@ -153,10 +155,10 @@ export class PassScene extends Phaser.Scene {
     panel.fillRoundedRect(W / 2 - 280, 200, 560, 300, 22);
     panel.lineStyle(3, 0xff6a22, 0.85);
     panel.strokeRoundedRect(W / 2 - 280, 200, 560, 300, 22);
-    const title = this.add.text(W / 2, 250, t("pass.buy", { n: PASS.thb }), {
+    const title = this.add.text(W / 2, 250, topupOpen() ? t("pass.buy", { n: PASS.thb }) : t("topup.closedShort"), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "900", color: "#1a1008"
     }).setOrigin(0.5).setDepth(52);
-    const body = this.add.text(W / 2, 310, t("pass.payBody"), {
+    const body = this.add.text(W / 2, 310, topupOpen() ? t("pass.payBody") : t("topup.closed"), {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#4a2810",
       align: "center", wordWrap: { width: 480 }
     }).setOrigin(0.5).setDepth(52);
@@ -165,6 +167,14 @@ export class PassScene extends Phaser.Scene {
       bits.forEach((o) => { if (o && o.destroy) o.destroy(); });
       this.lock = false;
     };
+    if (!topupOpen()) {
+      const ok = makeButton(this, W / 2, 430, 200, 44, t("career.close"), () => {
+        AudioSystem.ui();
+        wipe();
+      }, 0xe8dcc8, 54);
+      bits.push(ok.bg, ok.text, ok.gfx);
+      return;
+    }
     const ok = makeButton(this, W / 2 - 110, 430, 200, 44, t("pass.payOk"), () => {
       AudioSystem.ui();
       wipe();
@@ -178,6 +188,7 @@ export class PassScene extends Phaser.Scene {
   }
 
   async payPass() {
+    if (!topupOpen()) return;
     if (this.payLock) return;
     this.payLock = true;
     this.lock = true;
