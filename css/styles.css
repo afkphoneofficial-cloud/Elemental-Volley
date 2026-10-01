@@ -578,43 +578,51 @@ html[data-control="pc"] #game {
 }
 
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
-  #hud-left { align-items: stretch; }
+  #hud-left {
+    align-items: stretch;
+    left: max(5px, env(safe-area-inset-left));
+    gap: 6px;
+  }
   #vol-dock {
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 8px 6px;
-    border-radius: 22px;
-    max-width: 46px;
+    gap: 5px;
+    padding: 6px 4px;
+    border-radius: 20px;
+    max-width: 36px;
+    overflow: hidden;
+    box-sizing: border-box;
   }
   #vol-dock .vol-ico {
-    width: 1.15em;
+    width: 1.05em;
     overflow: hidden;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
   }
-  #vol-steps { flex-direction: column; gap: 6px; }
+  #vol-steps { flex-direction: column; gap: 5px; }
   #orient-btn {
     position: relative;
     left: auto;
     bottom: auto;
     transform: none;
     flex-direction: column;
-    width: 46px;
-    max-width: 46px;
+    width: 36px;
+    max-width: 36px;
     min-height: 0;
-    padding: 8px 6px;
-    border-radius: 22px;
-    gap: 6px;
+    padding: 6px 4px;
+    border-radius: 20px;
+    gap: 5px;
     white-space: normal;
+    overflow: hidden;
+    box-sizing: border-box;
   }
   #orient-btn .orient-lab {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-size: 11px;
-    line-height: 1.15;
-    letter-spacing: 0.06em;
+    font-size: 10px;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
   }
   #lang-dock {
     flex-direction: column;
@@ -629,43 +637,51 @@ html[data-control="pc"] #game {
   }
 }
 
-html.ev-spin-land #hud-left { align-items: stretch; }
+html.ev-spin-land #hud-left {
+  align-items: stretch;
+  left: max(5px, env(safe-area-inset-left));
+  gap: 6px;
+}
 html.ev-spin-land #vol-dock {
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 6px;
-  border-radius: 22px;
-  max-width: 46px;
+  gap: 5px;
+  padding: 6px 4px;
+  border-radius: 20px;
+  max-width: 36px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 html.ev-spin-land #vol-dock .vol-ico {
-  width: 1.15em;
+  width: 1.05em;
   overflow: hidden;
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
 }
-html.ev-spin-land #vol-steps { flex-direction: column; gap: 6px; }
+html.ev-spin-land #vol-steps { flex-direction: column; gap: 5px; }
 html.ev-spin-land #orient-btn {
   position: relative;
   left: auto;
   bottom: auto;
   transform: none;
   flex-direction: column;
-  width: 46px;
-  max-width: 46px;
+  width: 36px;
+  max-width: 36px;
   min-height: 0;
-  padding: 8px 6px;
-  border-radius: 22px;
-  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 20px;
+  gap: 5px;
   white-space: normal;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 html.ev-spin-land #orient-btn .orient-lab {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 11px;
-  line-height: 1.15;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
 }
 
 @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
@@ -673,7 +689,8 @@ html.ev-spin-land #orient-btn .orient-lab {
     position: fixed;
     left: 50%;
     top: auto;
-    bottom: max(52px, calc(env(safe-area-inset-bottom) + 44px));
+    /* Midway between 16:9 board bottom and screen bottom; JS refines. */
+    bottom: calc((100dvh - 100dvw * 9 / 16) / 4);
     transform: translateX(-50%);
     z-index: 40;
     min-height: 44px;

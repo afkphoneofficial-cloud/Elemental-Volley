@@ -137,16 +137,6 @@ function loadImg(src) {
   });
 }
 
-function playSceneLive() {
-  try {
-    const g = window.game;
-    if (!g || !g.scene || typeof g.scene.isActive !== "function") return false;
-    return g.scene.isActive("play") || g.scene.isActive("luck") || g.scene.isActive("result");
-  } catch (e) {
-    return false;
-  }
-}
-
 export async function mountLobbyStage() {
   const canvas = document.getElementById("lobby-bg");
   const fgCanvas = document.getElementById("lobby-fg");
@@ -252,10 +242,6 @@ export async function mountLobbyStage() {
       raf = requestAnimationFrame(loop);
       return;
     }
-    if (playSceneLive()) {
-      raf = requestAnimationFrame(loop);
-      return;
-    }
     if (still() && paintedStill) {
       raf = requestAnimationFrame(loop);
       return;
@@ -332,7 +318,7 @@ export async function mountLobbyStage() {
       drawSprite(layer, "terra_l", W - 72, ground + bob(3.1), charSize * 0.72, 0, 0.92);
       edge = { charSize, ignisY: ground + jumpL, aquaY: ground + jumpR, squashL, squashR };
     }
-    if (padT >= 60) {
+    if (padT >= 60 && padT < 88) {
       const refSize = Math.min(132, padT - 8);
       drawSprite(layer, "ref_" + courtA, (g.left + g.right) * 0.5, g.top - 2 + bob(0.4), refSize, 0, 0.95);
     }
@@ -395,6 +381,12 @@ export async function mountLobbyStage() {
         }
       }
       layer.globalAlpha = 1;
+
+      if (padT >= 72 && arts[flyer.id]) {
+        const flyChar = Math.min(188, Math.max(84, padT * 0.68));
+        const cy = Math.max(flyChar * 0.58, Math.min(g.top - 6, flyer.y + flyChar * 0.12));
+        drawSprite(layer, flyer.id, flyer.x, cy, flyChar, 0, 0.96);
+      }
 
       layer.save();
       const pulse = 26 + Math.sin(t * 6) * 6;
