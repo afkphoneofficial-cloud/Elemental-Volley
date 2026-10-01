@@ -1,11 +1,11 @@
 import { TextureFactory } from "../systems/TextureFactory.js?v=local248";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local242";
+import { I18n } from "../i18n/I18n.js?v=local249";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js?v=local248";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local248";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local249";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
@@ -103,7 +103,6 @@ export class BootScene extends Phaser.Scene {
   create() {
     void this.finishBoot().catch(() => {
       BootSplash.ready();
-      WelcomePop.tryShow();
       if (this.scene.isActive()) this.scene.start("auth");
     });
   }
@@ -239,8 +238,8 @@ export class BootScene extends Phaser.Scene {
     I18n.load();
     if (!this.scene.isActive()) return;
     BootSplash.ready();
-    window.setTimeout(() => WelcomePop.tryShow(), 480);
     if (AuthSystem.canPlay()) {
+      window.setTimeout(() => WelcomePop.tryShow(), 480);
       this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
     } else {
       this.scene.start("auth");

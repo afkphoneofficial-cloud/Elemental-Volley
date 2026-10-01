@@ -1,9 +1,10 @@
 import { BACKEND, backendReady } from "../config/backend.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
-import { t } from "../i18n/I18n.js?v=local242";
+import { t } from "../i18n/I18n.js?v=local249";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
+import { WelcomePop } from "./WelcomePop.js?v=local249";
 
 let supabase = null;
 let session = null;
@@ -88,6 +89,38 @@ function showPanel(which) {
   const form = document.getElementById("auth-name-form");
   if (g) g.hidden = which !== "google";
   if (form) form.hidden = which !== "name";
+  if (which === "name") {
+    try {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.cancel();
+      }
+    } catch (e) {}
+    const input = document.getElementById("auth-name-input");
+    if (input) {
+      window.setTimeout(() => {
+        try { input.focus(); } catch (err) {}
+      }, 40);
+    }
+  }
+}
+
+function pinAuthCard() {
+  const el = overlay();
+  if (!el || el.hidden) return;
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const kb = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
+  el.style.paddingBottom = (kb + 16) + "px";
+}
+
+function bindAuthPin() {
+  if (bindAuthPin.done) return;
+  bindAuthPin.done = true;
+  window.addEventListener("resize", pinAuthCard);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", pinAuthCard);
+    window.visualViewport.addEventListener("scroll", pinAuthCard);
+  }
 }
 
 export const AuthSystem = {
@@ -97,6 +130,7 @@ export const AuthSystem = {
   backendUrl: () => BACKEND.supabaseUrl,
   db: () => getSb(),
   wantRegister: false,
+  nameBusy: false,
 
   isGuest() {
     return Boolean(session && session.guest);
@@ -149,16 +183,28 @@ export const AuthSystem = {
       }
     }
     this.prepareGoogle();
+    this.bindNameForm();
+    return this;
+  },
+
+  bindNameForm() {
     const form = document.getElementById("auth-name-form");
-    if (form && !form.dataset.bound) {
-      form.dataset.bound = "1";
-      form.addEventListener("submit", (ev) => {
-        ev.preventDefault();
-        const input = document.getElementById("auth-name-input");
-        this.submitName(input && input.value).catch((err) => setAuthMsg(err.message, true));
+    if (!form || form.dataset.bound) return;
+    form.dataset.bound = "1";
+    const go = (ev) => {
+      if (ev) ev.preventDefault();
+      const input = document.getElementById("auth-name-input");
+      this.submitName(input && input.value).catch((err) => setAuthMsg(err.message, true));
+    };
+    form.addEventListener("submit", go);
+    const btn = form.querySelector("button");
+    if (btn) btn.addEventListener("click", go);
+    const input = document.getElementById("auth-name-input");
+    if (input) {
+      input.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") go(ev);
       });
     }
-    return this;
   },
 
   prepareGoogle() {
@@ -203,6 +249,9 @@ export const AuthSystem = {
   showOverlay() {
     const el = overlay();
     if (el) el.hidden = false;
+    bindAuthPin();
+    pinAuthCard();
+    this.bindNameForm();
     this.prepareGoogle();
     if (!backendReady()) {
       showPanel("google");
@@ -214,6 +263,7 @@ export const AuthSystem = {
     if (this.needsName()) {
       showPanel("name");
       setAuthMsg(t(SaveSystem.justLiveWipe || SaveSystem.liveWiped() ? "web.authLiveName" : "web.authSetName"), false);
+      try { WelcomePop.hide(); } catch (e) {}
     } else {
       showPanel("google");
       setAuthMsg(backendReady()
@@ -250,6 +300,7 @@ export const AuthSystem = {
     if (this.needsName()) {
       showPanel("name");
       setAuthMsg(t(SaveSystem.justLiveWipe || SaveSystem.liveWiped() ? "web.authLiveName" : "web.authWelcome"), false);
+      try { WelcomePop.hide(); } catch (e) {}
     } else {
       this.hideOverlay();
       this.onAuthed();
@@ -282,7 +333,9 @@ export const AuthSystem = {
     const { data, error } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
     if (error) throw new Error(error.message);
     SaveSystem.attachAccount(user.id);
+    const keptName = profile && profile.display_name;
     profile = data || { id: user.id, email: user.email, display_name: "", save_data: {} };
+    if (keptName && !profile.display_name) profile.display_name = keptName;
     if (data && data.banned) {
       session = null;
       profile = null;
@@ -322,12 +375,13 @@ export const AuthSystem = {
 
   async changeName(name) {
     const clean = this.cleanName(name);
-    const sb = await getSb();
+    const sb = await withTimeout(getSb(), 7000, null);
     if (!sb || !session || !session.id) throw new Error(t("web.authNoBackend"));
-    const { error } = await sb.from("profiles").update({
+    const pack = await withTimeout(sb.from("profiles").update({
       display_name: clean,
       display_name_set_at: new Date().toISOString()
-    }).eq("id", session.id);
+    }).eq("id", session.id), 8000, { error: { message: t("web.authSaveWait") } });
+    const error = pack && pack.error;
     if (error) {
       if (error.code === "23505" || /duplicate/i.test(error.message || "")) {
         throw new Error(t("web.authNameTaken"));
@@ -339,16 +393,32 @@ export const AuthSystem = {
   },
 
   async submitName(name) {
-    await this.changeName(name);
-    this.hideOverlay();
-    this.onAuthed();
+    if (this.nameBusy) return;
+    this.nameBusy = true;
+    const form = document.getElementById("auth-name-form");
+    const btn = form && form.querySelector("button");
+    if (btn) btn.disabled = true;
+    setAuthMsg(t("web.authSaving"), false);
+    try {
+      await this.changeName(name);
+      this.hideOverlay();
+      this.onAuthed();
+    } finally {
+      this.nameBusy = false;
+      if (btn) btn.disabled = false;
+    }
   },
 
   onAuthed() {
     const g = window.game;
     if (!g || !g.scene) return;
     const auth = g.scene.getScene("auth");
-    if (auth && auth.scene.isActive()) auth.enterGame();
+    if (auth && auth.scene.isActive()) {
+      auth.enterGame();
+      return;
+    }
+    const live = g.scene.getScenes(true)[0];
+    if (live) live.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
   },
 
   async startGuestPlay() {

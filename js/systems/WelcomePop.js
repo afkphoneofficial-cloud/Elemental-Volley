@@ -78,6 +78,9 @@ export const WelcomePop = {
     this.mount();
     if (this.open) return;
     if (alreadySeen()) return;
+    try {
+      if (window.AuthSystem && window.AuthSystem.needsName && window.AuthSystem.needsName()) return;
+    } catch (e) {}
     this.show();
   },
 
