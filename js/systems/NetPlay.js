@@ -64,6 +64,7 @@ export const NetPlay = {
   cooldownUntil: 0,
   lastOffer: null,
   lastLuck: null,
+  lastGo: null,
   lastInvite: null,
   pingMs: 0,
   pingLive: false,
@@ -72,6 +73,7 @@ export const NetPlay = {
   pingTimer: null,
   reconnectTimer: null,
   exhibitCooldownUntil: 0,
+  settled: false,
 
   on(fn) {
     listeners.add(fn);
@@ -139,12 +141,18 @@ export const NetPlay = {
       }
       if (msg.t === "offer") this.lastOffer = msg;
       if (msg.t === "luck") {
+        this.settled = false;
         this.lastLuck = msg;
         this.lastGo = null;
       }
       if (msg.t === "invite") this.lastInvite = msg;
       if (msg.t === "cooldown") this.cooldownUntil = Date.now() + (msg.ms | 0);
+      if (msg.t === "searching") this.settled = false;
       if (msg.t === "go" || msg.t === "rejoin") {
+        if (this.settled) {
+          this.emit(msg);
+          return;
+        }
         this.lastGo = msg;
         Session.net = true;
         Session.netHost = msg.host === true;
@@ -171,6 +179,10 @@ export const NetPlay = {
         }
       }
       if (msg.t === "end") {
+        this.settled = true;
+        Session.net = false;
+        Session.netHost = false;
+        this.lastGo = null;
         if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
         if (msg.courtId) Session.courtId = msg.courtId;
         if (msg.youSide === 1 || msg.youSide === 2) Session.youSide = msg.youSide;

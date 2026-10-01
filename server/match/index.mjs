@@ -715,16 +715,30 @@ function onHello(ws, user, body) {
       if (liveRoom.droppedId === user.id) {
         liveRoom.droppedId = null;
         liveRoom.dropAt = 0;
-      }
-      const foe = mate(liveRoom, p);
-      if (liveRoom.phase === "luck") {
-        send(ws, luckPayload(liveRoom, p));
+        const foe = mate(liveRoom, p);
+        if (liveRoom.phase === "luck") {
+          send(ws, luckPayload(liveRoom, p));
+        } else {
+          send(ws, goPayload(liveRoom, p, foe, liveRoom.hostId === p.id));
+          if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
+          if (liveRoom.paused) send(ws, { t: "pause", kind: "player", ms: liveRoom.pauseLeft || 20000 });
+        }
+        if (foe) send(foe.ws, { t: "rivalBack" });
       } else {
-        send(ws, goPayload(liveRoom, p, foe, liveRoom.hostId === p.id));
-        if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
-        if (liveRoom.paused) send(ws, { t: "pause", kind: "player", ms: liveRoom.pauseLeft || 20000 });
+        const foe = mate(liveRoom, p);
+        if (liveRoom.phase === "luck") {
+          send(ws, luckPayload(liveRoom, p));
+        } else {
+          if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
+          if (liveRoom.paused) send(ws, { t: "pause", kind: "player", ms: liveRoom.pauseLeft || 20000 });
+          if (liveRoom.droppedId) {
+            const gone = Date.now() - (liveRoom.dropAt || 0);
+            send(ws, { t: "waitRival", ms: Math.max(0, FORFEIT_MS - gone) });
+          }
+          if (liveRoom.hostId === p.id) send(ws, { t: "youHost", on: true });
+        }
+        if (foe && liveRoom.droppedId !== foe.id) send(foe.ws, { t: "rivalBack" });
       }
-      if (foe) send(foe.ws, { t: "rivalBack" });
     }
   }
   if (prev && prev.ws && prev.ws !== ws) {

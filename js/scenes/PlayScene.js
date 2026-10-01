@@ -688,6 +688,7 @@ export class PlayScene extends Phaser.Scene {
     }
     if (msg.t === "pong") this.paintPing();
     if (msg.t === "closed") {
+      if (this.matchOver || NetPlay.settled) return;
       this.showNotice(t("pause.dropWait", { n: Math.max(1, Math.ceil(GAME.forfeitMs / 1000)) }));
       NetPlay.ensure();
     }
