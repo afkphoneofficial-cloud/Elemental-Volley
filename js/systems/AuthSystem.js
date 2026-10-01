@@ -198,7 +198,13 @@ export const AuthSystem = {
     };
     form.addEventListener("submit", go);
     const btn = form.querySelector("button");
-    if (btn) btn.addEventListener("click", go);
+    if (btn) {
+      btn.addEventListener("click", go);
+      btn.addEventListener("pointerup", (ev) => {
+        ev.preventDefault();
+        go(ev);
+      });
+    }
     const input = document.getElementById("auth-name-input");
     if (input) {
       input.addEventListener("keydown", (ev) => {

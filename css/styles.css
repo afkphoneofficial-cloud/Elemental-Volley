@@ -267,11 +267,18 @@ body {
 #rename-overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 190;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
   background: rgba(8, 6, 14, 0.45);
+  pointer-events: auto;
+}
+#rename-overlay[hidden] {
+  display: none !important;
 }
 
 #referral-overlay {
@@ -298,12 +305,18 @@ body {
 }
 
 #rename-ok, #rename-cancel {
-  padding: 8px 16px;
-  border-radius: 12px;
+  padding: 12px 20px;
+  min-height: 48px;
+  min-width: 112px;
+  border-radius: 999px;
   border: 0;
   font-family: inherit;
   font-weight: 800;
+  font-size: 16px;
   cursor: pointer;
+  touch-action: manipulation;
+  position: relative;
+  z-index: 2;
 }
 
 #rename-ok { background: #ff8ab8; color: #3a2418; }
@@ -511,6 +524,8 @@ html[data-control="pc"] #game {
   font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
+  position: relative;
+  z-index: 2;
 }
 #auth-name-form button:disabled {
   opacity: 0.6;
