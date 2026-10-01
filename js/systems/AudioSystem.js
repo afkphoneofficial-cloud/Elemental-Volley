@@ -25,6 +25,14 @@ const MENU_BGM = [
   "assets/audio/bgm-menu2.mp3",
   "assets/audio/bgm-menu3.mp3"
 ];
+const VOICE_SRC = {
+  ignis: "assets/audio/voice-ignis.mp3?v=local246",
+  aqua: "assets/audio/voice-aqua.mp3?v=local246",
+  volt: "assets/audio/voice-volt.mp3?v=local246",
+  terra: "assets/audio/voice-terra.mp3?v=local246"
+};
+const voiceBuf = {};
+let voiceAsked = false;
 let lastMenuSrc = "";
 
 const VOL_STEPS = [0, 0.33, 0.67, 1];
@@ -175,6 +183,7 @@ function ensure() {
         d[i] = (Math.random() * 2 - 1) * 0.55 + last;
       }
     }
+    preloadVoices();
     return ctx;
   } catch (e) {
     return null;
@@ -306,6 +315,30 @@ function playTheme(id) {
   }
   if (!ensure()) return;
   if (!playFileTheme(id)) return;
+}
+
+function preloadVoices() {
+  if (!ctx || voiceAsked) return;
+  voiceAsked = true;
+  Object.keys(VOICE_SRC).forEach((id) => {
+    fetch(VOICE_SRC[id])
+      .then((res) => res.arrayBuffer())
+      .then((ab) => ctx.decodeAudioData(ab.slice(0)))
+      .then((buf) => { voiceBuf[id] = buf; })
+      .catch(() => {});
+  });
+}
+
+function playVoice(id) {
+  const buf = voiceBuf[id] || voiceBuf.ignis;
+  if (!buf || !sfxBus) return;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = 0.92;
+  src.connect(g);
+  g.connect(sfxBus);
+  try { src.start(); } catch (e) {}
 }
 
 function ballThump(t0, heavy) {
@@ -457,6 +490,7 @@ export const AudioSystem = {
     else if (id === "volt") hitVolt(true);
     else if (id === "terra") hitTerra(true);
     else hitIgnis(true);
+    playVoice(id);
   },
 
   jump(id) {
