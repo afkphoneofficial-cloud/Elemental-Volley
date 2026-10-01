@@ -1,7 +1,7 @@
 import { BACKEND, backendReady } from "../config/backend.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
-import { t } from "../i18n/I18n.js?v=local240";
+import { t } from "../i18n/I18n.js?v=local242";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
 
@@ -93,10 +93,12 @@ export const AuthSystem = {
     if (this.canPlay()) return true;
     const key = scene && scene.scene && scene.scene.key;
     if (this.isGuest() && key && GUEST_OK[key]) {
-      if (key === "select" || key === "queue" || key === "luck" || key === "play" || key === "result") {
-        Session.mode = "exhibit";
-        Session.exhibitCasual = true;
-        Session.exhibitFriendId = null;
+      if (key === "select" || key === "queue") {
+        if (Session.mode !== "bot") {
+          Session.mode = "exhibit";
+          Session.exhibitCasual = true;
+          Session.exhibitFriendId = null;
+        }
       }
       return true;
     }

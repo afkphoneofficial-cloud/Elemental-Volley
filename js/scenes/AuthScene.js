@@ -3,7 +3,8 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t } from "../i18n/I18n.js?v=local240";
+import { MatchLive } from "../systems/MatchLive.js?v=local242";
+import { t } from "../i18n/I18n.js?v=local242";
 
 export class AuthScene extends Phaser.Scene {
   constructor() { super("auth"); }
@@ -12,17 +13,20 @@ export class AuthScene extends Phaser.Scene {
     this.busy = false;
     drawGrid(this);
     const W = this.scale.width;
-    this.add.text(W / 2, 118, t("menu.kicker"), {
+    this.add.text(W / 2, 108, t("menu.kicker"), {
       fontFamily: UI_FONT, fontSize: "18px", fontStyle: "700", color: "#ffb56a"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 176, t("menu.title"), {
-      fontFamily: UI_FONT, fontSize: "58px", fontStyle: "900", color: "#3a2418"
+    this.add.text(W / 2, 164, t("menu.title"), {
+      fontFamily: UI_FONT, fontSize: "54px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.add.text(W / 2, 240, t("auth.login"), {
+    this.add.text(W / 2, 226, t("auth.login"), {
       fontFamily: UI_FONT, fontSize: "22px", color: "#7a4a30"
     }).setOrigin(0.5);
-    this.note = this.add.text(W / 2, 292, t("auth.playNowHint"), {
+    this.note = this.add.text(W / 2, 268, t("auth.playNowHint"), {
       fontFamily: UI_FONT, fontSize: "16px", color: "#8a5a38", align: "center", wordWrap: { width: 720 }
+    }).setOrigin(0.5);
+    this.waitLine = this.add.text(W / 2, 306, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
+      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#c45a16"
     }).setOrigin(0.5);
     AudioSystem.playMenu();
     if (AuthSystem.canPlay()) {
@@ -36,33 +40,55 @@ export class AuthScene extends Phaser.Scene {
       AuthSystem.hideOverlay();
     }
 
-    makeButton(this, W / 2, 400, 360, 64, t("auth.playNow"), () => {
-      if (this.busy) return;
-      this.busy = true;
-      this.note.setText("...");
-      AuthSystem.startGuestPlay().then(() => {
-        this.startGuestMatch();
-      }).catch((err) => {
-        this.busy = false;
-        this.note.setText((err && err.message) || t("auth.guestFail"));
-      });
+    makeButton(this, W / 2, 380, 360, 58, t("auth.playNow"), () => {
+      this.enterGuest("exhibit");
     }, 0xff6a22);
-    makeButton(this, W / 2, 492, 360, 52, t("auth.haveId"), () => {
+    makeButton(this, W / 2, 458, 360, 52, t("auth.playBot"), () => {
+      this.enterGuest("bot");
+    }, 0x3ad6ff);
+    makeButton(this, W / 2, 532, 360, 48, t("auth.haveId"), () => {
       AuthSystem.showOverlay();
     }, 0xffb14a);
     makeButton(this, W / 2, 620, 280, 44, t("auth.wikiFirst"), () => {
       AuthSystem.hideOverlay();
       this.scene.start("wiki", { from: "auth" });
     }, 0x7d5cff);
+
+    this.refreshWait();
+    this.time.addEvent({ delay: 4000, loop: true, callback: () => this.refreshWait() });
   }
 
-  startGuestMatch() {
-    Session.mode = "exhibit";
-    Session.exhibitCasual = true;
+  refreshWait() {
+    MatchLive.pull().then(() => {
+      if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
+      this.waitLine.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+    });
+  }
+
+  enterGuest(kind) {
+    if (this.busy) return;
+    this.busy = true;
+    this.note.setText("...");
+    AuthSystem.startGuestPlay().then(() => {
+      this.startGuestMatch(kind);
+    }).catch((err) => {
+      this.busy = false;
+      this.note.setText((err && err.message) || t("auth.guestFail"));
+    });
+  }
+
+  startGuestMatch(kind) {
     Session.exhibitFriendId = null;
     Session.exhibitIncoming = false;
     Session.rival = null;
     Session.net = false;
+    if (kind === "bot") {
+      Session.mode = "bot";
+      Session.exhibitCasual = false;
+    } else {
+      Session.mode = "exhibit";
+      Session.exhibitCasual = true;
+    }
     AuthSystem.hideOverlay();
     AudioSystem.unlock();
     this.scene.start("select");

@@ -43,6 +43,7 @@ const COURTS = ["summer", "rain", "spring", "winter"];
 const clients = new Map();
 const byUser = new Map();
 const queue = [];
+const exhibitQueue = [];
 const offers = new Map();
 const rooms = new Map();
 const cooldownUntil = new Map();
@@ -119,8 +120,31 @@ async function verifyToken(token) {
 }
 
 function dropFromQueue(id) {
-  const i = queue.findIndex((q) => q.id === id);
-  if (i >= 0) queue.splice(i, 1);
+  for (const q of [queue, exhibitQueue]) {
+    const i = q.findIndex((row) => row.id === id);
+    if (i >= 0) q.splice(i, 1);
+  }
+}
+
+function queueModeOf(p) {
+  return p && p.queueMode === "exhibit" ? "exhibit" : "ranked";
+}
+
+function waitCount(mode) {
+  const q = mode === "exhibit" ? exhibitQueue : queue;
+  return q.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1).length;
+}
+
+function livePayload() {
+  return { t: "live", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") };
+}
+
+function broadcastLive() {
+  const msg = livePayload();
+  const rows = queue.concat(exhibitQueue);
+  rows.forEach((p) => {
+    if (p && p.state === "queue") send(p.ws, msg);
+  });
 }
 
 function clearOffer(offerId) {
@@ -137,8 +161,10 @@ function requeue(p, silent) {
   p.roomId = null;
   p.waitAt = Date.now();
   dropFromQueue(p.id);
-  queue.push(p);
-  if (!silent) send(p.ws, { t: "searching" });
+  if (queueModeOf(p) === "exhibit") exhibitQueue.push(p);
+  else queue.push(p);
+  if (!silent) send(p.ws, { t: "searching", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") });
+  broadcastLive();
 }
 
 function applyCooldown(p, ms) {
@@ -225,6 +251,11 @@ function pairScore(a, b, now) {
 }
 
 function pairTick() {
+  pairRanked();
+  pairExhibit();
+}
+
+function pairRanked() {
   if (!canOpenMore()) return;
   const now = Date.now();
   const live = queue.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1);
@@ -248,12 +279,36 @@ function pairTick() {
       }
     }
   }
-  if (pick) startOffer(pick[0], pick[1]);
+  if (pick) startOffer(pick[0], pick[1], "pvp");
 }
 
-function startOffer(a, b) {
+function pairExhibit() {
+  if (!canOpenMore()) return;
+  const now = Date.now();
+  const live = exhibitQueue.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1);
+  if (live.length < 2) return;
+  const hasAlt = live.length > 2;
+  let pick = null;
+  let best = Infinity;
+  for (let i = 0; i < live.length; i += 1) {
+    const a = live[i];
+    for (let j = i + 1; j < live.length; j += 1) {
+      const b = live[j];
+      if (!canPair(a, b, now, hasAlt)) continue;
+      const score = pairScore(a, b, now);
+      if (score < best) {
+        best = score;
+        pick = [a, b];
+      }
+    }
+  }
+  if (pick) startOffer(pick[0], pick[1], "exhibit");
+}
+
+function startOffer(a, b, mode) {
   dropFromQueue(a.id);
   dropFromQueue(b.id);
+  broadcastLive();
   const id = randomUUID();
   a.state = "offer";
   b.state = "offer";
@@ -263,6 +318,7 @@ function startOffer(a, b) {
     id,
     a,
     b,
+    mode: mode === "exhibit" ? "exhibit" : "pvp",
     votes: {},
     timer: setTimeout(() => expireOffer(id), OFFER_MS)
   };
@@ -297,7 +353,7 @@ function voteOffer(p, offerId, accept) {
   }
   if (of.votes[of.a.id] === true && of.votes[of.b.id] === true) {
     clearOffer(offerId);
-    beginLuck(of.a, of.b, "pvp");
+    beginLuck(of.a, of.b, of.mode === "exhibit" ? "exhibit" : "pvp");
   }
 }
 
@@ -696,7 +752,8 @@ function onMsg(ws, raw) {
   if (msg.t === "hello") return;
   if (msg.t === "queue") {
     const until = cooldownUntil.get(p.id) || 0;
-    if (until > Date.now()) {
+    const exhibit = msg.mode === "exhibit" || msg.open === true;
+    if (!exhibit && until > Date.now()) {
       send(ws, { t: "cooldown", ms: until - Date.now() });
       return;
     }
@@ -707,11 +764,14 @@ function onMsg(ws, raw) {
     p.wins = msg.wins | 0;
     p.avatar = msg.avatar || p.avatar;
     p.mostUsed = msg.mostUsed || p.mostUsed;
+    p.queueMode = exhibit ? "exhibit" : "ranked";
     p.state = "queue";
     p.waitAt = Date.now();
     dropFromQueue(p.id);
-    queue.push(p);
-    send(ws, { t: "searching" });
+    if (exhibit) exhibitQueue.push(p);
+    else queue.push(p);
+    send(ws, { t: "searching", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") });
+    broadcastLive();
     return;
   }
   if (msg.t === "cancel") {
@@ -721,6 +781,7 @@ function onMsg(ws, raw) {
       if (of) voteOffer(p, p.offerId, false);
     }
     p.state = "idle";
+    broadcastLive();
     return;
   }
   if (msg.t === "vote") voteOffer(p, msg.offerId, msg.accept === true);
@@ -782,6 +843,7 @@ function onClose(ws) {
   if (!p) return;
   if (byUser.get(p.id) !== p) return;
   dropFromQueue(p.id);
+  broadcastLive();
   if (p.offerId) {
     const of = offers.get(p.offerId);
     if (of) {
@@ -805,7 +867,35 @@ function onClose(ws) {
   if (room) closeRoom(room, "drop", p.id);
 }
 
-const server = http.createServer((_req, res) => {
+const server = http.createServer((req, res) => {
+  const origin = req.headers.origin || "";
+  const allow = !origin || ORIGINS.includes(origin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  const path = String(req.url || "/").split("?")[0];
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": allow ? (origin || "*") : "null",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "600"
+    });
+    res.end();
+    return;
+  }
+  if (path === "/live") {
+    res.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": allow ? (origin || "*") : "null",
+      "Cache-Control": "no-store"
+    });
+    res.end(JSON.stringify({
+      ok: true,
+      exhibit: waitCount("exhibit"),
+      ranked: waitCount("ranked"),
+      matches: liveCount(),
+      max: MAX_LIVE
+    }));
+    return;
+  }
   res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
   res.end("evolley-match ok " + liveCount() + "/" + MAX_LIVE + "\n");
 });

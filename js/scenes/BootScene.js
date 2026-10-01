@@ -1,7 +1,7 @@
 import { TextureFactory } from "../systems/TextureFactory.js?v=local224";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local240";
+import { I18n } from "../i18n/I18n.js?v=local242";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";

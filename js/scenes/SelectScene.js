@@ -4,11 +4,12 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local242";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { RosterCarousel } from "../ui/RosterCarousel.js";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local242";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
@@ -16,9 +17,11 @@ export class SelectScene extends Phaser.Scene {
   create() {
     if (!AuthSystem.guard(this)) return;
     if (AuthSystem.isGuest()) {
-      Session.mode = "exhibit";
-      Session.exhibitCasual = true;
       Session.exhibitFriendId = null;
+      if (Session.mode !== "bot") {
+        Session.mode = "exhibit";
+        Session.exhibitCasual = true;
+      }
     }
     this.pvpMode = Session.mode === "pvp";
     this.exhibitMode = Session.mode === "exhibit";
@@ -35,7 +38,7 @@ export class SelectScene extends Phaser.Scene {
       : ROSTER_IDS.find((id) => SaveSystem.isUnlocked(id)) || SaveSystem.data.starterId;
     this.diff = "normal";
 
-    this.add.text(W / 2, 48, t(this.pvpMode ? "select.titlePvp" : this.exhibitMode ? "select.titleExhibit" : this.specialMode ? "select.titleSpecial" : "select.titleExplore"), {
+    this.add.text(W / 2, 48, t(AuthSystem.isGuest() ? "select.titleGuest" : this.pvpMode ? "select.titlePvp" : this.exhibitMode ? "select.titleExhibit" : this.specialMode ? "select.titleSpecial" : "select.titleExplore"), {
       fontFamily: "Segoe UI, Kanit, sans-serif", fontSize: "28px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
 
@@ -72,7 +75,28 @@ export class SelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 
-    if (this.pvpMode || this.exhibitMode || this.specialMode) {
+    if (AuthSystem.isGuest()) {
+      this.waitLine = this.add.text(W / 2, 508, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
+      }).setOrigin(0.5).setDepth(20);
+      this.refreshWait();
+      this.time.addEvent({ delay: 4000, loop: true, callback: () => this.refreshWait() });
+      makeButton(this, W / 2, 568, 320, 50, t("select.startExhibit"), () => {
+        if (!SaveSystem.isUnlocked(this.pick)) return;
+        this.armYou();
+        Session.mode = "exhibit";
+        Session.exhibitCasual = true;
+        Session.exhibitFriendId = null;
+        AudioSystem.ui();
+        this.scene.start("queue");
+      }, 0xff6a22);
+      makeButton(this, W / 2, 634, 320, 48, t("select.startBot"), () => {
+        if (!SaveSystem.isUnlocked(this.pick)) return;
+        this.armYou();
+        AudioSystem.ui();
+        startLocalBot(this, this.pick);
+      }, 0x3ad6ff);
+    } else if (this.pvpMode || this.exhibitMode || this.specialMode) {
       if (!AuthSystem.isGuest()) {
         makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
           AudioSystem.ui();
@@ -133,8 +157,27 @@ export class SelectScene extends Phaser.Scene {
     }, 0x7d5cff);
   }
 
+  armYou() {
+    Session.playerId = this.pick;
+    Session.youSkin = SaveSystem.skinOf(this.pick);
+    Session.youChamp = champSetOf(this.pick);
+    Session.youSide = Math.random() < 0.5 ? 1 : 2;
+    Session.trainStage = null;
+  }
+
+  refreshWait() {
+    MatchLive.pull().then(() => {
+      if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
+      this.waitLine.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+    });
+  }
+
   refreshPick() {
     if (!this.pickText) return;
+    if (AuthSystem.isGuest()) {
+      this.pickText.setText(t("select.pickExhibit", { name: I18n.charName(this.pick) }));
+      return;
+    }
     if (this.pvpMode) {
       this.pickText.setText(t("select.pickPvp", { name: I18n.charName(this.pick) }));
     } else if (this.exhibitMode) {

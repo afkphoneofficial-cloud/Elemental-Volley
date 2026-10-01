@@ -6,9 +6,10 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { Session } from "../systems/Session.js";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
-import { t } from "../i18n/I18n.js";
+import { t } from "../i18n/I18n.js?v=local242";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
+import { MatchLive } from "../systems/MatchLive.js?v=local242";
 
 function dimBtn(btn, on) {
   const a = on ? 1 : 0.4;
@@ -158,6 +159,13 @@ export class FriendsScene extends Phaser.Scene {
       fontFamily: UI_FONT, fontSize: "14px", fontStyle: "700", color: "#7a4a30",
       align: "center", wordWrap: { width: 520 }
     }).setOrigin(0.5).setDepth(8);
+    this.exWait = this.add.text(rightX, 400, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5).setDepth(8);
+    MatchLive.pull().then(() => {
+      if (!this.sys || !this.sys.isActive() || !this.exWait) return;
+      this.exWait.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+    });
 
     const coolLeft = Math.max(0, (NetPlay.exhibitCooldownUntil | 0) - Date.now());
     this.findWait = this.add.text(rightX, 430, coolLeft ? t("friends.findWait", { n: Math.ceil(coolLeft / 1000) }) : "", {

@@ -206,6 +206,8 @@ certbot จะขออีเมล กดตกลงเงื่อนไข  
 อัปเดตแมตช์หลังมีโค้ดใหม่
   cd /opt/evolley && sudo git pull && cd server/match && sudo npm i && sudo pm2 restart evolley-match
 
+ตรวจคิว Exhibition: เปิด https://play.evolley.dev/live ต้องเห็น JSON ฟิลด์ exhibit
+
 
 ------------------------------------------------------------
 8) กระดาน 100 อันดับ + เก็บแต้ม MMR จริง (ทำครั้งเดียว)
