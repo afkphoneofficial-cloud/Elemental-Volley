@@ -6,7 +6,7 @@ import { mountLobbyStage } from "./web/LobbyStage.js";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
 import { BootScene } from "./scenes/BootScene.js?v=local240";
-import { AuthScene } from "./scenes/AuthScene.js?v=local240";
+import { AuthScene } from "./scenes/AuthScene.js?v=local241";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
 import { HubScene } from "./scenes/HubScene.js?v=local240";
 import { WelcomePop } from "./systems/WelcomePop.js?v=local239";

@@ -9,6 +9,7 @@ export class AuthScene extends Phaser.Scene {
   constructor() { super("auth"); }
 
   create() {
+    this.busy = false;
     drawGrid(this);
     const W = this.scale.width;
     this.add.text(W / 2, 118, t("menu.kicker"), {
@@ -78,6 +79,7 @@ export class AuthScene extends Phaser.Scene {
   }
 
   shutdown() {
+    this.busy = false;
     AuthSystem.hideOverlay();
   }
 }
