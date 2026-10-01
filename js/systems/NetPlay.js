@@ -6,6 +6,7 @@ import { t } from "../i18n/I18n.js";
 import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
+import { MatchLive } from "./MatchLive.js?v=local258";
 
 const listeners = new Set();
 
@@ -131,6 +132,7 @@ export const NetPlay = {
       if (msg.t === "ready") {
         this.ready = true;
         this.authTries = 0;
+        MatchLive.apply(msg);
         this.flushWant();
         this.startPing();
       }
@@ -158,6 +160,7 @@ export const NetPlay = {
       if (msg.t === "invite") this.lastInvite = msg;
       if (msg.t === "cooldown") this.cooldownUntil = Date.now() + (msg.ms | 0);
       if (msg.t === "searching") this.settled = false;
+      if (msg.t === "searching" || msg.t === "live" || msg.t === "queueFull") MatchLive.apply(msg);
       if (msg.t === "go" || msg.t === "rejoin") {
         if (this.settled) {
           this.emit(msg);

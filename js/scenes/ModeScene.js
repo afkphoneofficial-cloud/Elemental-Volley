@@ -75,6 +75,10 @@ export class ModeScene extends Phaser.Scene {
       return;
     }
     Session.mode = kind;
+    Session.exhibitCasual = false;
+    Session.exhibitFriendId = null;
+    Session.exhibitIncoming = false;
+    Session.rival = null;
     AudioSystem.ui();
     this.scene.start("select");
   }

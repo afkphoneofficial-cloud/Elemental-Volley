@@ -15,8 +15,31 @@ export function matchHttpUrl() {
 export const MatchLive = {
   exhibit: 0,
   ranked: 0,
+  matches: 0,
+  max: 12,
+  maxQueue: 48,
 
-  label(t) {
+  apply(data) {
+    if (!data) return this;
+    if (data.exhibit != null) this.exhibit = Math.max(0, data.exhibit | 0);
+    if (data.ranked != null) this.ranked = Math.max(0, data.ranked | 0);
+    if (data.matches != null) this.matches = Math.max(0, data.matches | 0);
+    if (data.max != null) this.max = Math.max(1, data.max | 0);
+    if (data.maxLive != null) this.max = Math.max(1, data.maxLive | 0);
+    if (data.maxQueue != null) this.maxQueue = Math.max(1, data.maxQueue | 0);
+    return this;
+  },
+
+  waitOf(mode) {
+    return mode === "exhibit" ? (this.exhibit | 0) : (this.ranked | 0);
+  },
+
+  slotsFull() {
+    return this.max > 0 && this.matches >= this.max;
+  },
+
+  label(t, mode) {
+    if (mode === "pvp" || mode === "ranked") return t("queue.rankedWait", { n: this.ranked | 0 });
     return t("queue.exhibitWait", { n: this.exhibit | 0 });
   },
 
@@ -26,9 +49,7 @@ export const MatchLive = {
     try {
       const res = await fetch(base + "/live", { cache: "no-store" });
       if (!res.ok) return this;
-      const data = await res.json();
-      this.exhibit = Math.max(0, data.exhibit | 0);
-      this.ranked = Math.max(0, data.ranked | 0);
+      this.apply(await res.json());
     } catch (e) {}
     return this;
   }

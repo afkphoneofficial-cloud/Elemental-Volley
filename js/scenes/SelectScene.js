@@ -4,12 +4,12 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local242";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { RosterCarousel } from "../ui/RosterCarousel.js";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local242";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local258";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
@@ -75,12 +75,15 @@ export class SelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 
-    if (AuthSystem.isGuest()) {
-      this.waitLine = this.add.text(W / 2, 508, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
+    if (this.pvpMode || this.exhibitMode) {
+      this.waitLine = this.add.text(W / 2, 508, MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"), {
         fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5).setDepth(20);
       this.refreshWait();
       this.time.addEvent({ delay: 4000, loop: true, callback: () => this.refreshWait() });
+    }
+
+    if (AuthSystem.isGuest()) {
       makeButton(this, W / 2, 568, 320, 50, t("select.startExhibit"), () => {
         if (!SaveSystem.isUnlocked(this.pick)) return;
         this.armYou();
@@ -98,7 +101,7 @@ export class SelectScene extends Phaser.Scene {
       }, 0x3ad6ff);
     } else if (this.pvpMode || this.exhibitMode || this.specialMode) {
       if (!AuthSystem.isGuest()) {
-        makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
+        makeButton(this, W / 2, 556, 240, 46, t("queue.how"), () => {
           AudioSystem.ui();
           this.scene.start("rankinfo", { from: "select", tab: "rules" });
         }, 0x3ad6ff);
@@ -113,6 +116,9 @@ export class SelectScene extends Phaser.Scene {
         AudioSystem.ui();
         if (this.pvpMode) {
           Session.mode = "pvp";
+          Session.exhibitCasual = false;
+          Session.exhibitFriendId = null;
+          Session.exhibitIncoming = false;
           this.scene.start("queue");
           return;
         }
@@ -168,7 +174,7 @@ export class SelectScene extends Phaser.Scene {
   refreshWait() {
     MatchLive.pull().then(() => {
       if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
-      this.waitLine.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+      this.waitLine.setText(MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"));
     });
   }
 

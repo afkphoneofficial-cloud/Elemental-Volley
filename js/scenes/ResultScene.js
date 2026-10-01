@@ -12,7 +12,7 @@ import { titleById } from "../data/titles.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local245";
+import { NetPlay } from "../systems/NetPlay.js?v=local258";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";

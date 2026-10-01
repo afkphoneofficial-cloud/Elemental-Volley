@@ -4,21 +4,35 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local245";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local245";
+import { NetPlay } from "../systems/NetPlay.js?v=local258";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { maintenanceNow } from "../data/maintenance.js";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local242";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local258";
 
 function formatWait(ms) {
   const sec = Math.max(0, Math.floor(ms / 1000));
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return m + ":" + String(s).padStart(2, "0");
+}
+
+function isExhibitQueue() {
+  return Session.mode === "exhibit";
+}
+
+function queueTitle() {
+  if (isExhibitQueue()) return t("queue.titleExhibit");
+  if (Session.mode === "pvp") return t("queue.titleRank");
+  return t("queue.title");
+}
+
+function searchStatus() {
+  return isExhibitQueue() ? t("queue.searchExhibit") : t("queue.searching");
 }
 
 function rivalLabel(rival) {
@@ -53,10 +67,10 @@ export class QueueScene extends Phaser.Scene {
     this.found = false;
     this.bits = [];
 
-    this.add.text(W / 2, 48, t("queue.title"), {
+    this.add.text(W / 2, 48, queueTitle(), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "900", color: "#3a2418"
     }).setOrigin(0.5);
-    this.status = this.add.text(W / 2, 96, t("queue.searching"), {
+    this.status = this.add.text(W / 2, 96, searchStatus(), {
       fontFamily: UI_FONT, fontSize: "16px", color: "#7a4a30"
     }).setOrigin(0.5);
     this.waitClock = this.add.text(W / 2, 128, t("queue.waitTime", { t: "0:00" }), {
@@ -64,6 +78,9 @@ export class QueueScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.windowText = this.add.text(W / 2, 164, "", {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
+    }).setOrigin(0.5);
+    this.slotText = this.add.text(W / 2, 188, "", {
+      fontFamily: UI_FONT, fontSize: "15px", fontStyle: "700", color: "#7a4a30"
     }).setOrigin(0.5);
 
     this.add.circle(W / 2, 280, 90, 0xffffff, 0.4).setStrokeStyle(4, 0x7d5cff, 0.55);
@@ -133,11 +150,11 @@ export class QueueScene extends Phaser.Scene {
         this.time.delayedCall(700, () => this.scene.start(AuthSystem.isGuest() ? "auth" : "friends"));
         return;
       }
-      this.status.setText(t("queue.searchExhibit"));
+      this.status.setText(searchStatus());
       NetPlay.queueExhibit();
       this.beginWait();
-      this.paintExhibitWait();
-      MatchLive.pull().then(() => { if (this.sys && this.sys.isActive()) this.paintExhibitWait(); });
+      this.paintQueueInfo();
+      MatchLive.pull().then(() => { if (this.sys && this.sys.isActive()) this.paintQueueInfo(); });
     } else if (Session.mode === "exhibit" && Session.exhibitFriendId) {
       NetPlay.exhibit(Session.exhibitFriendId);
       this.beginWait();
@@ -149,22 +166,30 @@ export class QueueScene extends Phaser.Scene {
         this.time.delayedCall(900, () => this.scene.start(AuthSystem.lobbyKey()));
         return;
       }
+      Session.exhibitCasual = false;
+      Session.exhibitFriendId = null;
       NetPlay.queueRanked();
       this.beginWait();
+      this.paintQueueInfo();
+      MatchLive.pull().then(() => { if (this.sys && this.sys.isActive()) this.paintQueueInfo(); });
     }
   }
 
   onNet(msg) {
     if (!this.sys || !this.sys.isActive()) return;
-    if (msg.t === "searching" || msg.t === "live") {
-      if (msg.exhibit != null) MatchLive.exhibit = msg.exhibit | 0;
-      if (msg.ranked != null) MatchLive.ranked = msg.ranked | 0;
-      this.paintExhibitWait();
+    if (msg.t === "searching" || msg.t === "live" || msg.t === "queueFull") {
+      MatchLive.apply(msg);
+      this.paintQueueInfo();
+    }
+    if (msg.t === "queueFull") {
+      this.status.setText(t("queue.full", { n: msg.n | 0, max: msg.max != null ? msg.max : MatchLive.maxQueue }));
+      this.stopWaitClock();
+      return;
     }
     if (msg.t === "searching") {
       this.clearOffer();
       if (this.found) return;
-      this.status.setText(Session.exhibitCasual ? t("queue.searchExhibit") : t("queue.searching"));
+      this.status.setText(searchStatus());
       this.beginWait();
     }
     if (msg.t === "cooldown") {
@@ -328,7 +353,7 @@ export class QueueScene extends Phaser.Scene {
       this.clearOffer();
       if (Session.exhibitCasual) {
         NetPlay.queueExhibit();
-        this.status.setText(t("queue.searchExhibit"));
+        this.status.setText(searchStatus());
         this.beginWait();
       } else {
         this.status.setText(t("queue.cooldown", { n: 5 }));
@@ -364,11 +389,23 @@ export class QueueScene extends Phaser.Scene {
     this.waitClock.setText(t("queue.waitTime", { t: formatWait(Date.now() - this.waitAt) }));
   }
 
-  paintExhibitWait() {
+  paintQueueInfo() {
     if (!this.windowText) return;
-    if (Session.mode === "exhibit") {
-      this.windowText.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+    const exhibit = isExhibitQueue();
+    this.windowText.setText(exhibit
+      ? t("queue.exhibitWait", { n: MatchLive.exhibit | 0 })
+      : t("queue.rankedWait", { n: MatchLive.ranked | 0 }));
+    if (!this.slotText) return;
+    if (MatchLive.slotsFull()) {
+      this.slotText.setText(t("queue.slotsFull", { n: MatchLive.matches | 0, max: MatchLive.max | 0 }));
+      return;
     }
+    if (exhibit) {
+      this.slotText.setText("");
+      return;
+    }
+    const elapsed = this.time ? this.time.now - (this.started || 0) : 0;
+    this.slotText.setText(t("queue.window", { n: searchWindow(elapsed) }));
   }
 
   update() {
@@ -390,7 +427,6 @@ export class QueueScene extends Phaser.Scene {
     this.ring.clear();
     this.ring.lineStyle(3, 0x7d5cff, 0.45 + 0.25 * Math.sin(elapsed / 180));
     this.ring.strokeCircle(this.scale.width / 2, 280, 90 + 8 * Math.sin(elapsed / 220));
-    if (Session.mode === "exhibit") this.paintExhibitWait();
-    else this.windowText.setText(t("queue.window", { n: searchWindow(elapsed) }));
+    this.paintQueueInfo();
   }
 }

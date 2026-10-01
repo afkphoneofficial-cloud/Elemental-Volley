@@ -18,6 +18,7 @@ try {
 
 const PORT = Number(process.env.PORT || 8787);
 const MAX_LIVE = Math.max(1, Number(process.env.MAX_LIVE_MATCHES || 12));
+const MAX_QUEUE = Math.max(2, Number(process.env.MAX_QUEUE || MAX_LIVE * 4));
 const COOLDOWN_MS = Number(process.env.DECLINE_COOLDOWN_MS || 5 * 60 * 1000);
 const OFFER_MS = Number(process.env.OFFER_MS || 30000);
 const SKIP_COOLDOWN_MS = Number(process.env.SKIP_COOLDOWN_MS || 2 * 60 * 1000);
@@ -135,8 +136,18 @@ function waitCount(mode) {
   return q.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1).length;
 }
 
+function liveCounts() {
+  return {
+    exhibit: waitCount("exhibit"),
+    ranked: waitCount("ranked"),
+    matches: liveCount(),
+    max: MAX_LIVE,
+    maxQueue: MAX_QUEUE
+  };
+}
+
 function livePayload() {
-  return { t: "live", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") };
+  return Object.assign({ t: "live" }, liveCounts());
 }
 
 function broadcastLive() {
@@ -163,7 +174,7 @@ function requeue(p, silent) {
   dropFromQueue(p.id);
   if (queueModeOf(p) === "exhibit") exhibitQueue.push(p);
   else queue.push(p);
-  if (!silent) send(p.ws, { t: "searching", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") });
+  if (!silent) send(p.ws, Object.assign({ t: "searching" }, liveCounts()));
   broadcastLive();
 }
 
@@ -694,7 +705,7 @@ function onHello(ws, user, body) {
   };
   clients.set(ws, p);
   byUser.set(user.id, p);
-  send(ws, { t: "ready", maxLive: MAX_LIVE });
+  send(ws, { t: "ready", maxLive: MAX_LIVE, maxQueue: MAX_QUEUE });
   const late = pendingEnd.get(user.id);
   if (late && late.until > Date.now()) {
     pendingEnd.delete(user.id);
@@ -772,12 +783,20 @@ function onMsg(ws, raw) {
       if (live) closeRoom(live, "quit", p.id);
       p.roomId = null;
     }
+    dropFromQueue(p.id);
+    const kind = exhibit ? "exhibit" : "ranked";
+    const waiting = waitCount(kind);
+    if (waiting >= MAX_QUEUE) {
+      p.state = "idle";
+      send(ws, Object.assign({}, liveCounts(), { t: "queueFull", mode: kind, n: waiting, max: MAX_QUEUE }));
+      broadcastLive();
+      return;
+    }
     p.state = "queue";
     p.waitAt = Date.now();
-    dropFromQueue(p.id);
     if (exhibit) exhibitQueue.push(p);
     else queue.push(p);
-    send(ws, { t: "searching", exhibit: waitCount("exhibit"), ranked: waitCount("ranked") });
+    send(ws, Object.assign({ t: "searching" }, liveCounts()));
     broadcastLive();
     return;
   }
@@ -899,7 +918,8 @@ const server = http.createServer((req, res) => {
       exhibit: waitCount("exhibit"),
       ranked: waitCount("ranked"),
       matches: liveCount(),
-      max: MAX_LIVE
+      max: MAX_LIVE,
+      maxQueue: MAX_QUEUE
     }));
     return;
   }
@@ -937,5 +957,5 @@ wss.on("connection", (ws, req) => {
 setInterval(pairTick, 400);
 
 server.listen(PORT, () => {
-  console.log("match ws :" + PORT + " maxLive=" + MAX_LIVE);
+  console.log("match ws :" + PORT + " maxLive=" + MAX_LIVE + " maxQueue=" + MAX_QUEUE);
 });
