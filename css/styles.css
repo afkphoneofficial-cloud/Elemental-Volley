@@ -580,7 +580,7 @@ html[data-control="pc"] #game {
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
   #hud-left {
     align-items: stretch;
-    left: max(5px, env(safe-area-inset-left));
+    left: max(2px, env(safe-area-inset-left));
     gap: 6px;
   }
   #vol-dock {
@@ -639,7 +639,7 @@ html[data-control="pc"] #game {
 
 html.ev-spin-land #hud-left {
   align-items: stretch;
-  left: max(5px, env(safe-area-inset-left));
+  left: max(2px, env(safe-area-inset-left));
   gap: 6px;
 }
 html.ev-spin-land #vol-dock {

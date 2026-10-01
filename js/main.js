@@ -2,7 +2,7 @@ import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
 import { I18n } from "./i18n/I18n.js?v=local253";
-import { mountLobbyStage } from "./web/LobbyStage.js?v=local255";
+import { mountLobbyStage } from "./web/LobbyStage.js?v=local256";
 import { mountOrientDock, placeOrientBtn } from "./web/OrientDock.js?v=local255";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
