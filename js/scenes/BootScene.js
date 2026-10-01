@@ -5,6 +5,7 @@ import { I18n } from "../i18n/I18n.js?v=local238";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local239";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
@@ -226,6 +227,7 @@ export class BootScene extends Phaser.Scene {
       I18n.load();
       if (!this.scene.isActive()) return;
       BootSplash.ready();
+      WelcomePop.tryShow();
       if (AuthSystem.canPlay()) {
         this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
       } else {
@@ -233,6 +235,7 @@ export class BootScene extends Phaser.Scene {
       }
     }).catch(() => {
       BootSplash.ready();
+      WelcomePop.tryShow();
       if (this.scene.isActive()) this.scene.start("auth");
     });
   }

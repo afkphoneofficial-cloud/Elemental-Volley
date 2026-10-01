@@ -1,7 +1,9 @@
 import { WELCOME_SLIDES } from "../data/welcomePop.js?v=local234";
 import { SaveSystem } from "./SaveSystem.js";
 import { dayKey } from "../data/monthPass.js?v=local171";
-import { I18n, t } from "../i18n/I18n.js";
+import { I18n, t } from "../i18n/I18n.js?v=local238";
+
+const SEEN_KEY = "ev-welcome-seen";
 
 function lang() {
   return I18n.lang === "en" ? "en" : "th";
@@ -13,6 +15,24 @@ function tabOf(row) {
 
 function capOf(row) {
   return lang() === "en" ? row.capEn : row.capTh;
+}
+
+function alreadySeen() {
+  try {
+    if (localStorage.getItem(SEEN_KEY) === "1") return true;
+  } catch (e) {}
+  return false;
+}
+
+function markSeen() {
+  try {
+    localStorage.setItem(SEEN_KEY, "1");
+  } catch (e) {}
+  const day = dayKey();
+  if (SaveSystem.data && SaveSystem.data.welcomeDay !== day) {
+    SaveSystem.data.welcomeDay = day;
+    SaveSystem.persist();
+  }
 }
 
 export const WelcomePop = {
@@ -38,8 +58,7 @@ export const WelcomePop = {
         "</div>" +
         '<button type="button" id="welcome-close" class="welcome-close"></button>' +
       "</div>";
-    const host = document.getElementById("wrap") || document.body;
-    host.appendChild(root);
+    document.body.appendChild(root);
     this.root = root;
     this.img = document.getElementById("welcome-art");
     this.cap = document.getElementById("welcome-cap");
@@ -58,30 +77,24 @@ export const WelcomePop = {
   tryShow() {
     this.mount();
     if (this.open) return;
-    const save = SaveSystem.data;
-    if (!save) return;
-    const today = dayKey();
-    if (save.welcomeDay === today) return;
-    this.show(today);
+    if (alreadySeen()) return;
+    this.show();
   },
 
-  show(today) {
+  show() {
     this.mount();
     this.slide = 0;
     this.open = true;
     this.root.hidden = false;
     this.paint();
-    const day = today || dayKey();
-    if (SaveSystem.data && SaveSystem.data.welcomeDay !== day) {
-      SaveSystem.data.welcomeDay = day;
-      SaveSystem.persist();
-    }
   },
 
   hide() {
     if (!this.root) return;
+    const wasOpen = this.open;
     this.open = false;
     this.root.hidden = true;
+    if (wasOpen) markSeen();
   },
 
   setSlide(i) {

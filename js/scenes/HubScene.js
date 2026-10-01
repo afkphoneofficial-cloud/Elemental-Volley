@@ -12,7 +12,7 @@ import { mountMailboxHud } from "../ui/MailboxHud.js?v=local235";
 import { Mailbox } from "../systems/Mailbox.js?v=local235";
 import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local234";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local239";
 import { TicketPop } from "../systems/TicketPop.js?v=local229";
 import { SocialPop } from "../systems/SocialPop.js?v=local236";
 import { NetPlay } from "../systems/NetPlay.js";
