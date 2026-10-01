@@ -115,17 +115,13 @@ export const TextureFactory = {
     try {
       const img = scene.textures.get(srcKey).getSourceImage();
       if (!img || !img.width) return;
-      const srcW = img.width;
-      const srcH = img.height;
-      const cap = this.lightMobile ? 360 : 1400;
-      const scale = Math.min(1, cap / Math.max(srcW, srcH));
-      const w = Math.max(1, Math.round(srcW * scale));
-      const h = Math.max(1, Math.round(srcH * scale));
+      const w = img.width;
+      const h = img.height;
       const src = document.createElement("canvas");
       src.width = w;
       src.height = h;
       const ctx = src.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
+      ctx.drawImage(img, 0, 0);
       const data = ctx.getImageData(0, 0, w, h);
       const px = data.data;
       const isBg = (i) => {
@@ -159,9 +155,9 @@ export const TextureFactory = {
         px[i + 3] = 0;
         const x = p % w;
         const y = (p / w) | 0;
-        enq(x + 1, y); enq(x - 1, y); enq(x, y - 1); enq(x, y + 1);
+        enq(x + 1, y); enq(x - 1, y); enq(x, y + 1); enq(x, y - 1);
       }
-      if (!this.lightMobile) TextureFactory.punchBakedChecker(px, w, h);
+      TextureFactory.punchBakedChecker(px, w, h);
       let minX = w, minY = h, maxX = 0, maxY = 0, count = 0;
       for (let y = 0; y < h; y += 1) {
         for (let x = 0; x < w; x += 1) {
@@ -184,11 +180,10 @@ export const TextureFactory = {
       maxY = Math.min(h - 1, maxY + pad);
       const cw = maxX - minX + 1;
       const ch = maxY - minY + 1;
-      const outN = this.lightMobile ? 128 : 256;
       const out = document.createElement("canvas");
-      out.width = outN;
-      out.height = outN;
-      out.getContext("2d").drawImage(src, minX, minY, cw, ch, 0, 0, outN, outN);
+      out.width = 256;
+      out.height = 256;
+      out.getContext("2d").drawImage(src, minX, minY, cw, ch, 0, 0, 256, 256);
       if (scene.textures.exists(destKey)) scene.textures.remove(destKey);
       scene.textures.addCanvas(destKey, out);
     } catch (e) {

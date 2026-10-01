@@ -1,4 +1,4 @@
-import { TextureFactory } from "../systems/TextureFactory.js?v=local248";
+import { TextureFactory } from "../systems/TextureFactory.js?v=local254";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js?v=local249";

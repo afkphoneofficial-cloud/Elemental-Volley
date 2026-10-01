@@ -1684,6 +1684,9 @@ html[data-control="pc"] #orient-btn {
   pointer-events: all;
 }
 #install-overlay[hidden] { display: none !important; }
+@media (hover: hover) and (pointer: fine) {
+  #install-overlay { display: none !important; }
+}
 .install-card {
   width: min(420px, 100%);
   padding: 22px 20px 18px;

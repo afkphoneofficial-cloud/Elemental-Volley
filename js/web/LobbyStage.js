@@ -125,10 +125,7 @@ function punchBall(img) {
 
 function punchOrRaw(im) {
   if (!im) return null;
-  try {
-    if (window.matchMedia("(pointer: coarse)").matches) return im;
-  } catch (e) {}
-  return punchChibi(im);
+  return punchChibi(im) || im;
 }
 
 function loadImg(src) {

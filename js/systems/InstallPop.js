@@ -1,5 +1,6 @@
 import { t } from "../i18n/I18n.js?v=local253";
 import { dayKey } from "../data/monthPass.js?v=local190";
+import { preferTouch } from "../ui/TouchControls.js";
 
 const DAY_KEY = "ev-install-ask-day";
 let deferred = null;
@@ -29,6 +30,14 @@ function isIos() {
   const ua = String(navigator.userAgent || "");
   if (/iPad|iPhone|iPod/.test(ua)) return true;
   return navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1;
+}
+
+function wantInstallPrompt() {
+  if (isStandalone()) return false;
+  try {
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) return false;
+  } catch (e) {}
+  return preferTouch();
 }
 
 function askedToday() {
@@ -104,7 +113,7 @@ export const InstallPop = {
   tryShow() {
     this.mount();
     if (this.open || shown) return false;
-    if (isStandalone()) return false;
+    if (!wantInstallPrompt()) return false;
     if (askedToday()) return false;
     shown = true;
     this.open = true;
