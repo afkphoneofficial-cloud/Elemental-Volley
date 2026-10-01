@@ -767,6 +767,11 @@ function onMsg(ws, raw) {
     p.avatar = msg.avatar || p.avatar;
     p.mostUsed = msg.mostUsed || p.mostUsed;
     p.queueMode = exhibit ? "exhibit" : "ranked";
+    if (p.roomId) {
+      const live = rooms.get(p.roomId);
+      if (live) closeRoom(live, "quit", p.id);
+      p.roomId = null;
+    }
     p.state = "queue";
     p.waitAt = Date.now();
     dropFromQueue(p.id);

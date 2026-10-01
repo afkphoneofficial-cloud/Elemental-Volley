@@ -225,12 +225,14 @@ export const NetPlay = {
 
   queueRanked() {
     this.ticks = [];
+    this.settled = false;
     this.want = "ranked";
     this.flushWant();
   },
 
   queueExhibit() {
     this.ticks = [];
+    this.settled = false;
     this.want = "exhibitQueue";
     this.flushWant();
   },
@@ -247,6 +249,8 @@ export const NetPlay = {
     }
     if (this.want === "ranked") {
       const rank = SaveSystem.data.rank || {};
+      this.send({ t: "quit" });
+      this.send({ t: "done" });
       this.send({
         t: "queue",
         fighter: Session.playerId,
@@ -260,6 +264,8 @@ export const NetPlay = {
       this.want = null;
     } else if (this.want === "exhibitQueue") {
       const rank = SaveSystem.data.rank || {};
+      this.send({ t: "quit" });
+      this.send({ t: "done" });
       this.send({
         t: "queue",
         mode: "exhibit",
@@ -352,8 +358,10 @@ export const NetPlay = {
   },
 
   quit() {
+    this.settled = true;
     Session.net = false;
     this.send({ t: "quit" });
+    this.send({ t: "done" });
   },
 
   yieldHost() {

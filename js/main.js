@@ -89,7 +89,7 @@ NetPlay.on((msg) => {
   if (!live) return;
   const key = live.scene.key;
   if (msg.t === "luck" && key !== "luck" && key !== "queue") {
-    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub") return;
+    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub" || key === "select") return;
     Session.net = true;
     Session.netHost = msg.host === true;
     if (msg.mode === "exhibit" || msg.mode === "pvp") Session.mode = msg.mode;
@@ -97,7 +97,7 @@ NetPlay.on((msg) => {
     live.scene.start("luck", msg);
   }
   if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") {
-    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub" || key === "select") return;
+    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub" || key === "select" || key === "queue") return;
     const luck = NetPlay.lastLuck;
     if (msg.t === "go" && luck && luck.roomId === msg.roomId && key !== "luck") {
       Session.net = true;
@@ -106,7 +106,7 @@ NetPlay.on((msg) => {
     }
     live.scene.start("play");
   }
-  if (msg.t === "end" && key !== "play" && key !== "result") {
+  if (msg.t === "end" && (key === "luck")) {
     const me = AuthSystem.session && AuthSystem.session();
     const youLost = me && msg.loserId && msg.loserId === me.id;
     live.scene.start("result", {
