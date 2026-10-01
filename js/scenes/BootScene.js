@@ -1,11 +1,11 @@
-import { TextureFactory } from "../systems/TextureFactory.js?v=local224";
+import { TextureFactory } from "../systems/TextureFactory.js?v=local248";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { I18n } from "../i18n/I18n.js?v=local242";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
-import { BootSplash } from "../web/BootSplash.js";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local247";
+import { BootSplash } from "../web/BootSplash.js?v=local248";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local248";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 import { BALL_FX } from "../data/ballFx.js?v=local196";
@@ -18,6 +18,14 @@ export class BootScene extends Phaser.Scene {
   constructor() { super("boot"); }
 
   preload() {
+    try {
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const tiny = Math.min(window.innerWidth, window.innerHeight) <= 540;
+      TextureFactory.lightMobile = Boolean(coarse || tiny);
+    } catch (e) {
+      TextureFactory.lightMobile = true;
+    }
+    this.load.maxParallelDownloads = TextureFactory.lightMobile ? 4 : 8;
     this.load.on("loaderror", () => {});
     this.load.on("progress", (v) => BootSplash.setProgress(0.16 + v * 0.62));
     IDS.forEach((id) => {
@@ -93,15 +101,27 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
+    void this.finishBoot().catch(() => {
+      BootSplash.ready();
+      WelcomePop.tryShow();
+      if (this.scene.isActive()) this.scene.start("auth");
+    });
+  }
+
+  async finishBoot() {
     BootSplash.setProgress(0.8);
     SaveSystem.load();
     I18n.load();
+    const scene = this;
+    const jobs = [];
+    const chibi = (src, dest, knock) => jobs.push(() => TextureFactory.applyChibi(scene, src, dest, knock));
+    const maybeMirror = (src, dest) => jobs.push(() => {
+      if (!scene.textures.exists(dest) && scene.textures.exists(src)) TextureFactory.mirror(scene, src, dest, true);
+    });
     try {
       TextureFactory.build(this);
       TextureFactory.applyBall(this, "ball-art", "ball");
-      ULT_ORBS.forEach((row) => {
-        TextureFactory.applyChibi(this, row.tex + "-art", row.tex);
-      });
+      ULT_ORBS.forEach((row) => chibi(row.tex + "-art", row.tex));
       RANK_TIERS.forEach((row) => {
         if (!this.textures.exists(badgeKey(row.id))) {
           TextureFactory.rankBadge(this, badgeKey(row.id), row.color, row.stars);
@@ -110,24 +130,24 @@ export class BootScene extends Phaser.Scene {
       if (!this.textures.exists(badgeKey(RANK_CAL_ID))) {
         TextureFactory.rankBadge(this, badgeKey(RANK_CAL_ID), 0xc8c0b8, 0);
       }
-      TextureFactory.applyChibi(this, "item-pact-cube", "vis_item_pact_cube");
-      TextureFactory.applyChibi(this, "icon-news", "vis_icon_news");
-      TextureFactory.applyChibi(this, "icon-mirror", "vis_icon_mirror");
-      TextureFactory.applyChibi(this, "icon-mail", "vis_icon_mail");
-      TextureFactory.applyChibi(this, "icon-shop", "vis_icon_shop");
-      TextureFactory.applyChibi(this, "icon-champ", "vis_icon_champ", true);
-      TextureFactory.applyChibi(this, "icon-growth", "vis_icon_growth", true);
-      TextureFactory.applyChibi(this, "icon-ticket", "vis_icon_ticket", true);
-      TextureFactory.applyChibi(this, "icon-map", "vis_icon_map");
-      TextureFactory.applyChibi(this, "icon-friends", "vis_icon_friends");
-      TextureFactory.applyChibi(this, "icon-settings", "vis_icon_settings");
-      TextureFactory.applyChibi(this, "icon-chat", "vis_icon_chat");
-      TextureFactory.applyChibi(this, "icon-social", "vis_icon_social");
-      TextureFactory.applyChibi(this, "icon-namestone", "icon-namestone");
-      TextureFactory.applyChibi(this, "item-plate-champ", "item-plate-champ");
-      TextureFactory.applyChibi(this, "item-plate-runner", "item-plate-runner");
-      TextureFactory.applyChibi(this, "item-plate-frame", "item-plate-frame");
-      TextureFactory.applyChibi(this, "item-cheer-champ", "item-cheer-champ");
+      chibi("item-pact-cube", "vis_item_pact_cube");
+      chibi("icon-news", "vis_icon_news");
+      chibi("icon-mirror", "vis_icon_mirror");
+      chibi("icon-mail", "vis_icon_mail");
+      chibi("icon-shop", "vis_icon_shop");
+      chibi("icon-champ", "vis_icon_champ", true);
+      chibi("icon-growth", "vis_icon_growth", true);
+      chibi("icon-ticket", "vis_icon_ticket", true);
+      chibi("icon-map", "vis_icon_map");
+      chibi("icon-friends", "vis_icon_friends");
+      chibi("icon-settings", "vis_icon_settings");
+      chibi("icon-chat", "vis_icon_chat");
+      chibi("icon-social", "vis_icon_social");
+      chibi("icon-namestone", "icon-namestone");
+      chibi("item-plate-champ", "item-plate-champ");
+      chibi("item-plate-runner", "item-plate-runner");
+      chibi("item-plate-frame", "item-plate-frame");
+      chibi("item-cheer-champ", "item-cheer-champ");
       SEASON_ART.forEach((id) => {
         let dest = id;
         if (id.indexOf("select-champ-") === 0) {
@@ -140,76 +160,66 @@ export class BootScene extends Phaser.Scene {
           else if (cheer) dest = "vis_cheer_champ_" + cheer[1] + "_" + cheer[2];
           else if (dive) dest = "vis_champ_" + dive[1] + "_" + dive[2] + "_dive_l";
         }
-        TextureFactory.applyChibi(this, id, dest);
+        chibi(id, dest);
       });
       ["ignis", "aqua", "volt", "terra"].forEach((id) => {
         [1, 2, 3].forEach((n) => {
-          const l = "vis_champ_" + id + "_" + n + "_l";
-          const r = "vis_champ_" + id + "_" + n + "_r";
-          const dl = "vis_champ_" + id + "_" + n + "_dive_l";
-          const dr = "vis_champ_" + id + "_" + n + "_dive_r";
-          if (!this.textures.exists(r) && this.textures.exists(l)) TextureFactory.mirror(this, l, r, true);
-          if (!this.textures.exists(l) && this.textures.exists(r)) TextureFactory.mirror(this, r, l, true);
-          if (!this.textures.exists(dr) && this.textures.exists(dl)) TextureFactory.mirror(this, dl, dr, true);
-          if (!this.textures.exists(dl) && this.textures.exists(dr)) TextureFactory.mirror(this, dr, dl, true);
+          maybeMirror("vis_champ_" + id + "_" + n + "_l", "vis_champ_" + id + "_" + n + "_r");
+          maybeMirror("vis_champ_" + id + "_" + n + "_r", "vis_champ_" + id + "_" + n + "_l");
+          maybeMirror("vis_champ_" + id + "_" + n + "_dive_l", "vis_champ_" + id + "_" + n + "_dive_r");
+          maybeMirror("vis_champ_" + id + "_" + n + "_dive_r", "vis_champ_" + id + "_" + n + "_dive_l");
         });
       });
-      TextureFactory.applyChibi(this, "ether-art", "vis_ether");
-      FREE_AVATARS.forEach((a) => TextureFactory.applyChibi(this, "av-art-" + a.id, "vis_" + a.id));
-      COURTS.forEach((s) => TextureFactory.applyChibi(this, "ref-" + s, "vis_ref_" + s));
+      chibi("ether-art", "vis_ether");
+      FREE_AVATARS.forEach((a) => chibi("av-art-" + a.id, "vis_" + a.id));
+      COURTS.forEach((s) => chibi("ref-" + s, "vis_ref_" + s));
       IDS.forEach((id) => {
-        TextureFactory.applyChibi(this, "chibi-" + id, "vis_" + id);
-        TextureFactory.applyChibi(this, "chibi-" + id + "-left", "vis_" + id + "_l");
-        TextureFactory.applyChibi(this, "chibi-" + id + "-right", "vis_" + id + "_r");
-        TextureFactory.applyChibi(this, "select-" + id, "vis_select_" + id);
-        TextureFactory.applyChibi(this, "dive-" + id + "-t1-l", "vis_" + id + "_dive_l");
-        TextureFactory.applyChibi(this, "dive-" + id + "-t1-r", "vis_" + id + "_dive_r");
-        TextureFactory.applyChibi(this, "cheer-" + id + "-t1", "vis_cheer_" + id);
-        if (!this.textures.exists("vis_" + id + "_dive_r") && this.textures.exists("vis_" + id + "_dive_l")) {
-          TextureFactory.mirror(this, "vis_" + id + "_dive_l", "vis_" + id + "_dive_r", true);
-        }
-        if (!this.textures.exists("vis_" + id + "_dive_l") && this.textures.exists("vis_" + id + "_dive_r")) {
-          TextureFactory.mirror(this, "vis_" + id + "_dive_r", "vis_" + id + "_dive_l", true);
-        }
-        if (!this.textures.exists("vis_" + id + "_r") && this.textures.exists("vis_" + id + "_l")) {
-          TextureFactory.mirror(this, "vis_" + id + "_l", "vis_" + id + "_r", true);
-        }
-        if (!this.textures.exists("vis_" + id + "_l") && this.textures.exists("vis_" + id + "_r")) {
-          TextureFactory.mirror(this, "vis_" + id + "_r", "vis_" + id + "_l", true);
-        }
+        chibi("chibi-" + id, "vis_" + id);
+        chibi("chibi-" + id + "-left", "vis_" + id + "_l");
+        chibi("chibi-" + id + "-right", "vis_" + id + "_r");
+        chibi("select-" + id, "vis_select_" + id);
+        chibi("dive-" + id + "-t1-l", "vis_" + id + "_dive_l");
+        chibi("dive-" + id + "-t1-r", "vis_" + id + "_dive_r");
+        chibi("cheer-" + id + "-t1", "vis_cheer_" + id);
+        maybeMirror("vis_" + id + "_dive_l", "vis_" + id + "_dive_r");
+        maybeMirror("vis_" + id + "_dive_r", "vis_" + id + "_dive_l");
+        maybeMirror("vis_" + id + "_l", "vis_" + id + "_r");
+        maybeMirror("vis_" + id + "_r", "vis_" + id + "_l");
         [2, 3, 4, 5].forEach((n) => {
-          TextureFactory.applyChibi(this, "select-" + id + "-t" + n, "vis_select_" + id + "_" + n);
-          TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_l");
-          TextureFactory.applyChibi(this, "skin-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_r");
-          TextureFactory.applyChibi(this, "dive-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_dive_l");
-          TextureFactory.applyChibi(this, "dive-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_dive_r");
-          TextureFactory.applyChibi(this, "cheer-" + id + "-t" + n, "vis_cheer_" + id + "_" + n);
-          if (!this.textures.exists("vis_" + id + "_" + n + "_r") && this.textures.exists("vis_" + id + "_" + n + "_l")) {
-            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_l", "vis_" + id + "_" + n + "_r", true);
-          }
-          if (!this.textures.exists("vis_" + id + "_" + n + "_l") && this.textures.exists("vis_" + id + "_" + n + "_r")) {
-            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_r", "vis_" + id + "_" + n + "_l", true);
-          }
-          if (!this.textures.exists("vis_" + id + "_" + n + "_dive_r") && this.textures.exists("vis_" + id + "_" + n + "_dive_l")) {
-            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_dive_l", "vis_" + id + "_" + n + "_dive_r", true);
-          }
-          if (!this.textures.exists("vis_" + id + "_" + n + "_dive_l") && this.textures.exists("vis_" + id + "_" + n + "_dive_r")) {
-            TextureFactory.mirror(this, "vis_" + id + "_" + n + "_dive_r", "vis_" + id + "_" + n + "_dive_l", true);
-          }
+          chibi("select-" + id + "-t" + n, "vis_select_" + id + "_" + n);
+          chibi("skin-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_l");
+          chibi("skin-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_r");
+          chibi("dive-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_dive_l");
+          chibi("dive-" + id + "-t" + n + "-r", "vis_" + id + "_" + n + "_dive_r");
+          chibi("cheer-" + id + "-t" + n, "vis_cheer_" + id + "_" + n);
+          maybeMirror("vis_" + id + "_" + n + "_l", "vis_" + id + "_" + n + "_r");
+          maybeMirror("vis_" + id + "_" + n + "_r", "vis_" + id + "_" + n + "_l");
+          maybeMirror("vis_" + id + "_" + n + "_dive_l", "vis_" + id + "_" + n + "_dive_r");
+          maybeMirror("vis_" + id + "_" + n + "_dive_r", "vis_" + id + "_" + n + "_dive_l");
         });
       });
       SHOP_LOOKS.forEach((row) => {
         SHOP_LOOK_POSES.forEach((pose) => {
           if (!pose.file) return;
-          TextureFactory.applyChibi(this, shopLookLoadKey(row.id, pose.file), shopLookVis(row.id, pose.vis));
+          chibi(shopLookLoadKey(row.id, pose.file), shopLookVis(row.id, pose.vis));
         });
-        const l = shopLookVis(row.id, "l");
-        const r = shopLookVis(row.id, "r");
-        const dl = shopLookVis(row.id, "dive_l");
-        const dr = shopLookVis(row.id, "dive_r");
-        if (!this.textures.exists(r) && this.textures.exists(l)) TextureFactory.mirror(this, l, r, true);
-        if (!this.textures.exists(dr) && this.textures.exists(dl)) TextureFactory.mirror(this, dl, dr, true);
+        maybeMirror(shopLookVis(row.id, "l"), shopLookVis(row.id, "r"));
+        maybeMirror(shopLookVis(row.id, "dive_l"), shopLookVis(row.id, "dive_r"));
       });
+      const chunk = TextureFactory.lightMobile ? 2 : 10;
+      for (let i = 0; i < jobs.length; i += 1) {
+        jobs[i]();
+        if ((i + 1) % chunk === 0) {
+          BootSplash.setProgress(0.8 + 0.08 * ((i + 1) / jobs.length));
+          await new Promise((r) => {
+            const t = window.setTimeout(r, 24);
+            requestAnimationFrame(() => {
+              window.clearTimeout(t);
+              r();
+            });
+          });
+        }
+      }
     } catch (e) {
       TextureFactory.build(this);
       RANK_TIERS.forEach((row) => {
@@ -222,21 +232,18 @@ export class BootScene extends Phaser.Scene {
       }
     }
     BootSplash.setProgress(0.88);
-    AuthSystem.init().then(() => {
-      BootSplash.setProgress(0.96);
-      I18n.load();
-      if (!this.scene.isActive()) return;
-      BootSplash.ready();
-      WelcomePop.tryShow();
-      if (AuthSystem.canPlay()) {
-        this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
-      } else {
-        this.scene.start("auth");
-      }
-    }).catch(() => {
-      BootSplash.ready();
-      WelcomePop.tryShow();
-      if (this.scene.isActive()) this.scene.start("auth");
-    });
+    try {
+      await AuthSystem.init();
+    } catch (e) {}
+    BootSplash.setProgress(0.96);
+    I18n.load();
+    if (!this.scene.isActive()) return;
+    BootSplash.ready();
+    window.setTimeout(() => WelcomePop.tryShow(), 480);
+    if (AuthSystem.canPlay()) {
+      this.scene.start(SaveSystem.hasStarter() ? "hub" : "starter");
+    } else {
+      this.scene.start("auth");
+    }
   }
 }

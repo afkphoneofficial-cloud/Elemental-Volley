@@ -79,6 +79,9 @@ export const BootSplash = {
     const ui = this.els();
     if (ui.line) ui.line.textContent = lang() === "en" ? "The court is ready." : "สนามพร้อมแล้ว";
     if (this.hideTimer) return;
+    try {
+      window.dispatchEvent(new Event("ev-boot-ready"));
+    } catch (e) {}
     this.hideTimer = window.setTimeout(() => this.hide(), 280);
   },
 

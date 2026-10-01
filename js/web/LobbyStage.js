@@ -123,6 +123,14 @@ function punchBall(img) {
   return out;
 }
 
+function punchOrRaw(im) {
+  if (!im) return null;
+  try {
+    if (window.matchMedia("(pointer: coarse)").matches) return im;
+  } catch (e) {}
+  return punchChibi(im);
+}
+
 function loadImg(src) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -153,13 +161,13 @@ export async function mountLobbyStage() {
   const arts = {};
   await Promise.all([
     ...CHAR_IDS.flatMap((id) => [
-      loadImg("assets/sprites/" + id + "-right.png").then((im) => { arts[id + "_r"] = im ? punchChibi(im) : null; }),
-      loadImg("assets/sprites/" + id + "-left.png").then((im) => { arts[id + "_l"] = im ? punchChibi(im) : null; }),
-      loadImg("assets/sprites/" + id + ".png").then((im) => { arts[id] = im ? punchChibi(im) : null; })
+      loadImg("assets/sprites/" + id + "-right.png").then((im) => { arts[id + "_r"] = punchOrRaw(im); }),
+      loadImg("assets/sprites/" + id + "-left.png").then((im) => { arts[id + "_l"] = punchOrRaw(im); }),
+      loadImg("assets/sprites/" + id + ".png").then((im) => { arts[id] = punchOrRaw(im); })
     ]),
     loadImg("assets/sprites/ball.png").then((im) => { arts.ball = im ? punchBall(im) : null; }),
     ...COURTS.map((s) => loadImg("assets/sprites/court-" + s + ".png").then((im) => { arts["court_" + s] = im; })),
-    ...COURTS.map((s) => loadImg("assets/sprites/ref-" + s + ".png").then((im) => { arts["ref_" + s] = im ? punchChibi(im) : null; }))
+    ...COURTS.map((s) => loadImg("assets/sprites/ref-" + s + ".png").then((im) => { arts["ref_" + s] = punchOrRaw(im); }))
   ]);
 
   const spark = Array.from({ length: 28 }, (_, i) => ({

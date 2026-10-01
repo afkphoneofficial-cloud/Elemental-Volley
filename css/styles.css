@@ -1237,6 +1237,35 @@ html[data-control="pc"] #game {
   background: rgba(26, 18, 16, 0.72);
   pointer-events: none;
 }
+@media (max-width: 720px), (max-height: 560px) {
+  #welcome-overlay { padding: 8px; align-items: flex-end; }
+  .welcome-shell {
+    flex-direction: column;
+    width: 100%;
+    height: min(92dvh, 100%);
+    max-height: 100%;
+  }
+  .welcome-tabs {
+    flex-direction: row;
+    width: 100%;
+    overflow-x: auto;
+    gap: 4px;
+    padding: 8px;
+  }
+  .welcome-tab {
+    min-height: 40px;
+    min-width: 68px;
+    font-size: 11px;
+    flex: 0 0 auto;
+  }
+  #welcome-cap {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    font-size: 13px;
+  }
+}
+
 .welcome-close {
   position: absolute;
   top: 12px;

@@ -2,14 +2,14 @@ import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
 import { I18n } from "./i18n/I18n.js?v=local247";
-import { mountLobbyStage } from "./web/LobbyStage.js";
+import { mountLobbyStage } from "./web/LobbyStage.js?v=local248";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
-import { BootScene } from "./scenes/BootScene.js?v=local247";
+import { BootScene } from "./scenes/BootScene.js?v=local248";
 import { AuthScene } from "./scenes/AuthScene.js?v=local242";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
-import { HubScene } from "./scenes/HubScene.js?v=local247";
-import { WelcomePop } from "./systems/WelcomePop.js?v=local247";
+import { HubScene } from "./scenes/HubScene.js?v=local248";
+import { WelcomePop } from "./systems/WelcomePop.js?v=local248";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local242";
 import { ShopScene } from "./scenes/ShopScene.js?v=local205";
@@ -37,14 +37,17 @@ import { TouchControls } from "./ui/TouchControls.js";
 import { AuthSystem } from "./systems/AuthSystem.js";
 import { NetPlay, mountExhibitInvite } from "./systems/NetPlay.js?v=local245";
 import { mountLeaderboard } from "./systems/Leaderboard.js";
-import { BootSplash } from "./web/BootSplash.js";
+import { BootSplash } from "./web/BootSplash.js?v=local248";
 import { MaintGate } from "./web/MaintGate.js?v=local245";
 import { TicketPop } from "./systems/TicketPop.js?v=local229";
 import { SocialPop } from "./systems/SocialPop.js?v=local236";
 
 BootSplash.bind();
 AudioSystem.mountDock();
-AudioSystem.playMenu();
+window.addEventListener("ev-boot-ready", () => {
+  AudioSystem.playMenu();
+  mountLobbyStage();
+}, { once: true });
 
 window.game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -54,6 +57,7 @@ window.game = new Phaser.Game({
   backgroundColor: "#0c0814",
   fps: { target: 60 },
   autoPause: false,
+  render: { antialias: false, roundPixels: true },
   physics: {
     default: "arcade",
     arcade: { gravity: { y: 0 }, debug: false }
@@ -73,7 +77,6 @@ SaveSystem.load();
 I18n.load();
 applyContrast();
 I18n.mountToggle();
-mountLobbyStage();
 TouchControls.mount();
 ChatSystem.mount();
 WelcomePop.mount();

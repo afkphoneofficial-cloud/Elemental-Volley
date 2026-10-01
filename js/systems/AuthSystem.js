@@ -39,6 +39,31 @@ function isGmail(email) {
   return e.endsWith("@gmail.com") || e.endsWith("@googlemail.com");
 }
 
+function withTimeout(promise, ms, fallback) {
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      resolve(fallback);
+    }, ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(fallback);
+      }
+    );
+  });
+}
+
 async function getSb() {
   if (supabase) return supabase;
   if (!backendReady()) return null;
@@ -115,11 +140,12 @@ export const AuthSystem = {
   },
 
   async init() {
-    const sb = await getSb();
+    const sb = await withTimeout(getSb(), 7000, null);
     if (sb) {
-      const { data } = await sb.auth.getSession();
+      const pack = await withTimeout(sb.auth.getSession(), 5000, { data: { session: null } });
+      const data = pack && pack.data;
       if (data && data.session && data.session.user) {
-        await this.adoptUser(data.session.user, data.session);
+        await withTimeout(this.adoptUser(data.session.user, data.session), 6000, undefined);
       }
     }
     this.prepareGoogle();
