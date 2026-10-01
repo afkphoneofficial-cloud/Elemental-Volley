@@ -284,25 +284,13 @@ function pairRanked() {
 
 function pairExhibit() {
   if (!canOpenMore()) return;
-  const now = Date.now();
   const live = exhibitQueue.filter((p) => p && p.state === "queue" && p.ws && p.ws.readyState === 1);
   if (live.length < 2) return;
-  const hasAlt = live.length > 2;
-  let pick = null;
-  let best = Infinity;
-  for (let i = 0; i < live.length; i += 1) {
-    const a = live[i];
-    for (let j = i + 1; j < live.length; j += 1) {
-      const b = live[j];
-      if (!canPair(a, b, now, hasAlt)) continue;
-      const score = pairScore(a, b, now);
-      if (score < best) {
-        best = score;
-        pick = [a, b];
-      }
-    }
-  }
-  if (pick) startOffer(pick[0], pick[1], "exhibit");
+  live.sort((a, b) => (a.waitAt | 0) - (b.waitAt | 0));
+  const a = live[0];
+  const b = live[1 + Math.floor(Math.random() * (live.length - 1))];
+  if (!a || !b || a.id === b.id) return;
+  startOffer(a, b, "exhibit");
 }
 
 function startOffer(a, b, mode) {
