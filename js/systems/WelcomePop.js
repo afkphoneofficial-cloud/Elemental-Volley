@@ -71,6 +71,7 @@ export const WelcomePop = {
     window.addEventListener("ev-lang", () => {
       if (this.open) this.paint();
     });
+    window.addEventListener("ev-install-done", () => this.tryShow());
     return this;
   },
 
@@ -78,6 +79,8 @@ export const WelcomePop = {
     this.mount();
     if (this.open) return;
     if (alreadySeen()) return;
+    const install = document.getElementById("install-overlay");
+    if (install && !install.hidden) return;
     try {
       if (window.AuthSystem && window.AuthSystem.needsName && window.AuthSystem.needsName()) return;
     } catch (e) {}

@@ -1672,3 +1672,70 @@ html[data-control="pc"] #orient-btn {
 }
 .social-shell .welcome-close { top: 10px; right: 10px; }
 
+#install-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 16px max(20px, env(safe-area-inset-bottom));
+  background: rgba(18, 10, 8, 0.55);
+  pointer-events: all;
+}
+#install-overlay[hidden] { display: none !important; }
+.install-card {
+  width: min(420px, 100%);
+  padding: 22px 20px 18px;
+  border-radius: 22px;
+  background: #fff6ea;
+  border: 3px solid #ffe08a;
+  box-shadow: 0 16px 0 rgba(58, 36, 24, 0.12), 0 22px 40px rgba(58, 36, 24, 0.2);
+  text-align: center;
+  font-family: Kanit, "Segoe UI", sans-serif;
+  color: #3a2418;
+}
+.install-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c45a16;
+}
+#install-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 900;
+}
+#install-body, .install-ios {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #7a4a30;
+}
+.install-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+#install-ok, #install-later {
+  min-height: 48px;
+  min-width: 128px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#install-ok { background: #ff6a22; color: #fff8ee; }
+#install-later { background: #ffe08a; color: #3a2418; }
+#install-ok[hidden] { display: none; }
+
+

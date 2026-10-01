@@ -1,16 +1,16 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
-import { I18n } from "./i18n/I18n.js?v=local252";
+import { I18n } from "./i18n/I18n.js?v=local253";
 import { mountLobbyStage } from "./web/LobbyStage.js?v=local248";
 import { mountOrientDock } from "./web/OrientDock.js?v=local252";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
-import { BootScene } from "./scenes/BootScene.js?v=local249";
+import { BootScene } from "./scenes/BootScene.js?v=local253";
 import { AuthScene } from "./scenes/AuthScene.js?v=local242";
 import { MenuScene } from "./scenes/MenuScene.js?v=local217";
-import { HubScene } from "./scenes/HubScene.js?v=local250";
-import { WelcomePop } from "./systems/WelcomePop.js?v=local250";
+import { HubScene } from "./scenes/HubScene.js?v=local253";
+import { WelcomePop } from "./systems/WelcomePop.js?v=local253";
 import { StarterScene } from "./scenes/StarterScene.js";
 import { SelectScene } from "./scenes/SelectScene.js?v=local242";
 import { ShopScene } from "./scenes/ShopScene.js?v=local205";
@@ -43,12 +43,14 @@ import { BootSplash } from "./web/BootSplash.js?v=local248";
 import { MaintGate } from "./web/MaintGate.js?v=local245";
 import { TicketPop } from "./systems/TicketPop.js?v=local229";
 import { SocialPop } from "./systems/SocialPop.js?v=local236";
+import { InstallPop } from "./systems/InstallPop.js?v=local253";
 
 BootSplash.bind();
 AudioSystem.mountDock();
 window.addEventListener("ev-boot-ready", () => {
   AudioSystem.playMenu();
   mountLobbyStage();
+  InstallPop.tryShow();
 }, { once: true });
 
 window.game = new Phaser.Game({
@@ -82,6 +84,7 @@ I18n.mountToggle();
 TouchControls.mount();
 ChatSystem.mount();
 WelcomePop.mount();
+InstallPop.mount();
 TicketPop.mount();
 SocialPop.mount();
 mountRename();

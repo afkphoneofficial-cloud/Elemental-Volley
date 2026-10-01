@@ -4,7 +4,7 @@ import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js?v=local249";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
-import { WelcomePop } from "./WelcomePop.js?v=local250";
+import { WelcomePop } from "./WelcomePop.js?v=local253";
 
 let supabase = null;
 let session = null;

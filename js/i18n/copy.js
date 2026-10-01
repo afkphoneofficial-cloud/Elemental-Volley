@@ -28,7 +28,12 @@ export const COPY = {
       stripePay: "รับชำระเงินด้วย PromptPay ผ่าน",
       orientLand: "ปรับเป็นแนวนอน",
       orientPort: "แนวตั้ง",
-      orientHint: "หมุนเครื่องตามปุ่ม หากล็อกจอไม่ได้"
+      orientHint: "หมุนเครื่องตามปุ่ม หากล็อกจอไม่ได้",
+      installTitle: "ติดตั้งแอปบนมือถือ",
+      installBody: "ติดตั้งจากเว็บทางการ จะเล่นเต็มจอ ไม่โชว์แถบ URL ทั้งแนวตั้งและแนวนอน",
+      installOk: "ติดตั้งเลย",
+      installLater: "ไว้ก่อน",
+      installIos: "บน iPhone กดปุ่มแชร์ แล้วเลือก เพิ่มไปยังหน้าจอโฮม"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -1003,7 +1008,12 @@ export const COPY = {
       stripePay: "PromptPay via",
       orientLand: "Switch to landscape",
       orientPort: "Portrait",
-      orientHint: "Turn the phone if the screen cannot lock"
+      orientHint: "Turn the phone if the screen cannot lock",
+      installTitle: "Install the phone app",
+      installBody: "Install from the official site to play fullscreen with no address bar, portrait or landscape.",
+      installOk: "Install",
+      installLater: "Later",
+      installIos: "On iPhone tap Share, then Add to Home Screen"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
