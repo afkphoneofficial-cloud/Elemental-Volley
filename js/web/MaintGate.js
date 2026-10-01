@@ -1,6 +1,6 @@
 import { maintenanceNow, maintenanceUntil } from "../data/maintenance.js";
 import { t } from "../i18n/I18n.js";
-import { NetPlay } from "../systems/NetPlay.js";
+import { NetPlay } from "../systems/NetPlay.js?v=local245";
 
 function overlay() {
   return document.getElementById("maint-overlay");

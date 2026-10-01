@@ -8,7 +8,7 @@ import { Friends } from "../systems/Friends.js";
 import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
 import { t } from "../i18n/I18n.js?v=local242";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js";
+import { NetPlay } from "../systems/NetPlay.js?v=local245";
 import { MatchLive } from "../systems/MatchLive.js?v=local242";
 
 function dimBtn(btn, on) {

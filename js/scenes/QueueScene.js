@@ -4,10 +4,10 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local242";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local245";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js";
+import { NetPlay } from "../systems/NetPlay.js?v=local245";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
@@ -185,7 +185,11 @@ export class QueueScene extends Phaser.Scene {
       this.status.setText(t("queue.declined"));
       this.stopWaitClock();
     }
-    if (msg.t === "authFail" || msg.t === "closed") {
+    if (msg.t === "retrying" || msg.t === "authFail") {
+      this.status.setText(t("queue.retrying"));
+      this.beginWait();
+    }
+    if (msg.t === "closed") {
       this.status.setText(t("queue.noServer"));
       this.stopWaitClock();
     }

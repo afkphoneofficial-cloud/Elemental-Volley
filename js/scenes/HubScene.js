@@ -15,7 +15,7 @@ import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
 import { WelcomePop } from "../systems/WelcomePop.js?v=local239";
 import { TicketPop } from "../systems/TicketPop.js?v=local229";
 import { SocialPop } from "../systems/SocialPop.js?v=local236";
-import { NetPlay } from "../systems/NetPlay.js";
+import { NetPlay } from "../systems/NetPlay.js?v=local245";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local217";
 import { mountHubMenu } from "../ui/hubMenu.js?v=local235";

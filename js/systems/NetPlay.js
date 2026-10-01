@@ -74,6 +74,8 @@ export const NetPlay = {
   reconnectTimer: null,
   exhibitCooldownUntil: 0,
   settled: false,
+  queuedKind: null,
+  authTries: 0,
 
   on(fn) {
     listeners.add(fn);
@@ -95,16 +97,23 @@ export const NetPlay = {
     const sess = AuthSystem.session && AuthSystem.session();
     if (!sess || !sess.access_token) return;
     if (this.ws && (this.ws.readyState === 0 || this.ws.readyState === 1)) return;
+    if (this.ws) {
+      const old = this.ws;
+      this.ws = null;
+      try { old.close(); } catch (e) {}
+    }
     const url = wsUrl();
     let ws;
     try { ws = new WebSocket(url); } catch (e) { return; }
     this.ws = ws;
     this.ready = false;
     ws.onopen = () => {
+      const live = AuthSystem.session && AuthSystem.session();
+      const token = (live && live.access_token) || sess.access_token;
       const rank = SaveSystem.data.rank || {};
       ws.send(JSON.stringify({
         t: "hello",
-        token: sess.access_token,
+        token,
         name: TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "player"),
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
@@ -121,6 +130,7 @@ export const NetPlay = {
       if (!msg || !msg.t) return;
       if (msg.t === "ready") {
         this.ready = true;
+        this.authTries = 0;
         this.flushWant();
         this.startPing();
       }
@@ -210,12 +220,18 @@ export const NetPlay = {
       this.ready = false;
       this.stopPing();
       this.pingLive = false;
-      if (this.ws === ws) this.ws = null;
-      this.emit({ t: "closed" });
-      if (Session.net) {
+      if (this.ws !== ws) return;
+      this.ws = null;
+      if (this.queuedKind && !this.want) this.want = this.queuedKind;
+      const retry = Session.net || this.want || this.queuedKind;
+      if (retry && this.authTries < 6) {
+        this.authTries += 1;
         if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(() => this.ensure(), 350);
+        this.emit({ t: "retrying" });
+        return;
       }
+      this.emit({ t: "closed" });
     };
   },
 
@@ -227,6 +243,7 @@ export const NetPlay = {
     this.ticks = [];
     this.settled = false;
     this.want = "ranked";
+    this.queuedKind = "ranked";
     this.flushWant();
   },
 
@@ -234,11 +251,13 @@ export const NetPlay = {
     this.ticks = [];
     this.settled = false;
     this.want = "exhibitQueue";
+    this.queuedKind = "exhibitQueue";
     this.flushWant();
   },
 
   exhibit(friendId) {
     this.want = { exhibit: friendId };
+    this.queuedKind = { exhibit: friendId };
     this.flushWant();
   },
 
@@ -305,6 +324,8 @@ export const NetPlay = {
   },
 
   cancel() {
+    this.want = null;
+    this.queuedKind = null;
     this.send({ t: "cancel" });
   },
 
@@ -370,6 +391,8 @@ export const NetPlay = {
 
   stop() {
     Session.net = false;
+    this.want = null;
+    this.queuedKind = null;
     this.cancel();
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.ws) {

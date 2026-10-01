@@ -4,7 +4,7 @@ import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { NetPlay } from "../systems/NetPlay.js";
+import { NetPlay } from "../systems/NetPlay.js?v=local245";
 import { clampChamp } from "../data/seasonLooks.js";
 
 export class LuckScene extends Phaser.Scene {

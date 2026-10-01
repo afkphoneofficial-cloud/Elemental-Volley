@@ -241,7 +241,7 @@ export const AuthSystem = {
       profile = { display_name: t("auth.guest") };
       bootGuestSave();
       try {
-        const { NetPlay } = await import("./NetPlay.js");
+        const { NetPlay } = await import("./NetPlay.js?v=local245");
         NetPlay.ensure();
       } catch (e) {}
       return;
@@ -278,7 +278,7 @@ export const AuthSystem = {
     await this.syncLiveWipe();
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
     try {
-      const { NetPlay } = await import("./NetPlay.js");
+      const { NetPlay } = await import("./NetPlay.js?v=local245");
       NetPlay.ensure();
     } catch (e) {}
   },
@@ -341,7 +341,7 @@ export const AuthSystem = {
   async endGuestForRegister() {
     this.wantRegister = true;
     try {
-      const { NetPlay } = await import("./NetPlay.js");
+      const { NetPlay } = await import("./NetPlay.js?v=local245");
       NetPlay.stop();
     } catch (e) {}
     const sb = await getSb();
@@ -411,7 +411,7 @@ export const AuthSystem = {
 
   async logout() {
     try {
-      const { NetPlay } = await import("./NetPlay.js");
+      const { NetPlay } = await import("./NetPlay.js?v=local245");
       NetPlay.stop();
     } catch (e) {}
     const sb = await getSb();
