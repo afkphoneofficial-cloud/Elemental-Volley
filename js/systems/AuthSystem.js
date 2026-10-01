@@ -1,6 +1,7 @@
 import { BACKEND, backendReady } from "../config/backend.js";
 import { SaveSystem } from "./SaveSystem.js";
-import { t } from "../i18n/I18n.js";
+import { Session } from "./Session.js";
+import { t } from "../i18n/I18n.js?v=local240";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
 
@@ -9,6 +10,19 @@ let session = null;
 let profile = null;
 let pushTimer = null;
 let googleReady = false;
+const GUEST_OK = { auth: 1, wiki: 1, select: 1, queue: 1, luck: 1, play: 1, result: 1 };
+
+function isAnonUser(user) {
+  if (!user) return false;
+  if (user.is_anonymous) return true;
+  return !String(user.email || "").trim();
+}
+
+function bootGuestSave() {
+  SaveSystem.bootEmpty();
+  SaveSystem.data.starterId = "ignis";
+  SaveSystem.data.unlocked = ["ignis", "aqua", "volt", "terra"];
+}
 
 function decodeJwt(token) {
   try {
@@ -57,17 +71,35 @@ export const AuthSystem = {
   displayName: () => (profile && profile.display_name) || "",
   backendUrl: () => BACKEND.supabaseUrl,
   db: () => getSb(),
+  wantRegister: false,
+
+  isGuest() {
+    return Boolean(session && session.guest);
+  },
 
   isLoggedIn() {
-    return Boolean(session && session.id && session.email);
+    return Boolean(session && session.id && session.email && !session.guest);
   },
 
   canPlay() {
     return this.cloudOn() && this.isLoggedIn() && !this.needsName();
   },
 
+  lobbyKey() {
+    return this.isGuest() ? "auth" : "hub";
+  },
+
   guard(scene) {
     if (this.canPlay()) return true;
+    const key = scene && scene.scene && scene.scene.key;
+    if (this.isGuest() && key && GUEST_OK[key]) {
+      if (key === "select" || key === "queue" || key === "luck" || key === "play" || key === "result") {
+        Session.mode = "exhibit";
+        Session.exhibitCasual = true;
+        Session.exhibitFriendId = null;
+      }
+      return true;
+    }
     if (scene && scene.scene) scene.scene.start("auth");
     return false;
   },
@@ -175,6 +207,12 @@ export const AuthSystem = {
     }
     const sb = await getSb();
     if (!sb) throw new Error(t("web.authNoBackend"));
+    if (this.isGuest()) {
+      await sb.auth.signOut();
+      session = null;
+      profile = null;
+      SaveSystem.bootEmpty();
+    }
     const { data, error } = await sb.auth.signInWithIdToken({
       provider: "google",
       token: credential
@@ -191,6 +229,21 @@ export const AuthSystem = {
   },
 
   async adoptUser(user, sess) {
+    if (isAnonUser(user)) {
+      session = {
+        email: "",
+        id: user.id,
+        access_token: sess && sess.access_token,
+        guest: true
+      };
+      profile = { display_name: t("auth.guest") };
+      bootGuestSave();
+      try {
+        const { NetPlay } = await import("./NetPlay.js");
+        NetPlay.ensure();
+      } catch (e) {}
+      return;
+    }
     session = {
       email: user.email,
       id: user.id,
@@ -270,15 +323,41 @@ export const AuthSystem = {
     if (auth && auth.scene.isActive()) auth.enterGame();
   },
 
+  async startGuestPlay() {
+    if (this.isGuest() && session && session.access_token) {
+      bootGuestSave();
+      return;
+    }
+    const sb = await getSb();
+    if (!sb) throw new Error(t("auth.guestFail"));
+    const { data, error } = await sb.auth.signInAnonymously();
+    if (error || !data || !data.user) throw new Error(t("auth.guestFail"));
+    await this.adoptUser(data.user, data.session);
+    if (!this.isGuest()) throw new Error(t("auth.guestFail"));
+  },
+
+  async endGuestForRegister() {
+    this.wantRegister = true;
+    try {
+      const { NetPlay } = await import("./NetPlay.js");
+      NetPlay.stop();
+    } catch (e) {}
+    const sb = await getSb();
+    if (sb) await sb.auth.signOut();
+    session = null;
+    profile = null;
+    SaveSystem.bootEmpty();
+  },
+
   schedulePush() {
-    if (!backendReady() || !session || !session.id) return;
+    if (!backendReady() || !session || !session.id || session.guest) return;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(() => this.pushSave(), 700);
   },
 
   async pullSave() {
     const sb = await getSb();
-    if (!sb || !session || !session.id) return null;
+    if (!sb || !session || !session.id || session.guest) return null;
     const { data, error } = await sb.from("profiles").select("save_data").eq("id", session.id).maybeSingle();
     if (error || !data || !data.save_data) return null;
     SaveSystem.applyCloud(data.save_data);
@@ -289,7 +368,7 @@ export const AuthSystem = {
   async syncLiveWipe() {
     if (dayKey() < BETA.live) return;
     const sb = await getSb();
-    if (!sb || !session || !session.id) return;
+    if (!sb || !session || !session.id || session.guest) return;
     await sb.rpc("claim_live_wipe");
     if (SaveSystem.justLiveWipe) {
       await sb.from("profiles").update({
@@ -303,7 +382,7 @@ export const AuthSystem = {
 
   async pushSave() {
     const sb = await getSb();
-    if (!sb || !session || !session.id) return;
+    if (!sb || !session || !session.id || session.guest) return;
     const { data, error } = await sb.rpc("push_save", { p_save: SaveSystem.data });
     if (error) return;
     const prem = data && data.premium;
@@ -314,7 +393,7 @@ export const AuthSystem = {
 
   async claimBetaShopPowder() {
     const sb = await getSb();
-    if (!sb || !session || !session.id) return { ok: false };
+    if (!sb || !session || !session.id || session.guest) return { ok: false };
     const { data, error } = await sb.rpc("claim_beta_shop_powder");
     if (error) return { ok: false, reason: error.message };
     return data && typeof data === "object" ? data : { ok: false };
@@ -322,7 +401,7 @@ export const AuthSystem = {
 
   async claimBetaRestGift() {
     const sb = await getSb();
-    if (!sb || !session || !session.id) return { ok: false };
+    if (!sb || !session || !session.id || session.guest) return { ok: false };
     const { data, error } = await sb.rpc("claim_beta_rest_gift");
     if (error) return { ok: false, reason: error.message };
     return data && typeof data === "object" ? data : { ok: false };

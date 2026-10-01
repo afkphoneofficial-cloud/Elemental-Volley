@@ -36,7 +36,13 @@ export const COPY = {
     },
     auth: {
       login: "ยินดีต้อนรับสู่โลกธาตุ",
-      wikiFirst: "ดูแผนที่โลกก่อน"
+      wikiFirst: "ดูแผนที่โลกก่อน",
+      playNow: "เล่นทันที",
+      playNowHint: "ไม่ต้องสมัคร  เข้า Exhibition กับคนออนไลน์ในเซิร์ฟ",
+      haveId: "มีไอดีแล้ว  เข้าด้วย Gmail",
+      guest: "ผู้เยี่ยมชม",
+      guestFail: "โหมดเล่นทันทียังไม่เปิดบนเซิร์ฟ  ใช้ Gmail เข้าได้ตามปกติ",
+      register: "สมัครไอดี"
     },
     hub: {
       title: "ล็อบบี้",
@@ -971,7 +977,13 @@ export const COPY = {
     },
     auth: {
       login: "Welcome to the elemental world",
-      wikiFirst: "View the world map first"
+      wikiFirst: "View the world map first",
+      playNow: "Play now",
+      playNowHint: "No account needed. Exhibition vs anyone online, including guests.",
+      haveId: "I have an ID  ·  Gmail",
+      guest: "Guest",
+      guestFail: "Instant play is not on yet. Sign in with Gmail as usual.",
+      register: "Create an ID"
     },
     hub: {
       title: "Lobby",

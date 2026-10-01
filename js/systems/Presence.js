@@ -22,7 +22,7 @@ export const Presence = {
   async beat() {
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     const me = AuthSystem.session && AuthSystem.session();
-    if (!sb || !me || !me.id) return;
+    if (!sb || !me || !me.id || me.guest) return;
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", me.id);
   },
 

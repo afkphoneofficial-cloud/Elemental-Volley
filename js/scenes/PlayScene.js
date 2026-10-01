@@ -35,7 +35,7 @@ import {
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
@@ -65,7 +65,7 @@ export class PlayScene extends Phaser.Scene {
   create() {
     if (!AuthSystem.guard(this)) return;
     if (maintenanceNow()) {
-      this.scene.start("hub");
+      this.scene.start(AuthSystem.lobbyKey());
       return;
     }
     SaveSystem.notePlayDay();
@@ -215,7 +215,7 @@ export class PlayScene extends Phaser.Scene {
       },
       onQuit: () => {
         if (this.net) NetPlay.quit();
-        this.scene.start("hub");
+        this.scene.start(AuthSystem.lobbyKey());
       }
     });
     this.bindPauseWatch();

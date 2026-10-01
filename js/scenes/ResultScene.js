@@ -4,7 +4,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
@@ -139,20 +139,35 @@ export class ResultScene extends Phaser.Scene {
     this.buildVerdict(W, H, pal);
     this.buildStats(W, H, pal);
     this.buildLoot(W, H, pal);
-    this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => {
-      const kind = Session.mode;
-      if ((kind === "pvp" || kind === "special") && !isRankWindowOpen(kind)) {
-        this.scene.start("mode");
-        return;
-      }
-      if (Session.trainStage) {
-        this.scene.start("explore", { from: "select" });
-        return;
-      }
-      this.scene.start("select");
-    });
-    this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.scene.start("shop"), 0xc8ff3a);
-    this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.scene.start("hub"), 0x7d5cff);
+    this.guestPlay = AuthSystem.isGuest();
+    if (this.guestPlay) {
+      this.againBtn = makeButton(this, W / 2 - 190, 640, 300, 52, t("result.again"), () => {
+        Session.mode = "exhibit";
+        Session.exhibitCasual = true;
+        Session.exhibitFriendId = null;
+        Session.rival = null;
+        this.scene.start("select");
+      });
+      this.shopBtn = makeButton(this, W / 2 + 190, 640, 300, 52, t("auth.register"), () => {
+        AuthSystem.endGuestForRegister().then(() => this.scene.start("auth"));
+      }, 0xffb14a);
+      this.hubBtn = null;
+    } else {
+      this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => {
+        const kind = Session.mode;
+        if ((kind === "pvp" || kind === "special") && !isRankWindowOpen(kind)) {
+          this.scene.start("mode");
+          return;
+        }
+        if (Session.trainStage) {
+          this.scene.start("explore", { from: "select" });
+          return;
+        }
+        this.scene.start("select");
+      });
+      this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.scene.start("shop"), 0xc8ff3a);
+      this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.scene.start("hub"), 0x7d5cff);
+    }
     this.showPage(this.hasLoot ? "loot" : "verdict");
     this.applyLang();
     this.playOutcomeFx(pal);
@@ -509,7 +524,9 @@ export class ResultScene extends Phaser.Scene {
       row.val.setText(values[row.key] || "0");
     });
     if (this.againBtn && this.againBtn.text) this.againBtn.text.setText(t("result.again"));
-    if (this.shopBtn && this.shopBtn.text) this.shopBtn.text.setText(t("result.shop"));
+    if (this.shopBtn && this.shopBtn.text) {
+      this.shopBtn.text.setText(this.guestPlay ? t("auth.register") : t("result.shop"));
+    }
     if (this.hubBtn && this.hubBtn.text) this.hubBtn.text.setText(t("result.hub"));
   }
 

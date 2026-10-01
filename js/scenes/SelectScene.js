@@ -4,7 +4,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
@@ -15,6 +15,11 @@ export class SelectScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    if (AuthSystem.isGuest()) {
+      Session.mode = "exhibit";
+      Session.exhibitCasual = true;
+      Session.exhibitFriendId = null;
+    }
     this.pvpMode = Session.mode === "pvp";
     this.exhibitMode = Session.mode === "exhibit";
     this.specialMode = Session.mode === "special";
@@ -68,11 +73,13 @@ export class SelectScene extends Phaser.Scene {
     this.refreshPick();
 
     if (this.pvpMode || this.exhibitMode || this.specialMode) {
-      makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
-        AudioSystem.ui();
-        this.scene.start("rankinfo", { from: "select", tab: "rules" });
-      }, 0x3ad6ff);
-      makeButton(this, W / 2, 620, 280, 52, t(this.pvpMode ? "select.startPvp" : this.exhibitMode ? "select.startExhibit" : "select.startSpecial"), () => {
+      if (!AuthSystem.isGuest()) {
+        makeButton(this, W / 2, 530, 240, 46, t("queue.how"), () => {
+          AudioSystem.ui();
+          this.scene.start("rankinfo", { from: "select", tab: "rules" });
+        }, 0x3ad6ff);
+      }
+      makeButton(this, W / 2, AuthSystem.isGuest() ? 560 : 620, 280, 52, t(this.pvpMode ? "select.startPvp" : this.exhibitMode ? "select.startExhibit" : "select.startSpecial"), () => {
         if (!SaveSystem.isUnlocked(this.pick)) return;
         Session.playerId = this.pick;
         Session.youSkin = SaveSystem.skinOf(this.pick);
@@ -87,6 +94,12 @@ export class SelectScene extends Phaser.Scene {
         }
         if (this.exhibitMode) {
           Session.mode = "exhibit";
+          if (AuthSystem.isGuest() || Session.exhibitCasual) {
+            Session.exhibitCasual = true;
+            Session.exhibitFriendId = null;
+            this.scene.start("queue");
+            return;
+          }
           if (!Session.rival || !Session.exhibitFriendId) {
             this.scene.start("friends", { pick: true });
             return;
@@ -115,7 +128,9 @@ export class SelectScene extends Phaser.Scene {
       }, 0xffb14a);
     }
 
-    makeButton(this, 120, 48, 140, 40, t("nav.back"), () => this.scene.start("mode"), 0x7d5cff);
+    makeButton(this, 120, 48, 140, 40, t("nav.back"), () => {
+      this.scene.start(AuthSystem.isGuest() ? "auth" : "mode");
+    }, 0x7d5cff);
   }
 
   refreshPick() {

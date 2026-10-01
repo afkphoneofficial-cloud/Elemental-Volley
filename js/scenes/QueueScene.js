@@ -4,7 +4,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
 import { NetPlay } from "../systems/NetPlay.js";
@@ -30,8 +30,13 @@ export class QueueScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    if (AuthSystem.isGuest()) {
+      Session.mode = "exhibit";
+      Session.exhibitCasual = true;
+      Session.exhibitFriendId = null;
+    }
     if (maintenanceNow()) {
-      this.scene.start("hub");
+      this.scene.start(AuthSystem.lobbyKey());
       return;
     }
     const kind = Session.mode;
@@ -79,13 +84,16 @@ export class QueueScene extends Phaser.Scene {
     this.cancelBtn = makeButton(this, 120, 48, 140, 40, t("queue.cancel"), () => {
       AudioSystem.ui();
       NetPlay.cancel();
-      this.scene.start(Session.exhibitCasual ? "friends" : "select");
+      if (AuthSystem.isGuest()) this.scene.start("auth");
+      else this.scene.start(Session.exhibitCasual ? "friends" : "select");
     }, 0x7d5cff);
-    makeButton(this, W - 140, 48, 180, 40, t("queue.how"), () => {
-      AudioSystem.ui();
-      NetPlay.cancel();
-      this.scene.start("rankinfo", { from: "select", tab: "rules" });
-    }, 0xffb14a);
+    if (!AuthSystem.isGuest()) {
+      makeButton(this, W - 140, 48, 180, 40, t("queue.how"), () => {
+        AudioSystem.ui();
+        NetPlay.cancel();
+        this.scene.start("rankinfo", { from: "select", tab: "rules" });
+      }, 0xffb14a);
+    }
 
     this.off = NetPlay.on((msg) => this.onNet(msg));
     this.events.once("shutdown", () => {
@@ -113,7 +121,7 @@ export class QueueScene extends Phaser.Scene {
       if (left > 0) {
         this.status.setText(t("queue.coolSec", { n: Math.ceil(left / 1000) }));
         this.stopWaitClock();
-        this.time.delayedCall(700, () => this.scene.start("friends"));
+        this.time.delayedCall(700, () => this.scene.start(AuthSystem.isGuest() ? "auth" : "friends"));
         return;
       }
       this.status.setText(t("queue.searchExhibit"));
@@ -127,7 +135,7 @@ export class QueueScene extends Phaser.Scene {
       if ((st.n | 0) < ECONOMY.etherCostPvp) {
         this.status.setText(t("queue.noEther"));
         this.stopWaitClock();
-        this.time.delayedCall(900, () => this.scene.start("hub"));
+        this.time.delayedCall(900, () => this.scene.start(AuthSystem.lobbyKey()));
         return;
       }
       NetPlay.queueRanked();
@@ -175,7 +183,7 @@ export class QueueScene extends Phaser.Scene {
       if (!SaveSystem.spendEther(ECONOMY.etherCostPvp)) {
         this.status.setText(t("queue.noEther"));
         NetPlay.cancel();
-        this.time.delayedCall(900, () => this.scene.start("hub"));
+        this.time.delayedCall(900, () => this.scene.start(AuthSystem.lobbyKey()));
         return;
       }
     }

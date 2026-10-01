@@ -64,6 +64,9 @@ declare
   mail text;
 begin
   mail := lower(coalesce(new.email, ''));
+  if mail = '' then
+    return new;
+  end if;
   if mail not like '%@gmail.com' and mail not like '%@googlemail.com' then
     raise exception 'gmail_only';
   end if;
