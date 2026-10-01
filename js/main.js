@@ -1,8 +1,9 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
-import { I18n } from "./i18n/I18n.js?v=local249";
+import { I18n } from "./i18n/I18n.js?v=local252";
 import { mountLobbyStage } from "./web/LobbyStage.js?v=local248";
+import { mountOrientDock } from "./web/OrientDock.js?v=local252";
 import { GAME } from "./config/gameConfig.js";
 import { applyContrast } from "./systems/GameSettings.js";
 import { BootScene } from "./scenes/BootScene.js?v=local249";
@@ -128,9 +129,16 @@ const layoutShell = () => {
   const wrap = document.getElementById("wrap");
   const box = document.getElementById("game");
   const vv = window.visualViewport;
-  const vw = vv ? vv.width : window.innerWidth;
-  const vh = vv ? vv.height : window.innerHeight;
-  if (wrap) {
+  const spin = document.documentElement.classList.contains("ev-spin-land");
+  let vw = vv ? vv.width : window.innerWidth;
+  let vh = vv ? vv.height : window.innerHeight;
+  if (spin) {
+    const long = Math.max(vw, vh);
+    const short = Math.min(vw, vh);
+    vw = long;
+    vh = short;
+  }
+  if (wrap && !spin) {
     wrap.style.top = (vv ? vv.offsetTop : 0) + "px";
     wrap.style.left = (vv ? vv.offsetLeft : 0) + "px";
     wrap.style.width = vw + "px";
@@ -156,3 +164,4 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener("scroll", layoutShell);
 }
 layoutShell();
+mountOrientDock(() => layoutShell());

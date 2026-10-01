@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local251" />
+  <link rel="stylesheet" href="css/styles.css?v=local252" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -49,14 +49,20 @@
   <canvas id="lobby-bg" aria-hidden="true"></canvas>
   <div id="lobby-veil" aria-hidden="true"></div>
   <canvas id="lobby-fg" aria-hidden="true"></canvas>
-  <div id="vol-dock">
-    <span class="vol-ico" data-i18n="web.music">♪ เพลง</span>
-    <div id="vol-steps" role="group" aria-label="music volume">
-      <button type="button" data-vol-step="0" aria-label="0"></button>
-      <button type="button" data-vol-step="1" aria-label="1"></button>
-      <button type="button" data-vol-step="2" aria-label="2"></button>
-      <button type="button" data-vol-step="3" aria-label="3"></button>
+  <div id="hud-left">
+    <div id="vol-dock">
+      <span class="vol-ico" data-i18n="web.music">♪ เพลง</span>
+      <div id="vol-steps" role="group" aria-label="music volume">
+        <button type="button" data-vol-step="0" aria-label="0"></button>
+        <button type="button" data-vol-step="1" aria-label="1"></button>
+        <button type="button" data-vol-step="2" aria-label="2"></button>
+        <button type="button" data-vol-step="3" aria-label="3"></button>
+      </div>
     </div>
+    <button type="button" id="orient-btn" hidden>
+      <span class="orient-ico" aria-hidden="true">↔</span>
+      <span class="orient-lab" data-i18n="web.orientLand">ปรับเป็นแนวนอน</span>
+    </button>
   </div>
   <div id="lang-dock">
     <button type="button" data-lang="th">ไทย</button>
@@ -195,6 +201,6 @@
   <audio id="ev-bgm" autoplay playsinline preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="js/main.js?v=local251"></script>
+  <script type="module" src="js/main.js?v=local252"></script>
 </body>
 </html>

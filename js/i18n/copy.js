@@ -25,7 +25,10 @@ export const COPY = {
       bootReady: "สนามพร้อมแล้ว",
       privacy: "นโยบายความเป็นส่วนตัว",
       terms: "ข้อตกลงการใช้งาน",
-      stripePay: "รับชำระเงินด้วย PromptPay ผ่าน"
+      stripePay: "รับชำระเงินด้วย PromptPay ผ่าน",
+      orientLand: "ปรับเป็นแนวนอน",
+      orientPort: "แนวตั้ง",
+      orientHint: "หมุนเครื่องตามปุ่ม หากล็อกจอไม่ได้"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",
@@ -997,7 +1000,10 @@ export const COPY = {
       bootReady: "The court is ready.",
       privacy: "Privacy policy",
       terms: "Terms of use",
-      stripePay: "PromptPay via"
+      stripePay: "PromptPay via",
+      orientLand: "Switch to landscape",
+      orientPort: "Portrait",
+      orientHint: "Turn the phone if the screen cannot lock"
     },
     menu: {
       kicker: "ELEMENTAL VOLLEY",

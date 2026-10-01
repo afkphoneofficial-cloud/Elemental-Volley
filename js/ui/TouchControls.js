@@ -126,11 +126,7 @@ export const TouchControls = {
     document.documentElement.dataset.control = touch ? "mobile" : "pc";
     const show = this.playActive && touch;
     if (this.root) this.root.hidden = !show;
-    const portrait = window.matchMedia("(orientation: portrait)").matches && window.innerHeight > window.innerWidth;
-    if (this.rotate) {
-      const hide = this.rotate.dataset.dismissed === "1" || !show || !portrait;
-      this.rotate.hidden = hide;
-    }
+    if (this.rotate) this.rotate.hidden = true;
     const stickLab = this.root && this.root.querySelector("[data-i18n='touch.move']");
     const hitLab = this.root && this.root.querySelector("[data-i18n='touch.hit']");
     if (stickLab) stickLab.textContent = I18n.t("touch.move");

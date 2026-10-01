@@ -374,10 +374,7 @@ html[data-control="pc"] #game {
 }
 
 #vol-dock {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 40;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -531,9 +528,48 @@ html[data-control="pc"] #game {
   opacity: 0.6;
 }
 
-#vol-dock {
+#hud-left {
+  position: fixed;
   top: max(10px, env(safe-area-inset-top));
   left: max(10px, env(safe-area-inset-left));
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+}
+#hud-left > * {
+  pointer-events: auto;
+}
+
+#orient-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 138, 58, 0.45);
+  background: rgba(255, 246, 234, 0.88);
+  box-shadow: 0 8px 28px rgba(196, 90, 22, 0.16);
+  backdrop-filter: blur(8px);
+  color: #3a2418;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+#orient-btn[hidden] { display: none !important; }
+#orient-btn .orient-ico {
+  font-size: 16px;
+  line-height: 1;
+}
+
+#vol-dock {
+  top: auto;
+  left: auto;
 }
 
 #lang-dock {
@@ -542,6 +578,7 @@ html[data-control="pc"] #game {
 }
 
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  #hud-left { align-items: stretch; }
   #vol-dock {
     flex-direction: column;
     align-items: center;
@@ -557,9 +594,27 @@ html[data-control="pc"] #game {
     font-size: 14px;
     line-height: 1;
   }
-  #vol-steps {
+  #vol-steps { flex-direction: column; gap: 6px; }
+  #orient-btn {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
     flex-direction: column;
+    width: 46px;
+    max-width: 46px;
+    min-height: 0;
+    padding: 8px 6px;
+    border-radius: 22px;
     gap: 6px;
+    white-space: normal;
+  }
+  #orient-btn .orient-lab {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 11px;
+    line-height: 1.15;
+    letter-spacing: 0.06em;
   }
   #lang-dock {
     flex-direction: column;
@@ -572,6 +627,78 @@ html[data-control="pc"] #game {
     min-width: 44px;
     padding: 8px 6px;
   }
+}
+
+html.ev-spin-land #hud-left { align-items: stretch; }
+html.ev-spin-land #vol-dock {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: 22px;
+  max-width: 46px;
+}
+html.ev-spin-land #vol-dock .vol-ico {
+  width: 1.15em;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 1;
+}
+html.ev-spin-land #vol-steps { flex-direction: column; gap: 6px; }
+html.ev-spin-land #orient-btn {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  flex-direction: column;
+  width: 46px;
+  max-width: 46px;
+  min-height: 0;
+  padding: 8px 6px;
+  border-radius: 22px;
+  gap: 6px;
+  white-space: normal;
+}
+html.ev-spin-land #orient-btn .orient-lab {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+}
+
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  html:not(.ev-spin-land) #orient-btn {
+    position: fixed;
+    left: 50%;
+    top: auto;
+    bottom: max(52px, calc(env(safe-area-inset-bottom) + 44px));
+    transform: translateX(-50%);
+    z-index: 40;
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+}
+
+html.ev-spin-land body {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvh;
+  height: 100dvw;
+  transform-origin: top left;
+  transform: rotate(90deg) translateY(-100%);
+}
+html.ev-spin-land #wrap {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+html[data-control="pc"] #orient-btn {
+  display: none !important;
 }
 
 #touch-pad {
