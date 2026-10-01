@@ -579,7 +579,8 @@ html[data-control="pc"] #game {
 
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
   #hud-left {
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
     left: max(2px, env(safe-area-inset-left));
     gap: 6px;
   }
@@ -609,20 +610,23 @@ html[data-control="pc"] #game {
     flex-direction: column;
     width: 36px;
     max-width: 36px;
-    min-height: 0;
-    padding: 6px 4px;
-    border-radius: 20px;
-    gap: 5px;
+    min-height: 64px;
+    padding: 8px 4px;
+    border-radius: 18px;
+    gap: 0;
     white-space: normal;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
+  }
+  #orient-btn .orient-ico {
+    display: none;
   }
   #orient-btn .orient-lab {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     font-size: 10px;
     line-height: 1.1;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
   }
   #lang-dock {
     flex-direction: column;
@@ -638,7 +642,8 @@ html[data-control="pc"] #game {
 }
 
 html.ev-spin-land #hud-left {
-  align-items: stretch;
+  flex-direction: column;
+  align-items: center;
   left: max(2px, env(safe-area-inset-left));
   gap: 6px;
 }
@@ -668,20 +673,23 @@ html.ev-spin-land #orient-btn {
   flex-direction: column;
   width: 36px;
   max-width: 36px;
-  min-height: 0;
-  padding: 6px 4px;
-  border-radius: 20px;
-  gap: 5px;
+  min-height: 64px;
+  padding: 8px 4px;
+  border-radius: 18px;
+  gap: 0;
   white-space: normal;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
+}
+html.ev-spin-land #orient-btn .orient-ico {
+  display: none;
 }
 html.ev-spin-land #orient-btn .orient-lab {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font-size: 10px;
   line-height: 1.1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
