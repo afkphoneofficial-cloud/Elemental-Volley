@@ -3,11 +3,12 @@ import { FREE_AVATARS, avatarKey, avatarLabel } from "../data/avatars.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local247";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { TITLE_LIST, TITLE_TIER_HEX } from "../data/titles.js";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
+import { Referral } from "../systems/Referral.js?v=local247";
 
 const PAD = 72;
 const GAP = 24;
@@ -115,6 +116,19 @@ export class CareerScene extends Phaser.Scene {
     this.add.text(W / 2, 40, t("career.title"), {
       fontFamily: UI_FONT, fontSize: "30px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
+    const copyW = 200;
+    const enterW = 168;
+    const copyX = W - PAD - copyW / 2;
+    const enterX = copyX - copyW / 2 - GAP - enterW / 2;
+    this.refEnterBtn = makeButton(this, enterX, 38, enterW, 36, t("refer.enter"), () => {
+      AudioSystem.ui();
+      Referral.openRedeem();
+    }, 0x3ad6ff);
+    this.refCopyBtn = makeButton(this, copyX, 38, copyW, 36, t("refer.copy"), () => {
+      AudioSystem.ui();
+      this.copyReferral();
+    }, 0xff8ab8);
+    this.bootReferral();
 
     const sess = AuthSystem.session() || {};
     const mail = sess.email || "";
@@ -189,6 +203,47 @@ export class CareerScene extends Phaser.Scene {
     this.paintLists();
     this.bindCols();
     AudioSystem.playMenu();
+  }
+
+  async bootReferral() {
+    const res = await Referral.mine();
+    if (!this.sys || !this.sys.isActive() || !this.refCopyBtn) return;
+    if (res.ok && res.code && this.refCopyBtn.text) {
+      this.refCopyBtn.text.setText(t("refer.copyCode", { code: res.code }));
+    }
+  }
+
+  async copyReferral() {
+    const res = Referral.code ? { ok: true, code: Referral.code } : await Referral.mine();
+    if (!res.ok || !res.code) {
+      this.flashRef(Referral.reasonText(res.reason || "cloud"));
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(res.code);
+    } catch (e) {
+      this.flashRef(t("refer.copyFail"));
+      return;
+    }
+    if (this.refCopyBtn && this.refCopyBtn.text) this.refCopyBtn.text.setText(t("refer.copied"));
+    this.flashRef(t("refer.copyOk", { code: res.code }));
+    this.time.delayedCall(1400, () => {
+      if (this.sys && this.sys.isActive() && this.refCopyBtn && this.refCopyBtn.text) {
+        this.refCopyBtn.text.setText(t("refer.copyCode", { code: res.code }));
+      }
+    });
+  }
+
+  flashRef(msg) {
+    if (this.refHint && this.refHint.destroy) this.refHint.destroy();
+    this.refHint = this.add.text(this.scale.width / 2, 68, msg, {
+      fontFamily: UI_FONT, fontSize: "14px", fontStyle: "800", color: "#c45a16",
+      align: "center", wordWrap: { width: 720 }
+    }).setOrigin(0.5).setDepth(60);
+    this.time.delayedCall(2200, () => {
+      if (this.refHint && this.refHint.destroy) this.refHint.destroy();
+      this.refHint = null;
+    });
   }
 
   paintLists() {

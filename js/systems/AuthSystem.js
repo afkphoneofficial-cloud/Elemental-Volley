@@ -360,6 +360,7 @@ export const AuthSystem = {
   async pullSave() {
     const sb = await getSb();
     if (!sb || !session || !session.id || session.guest) return null;
+    try { await sb.rpc("flush_referral_pending"); } catch (e) {}
     const { data, error } = await sb.from("profiles").select("save_data").eq("id", session.id).maybeSingle();
     if (error || !data || !data.save_data) return null;
     SaveSystem.applyCloud(data.save_data);

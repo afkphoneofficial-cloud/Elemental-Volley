@@ -1,9 +1,9 @@
-import { WELCOME_SLIDES } from "../data/welcomePop.js?v=local234";
+import { WELCOME_SLIDES } from "../data/welcomePop.js?v=local247";
 import { SaveSystem } from "./SaveSystem.js";
 import { dayKey } from "../data/monthPass.js?v=local171";
 import { I18n, t } from "../i18n/I18n.js?v=local238";
 
-const SEEN_KEY = "ev-welcome-seen";
+const SEEN_KEY = "ev-welcome-seen-ref";
 
 function lang() {
   return I18n.lang === "en" ? "en" : "th";

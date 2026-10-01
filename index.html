@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=local244" />
+  <link rel="stylesheet" href="css/styles.css?v=local247" />
   <style>
     #boot-splash{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#fff4dc;font-family:Kanit,Segoe UI,sans-serif;color:#3a2418}
   </style>
@@ -108,6 +108,16 @@
       <div class="friend-actions">
         <button type="button" id="friend-add">เพิ่มเพื่อน</button>
         <button type="button" id="friend-cancel">กลับ</button>
+      </div>
+    </div>
+  </div>
+  <div id="referral-overlay" hidden>
+    <div class="auth-card">
+      <p id="referral-msg"></p>
+      <input id="referral-input" maxlength="12" autocomplete="off" />
+      <div class="friend-actions">
+        <button type="button" id="referral-ok">รับของ</button>
+        <button type="button" id="referral-cancel">ปิด</button>
       </div>
     </div>
   </div>

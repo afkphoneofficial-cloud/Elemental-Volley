@@ -32,6 +32,14 @@ export const WELCOME_SLIDES = [
     capEn: "Play on PC, portrait, and landscape. Add to Home Screen from the official site — simple and safe."
   },
   {
+    id: "refer",
+    img: "assets/welcome/welcome-promo-refer.jpg?v=local247",
+    tabTh: "ชวนเพื่อน",
+    tabEn: "Invite",
+    capTh: "ระบบแนะนำเพื่อน — กดคัดลอกโค้ดที่โปรไฟล์ มุมขวาบน แล้วให้เพื่อนกรอกในไอดีเขา ทั้งสองฝ่ายได้ขวดเอเธอร์ ผลคืนกาย และเหรียญเกาะ (ใช้ได้ครั้งเดียวต่อไอดี)",
+    capEn: "Friend referral — copy your code from the top-right of Profile and let a friend enter it. You both get an Ether vial, a Bodyfruit, and Isle Coins (once per ID)."
+  },
+  {
     id: "shop",
     img: "assets/welcome/welcome-news-shop.jpg",
     tabTh: "ร้านค้า",
