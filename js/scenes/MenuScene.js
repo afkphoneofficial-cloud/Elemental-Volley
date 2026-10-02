@@ -3,7 +3,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";
-import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local266";
 
 export class MenuScene extends Phaser.Scene {
   constructor() { super("menu"); }

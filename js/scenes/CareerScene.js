@@ -7,7 +7,7 @@ import { t, I18n, charName } from "../i18n/I18n.js?v=local259";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { TITLE_LIST, TITLE_TIER_HEX } from "../data/titles.js";
-import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local266";
 import { Referral } from "../systems/Referral.js?v=local247";
 
 const PAD = 72;

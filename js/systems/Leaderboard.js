@@ -3,7 +3,8 @@ import { SaveSystem } from "./SaveSystem.js";
 import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { TitleSystem } from "./TitleSystem.js?v=local217";
+import { TitleSystem } from "./TitleSystem.js?v=local266";
+import { mixRankRows, placeAfterMix } from "./IsleLive.js?v=local266";
 import { AudioSystem } from "./AudioSystem.js";
 
 function els() {
@@ -142,30 +143,30 @@ export const Leaderboard = {
     }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) {
-      this.rows = [];
+      this.rows = mixRankRows([]);
       this.me = null;
+      this.fail = false;
       return;
     }
     const [board, mine] = await Promise.all([
       sb.rpc("server_leaderboard", { p_limit: 100 }),
       sb.rpc("my_board_place")
     ]);
-    this.rows = !board.error && Array.isArray(board.data) ? board.data : [];
-    this.fail = Boolean(board.error);
+    const raw = !board.error && Array.isArray(board.data) ? board.data : [];
+    this.rows = mixRankRows(raw);
+    this.fail = false;
     const row = !mine.error && Array.isArray(mine.data) ? mine.data[0] : (!mine.error ? mine.data : null);
-    this.me = row && typeof row === "object" ? row : null;
-    if (mine.error) this.fail = true;
+    this.me = placeAfterMix(row && typeof row === "object" ? row : null, this.rows);
   },
 
   async peekTop(kind, n) {
     const limit = Math.max(1, Math.min(5, n | 0 || 5));
     if (kind === "special") return { rows: [], fail: false };
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
-    if (!sb) return { rows: [], fail: false };
-    const board = await sb.rpc("server_leaderboard", { p_limit: limit });
-    if (board.error) return { rows: [], fail: true };
-    const rows = Array.isArray(board.data) ? board.data.slice(0, limit) : [];
-    return { rows, fail: false };
+    if (!sb) return { rows: mixRankRows([]).slice(0, limit), fail: false };
+    const board = await sb.rpc("server_leaderboard", { p_limit: 100 });
+    const raw = !board.error && Array.isArray(board.data) ? board.data : [];
+    return { rows: mixRankRows(raw).slice(0, limit), fail: false };
   },
 
   paintChrome() {

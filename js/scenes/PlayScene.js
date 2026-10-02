@@ -36,10 +36,10 @@ import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js
 import { TouchControls, preferTouch } from "../ui/TouchControls.js";
 import { PauseOverlay } from "../ui/PauseOverlay.js";
 import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
-import { TitleSystem } from "../systems/TitleSystem.js?v=local217";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local266";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local258";
+import { NetPlay } from "../systems/NetPlay.js?v=local266";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
@@ -74,10 +74,12 @@ export class PlayScene extends Phaser.Scene {
     this.botData = getCharacter(Session.botId);
     this.leftData = this.youSide === 1 ? this.youData : this.botData;
     this.rightData = this.youSide === 1 ? this.botData : this.youData;
-    this.youSkin = clampSkin(this.net ? (Session.youSkin || SaveSystem.skinOf(this.youData.id)) : SaveSystem.skinOf(this.youData.id));
-    this.foeSkin = clampSkin(this.net ? (Session.foeSkin || (Session.rival && Session.rival.skin) || 1) : 1);
+    this.net = Session.net === true;
+    this.netHost = this.net && Session.netHost === true;
+    this.youSkin = clampSkin(Session.youSkin || SaveSystem.skinOf(this.youData.id));
+    this.foeSkin = clampSkin(Session.foeSkin || (Session.rival && Session.rival.skin) || 1);
     this.youChamp = this.net ? (Session.youChamp | 0) : champSetOf(this.youData.id);
-    this.foeChamp = this.net ? (Session.foeChamp | 0) : 0;
+    this.foeChamp = Session.foeChamp | 0;
     this.score = [0, 0];
     this.p2Serves = this.firstServeIsP2();
     this.matchOver = false;
@@ -89,8 +91,6 @@ export class PlayScene extends Phaser.Scene {
     this.ultFreezeLeft = 0;
     this.justUlted = false;
     this.ultGrand = false;
-    this.net = Session.net === true;
-    this.netHost = this.net && Session.netHost === true;
     this.readyFrames = this.net ? 0 : 25;
     this.physAcc = 0;
     this.stepMs = 1000 / PHYSICS.fps;

@@ -3,10 +3,9 @@ import { AuthSystem } from "./AuthSystem.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
-import { TitleSystem } from "./TitleSystem.js?v=local217";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
-import { MatchLive } from "./MatchLive.js?v=local258";
+import { MatchLive } from "./MatchLive.js?v=local266";
 
 const listeners = new Set();
 
@@ -115,7 +114,7 @@ export const NetPlay = {
       ws.send(JSON.stringify({
         t: "hello",
         token,
-        name: TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "player"),
+        name: AuthSystem.displayName() || "player",
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
         skin: fighterSkin(),

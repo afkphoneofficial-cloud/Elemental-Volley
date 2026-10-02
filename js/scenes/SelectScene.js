@@ -9,7 +9,7 @@ import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { RosterCarousel } from "../ui/RosterCarousel.js?v=local265";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local258";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local266";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }

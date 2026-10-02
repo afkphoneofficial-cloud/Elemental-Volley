@@ -3,8 +3,9 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { MatchLive } from "../systems/MatchLive.js?v=local242";
-import { t } from "../i18n/I18n.js?v=local242";
+import { MatchLive } from "../systems/MatchLive.js?v=local266";
+import { presenceCount } from "../systems/IsleLive.js?v=local266";
+import { t } from "../i18n/I18n.js?v=local266";
 
 export class AuthScene extends Phaser.Scene {
   constructor() { super("auth"); }
@@ -25,8 +26,11 @@ export class AuthScene extends Phaser.Scene {
     this.note = this.add.text(W / 2, 268, t("auth.playNowHint"), {
       fontFamily: UI_FONT, fontSize: "16px", color: "#8a5a38", align: "center", wordWrap: { width: 720 }
     }).setOrigin(0.5);
-    this.waitLine = this.add.text(W / 2, 306, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
-      fontFamily: UI_FONT, fontSize: "18px", fontStyle: "800", color: "#c45a16"
+    this.onlineLine = this.add.text(W / 2, 300, t("queue.onlineNow", { n: presenceCount(MatchLive) }), {
+      fontFamily: UI_FONT, fontSize: "20px", fontStyle: "800", color: "#2a7a18"
+    }).setOrigin(0.5);
+    this.waitLine = this.add.text(W / 2, 332, t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "700", color: "#c45a16"
     }).setOrigin(0.5);
     AudioSystem.playMenu();
     if (AuthSystem.canPlay()) {
@@ -60,8 +64,9 @@ export class AuthScene extends Phaser.Scene {
 
   refreshWait() {
     MatchLive.pull().then(() => {
-      if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
-      this.waitLine.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
+      if (!this.sys || !this.sys.isActive()) return;
+      if (this.onlineLine) this.onlineLine.setText(t("queue.onlineNow", { n: presenceCount(MatchLive) }));
+      if (this.waitLine) this.waitLine.setText(t("queue.exhibitWait", { n: MatchLive.exhibit | 0 }));
     });
   }
 

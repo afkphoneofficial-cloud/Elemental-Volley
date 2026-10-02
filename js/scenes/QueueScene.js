@@ -7,12 +7,13 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local258";
+import { NetPlay } from "../systems/NetPlay.js?v=local266";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { maintenanceNow } from "../data/maintenance.js";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local258";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local266";
+import { startIsleExhibit } from "../systems/IsleLive.js?v=local266";
 
 function formatWait(ms) {
   const sec = Math.max(0, Math.floor(ms / 1000));
@@ -44,6 +45,7 @@ export class QueueScene extends Phaser.Scene {
   constructor() { super("queue"); }
 
   create() {
+    this.fillAt = Date.now() + 15000;
     if (!AuthSystem.guard(this)) return;
     if (AuthSystem.isGuest()) {
       Session.mode = "exhibit";
@@ -64,6 +66,7 @@ export class QueueScene extends Phaser.Scene {
     const rank = SaveSystem.data.rank;
     this.started = this.time.now;
     this.waitAt = Date.now();
+    this.fillAt = Date.now() + 15000;
     this.found = false;
     this.bits = [];
 
@@ -423,6 +426,12 @@ export class QueueScene extends Phaser.Scene {
     }
     if (this.waitAt && !this.offerClock) this.paintWait();
     if (this.found) return;
+    if (!this.offerClock && isExhibitQueue() && (Session.exhibitCasual || AuthSystem.isGuest()) && Date.now() >= this.fillAt) {
+      this.found = true;
+      NetPlay.cancel();
+      startIsleExhibit(this, Session.playerId, AuthSystem.displayName && AuthSystem.displayName());
+      return;
+    }
     const elapsed = this.time.now - this.started;
     this.ring.clear();
     this.ring.lineStyle(3, 0x7d5cff, 0.45 + 0.25 * Math.sin(elapsed / 180));
