@@ -5,7 +5,7 @@ import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
-import { MatchLive } from "./MatchLive.js?v=local266";
+import { MatchLive } from "./MatchLive.js?v=local272";
 
 const listeners = new Set();
 

@@ -9,7 +9,7 @@ import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { RosterCarousel } from "../ui/RosterCarousel.js?v=local265";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local266";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local272";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
@@ -82,6 +82,7 @@ export class SelectScene extends Phaser.Scene {
         fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5).setDepth(20);
       this.refreshWait();
+      this.time.addEvent({ delay: 1000, loop: true, callback: () => this.paintWaitLine() });
       this.time.addEvent({ delay: 4000, loop: true, callback: () => this.refreshWait() });
     }
 
@@ -181,10 +182,14 @@ export class SelectScene extends Phaser.Scene {
     Session.trainStage = null;
   }
 
+  paintWaitLine() {
+    if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
+    this.waitLine.setText(MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"));
+  }
+
   refreshWait() {
     MatchLive.pull().then(() => {
-      if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
-      this.waitLine.setText(MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"));
+      this.paintWaitLine();
     });
   }
 

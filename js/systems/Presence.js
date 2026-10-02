@@ -1,6 +1,6 @@
 import { AuthSystem } from "./AuthSystem.js";
-import { MatchLive } from "./MatchLive.js?v=local266";
-import { liveHeadcount, presenceCount } from "./IsleLive.js?v=local270";
+import { MatchLive } from "./MatchLive.js?v=local272";
+import { liveHeadcount, presenceCount } from "./IsleLive.js?v=local272";
 
 const HEART_MS = 25000;
 const POLL_MS = 15000;

@@ -211,6 +211,29 @@ export function presenceCount(realOrLive) {
   return Math.max(n, crowdAt(Date.now()));
 }
 
+function exhibitCrowdAt(ms) {
+  const day = bangkokDay();
+  const slot = Math.floor(ms / 10000);
+  const from = Math.max(0, slot - 24);
+  let n = Math.floor(hash01(from * 41 + day * 19) * 13);
+  for (let s = from + 1; s <= slot; s += 1) {
+    const step = Math.floor(hash01(s * 97 + day * 11) * 7) - 3;
+    n = Math.max(0, Math.min(12, n + step));
+  }
+  return n;
+}
+
+export function exhibitWaitShown(real, self) {
+  const crowd = exhibitCrowdAt(Date.now());
+  let n = Math.min(12, Math.max(real | 0, crowd));
+  if (self && n < 1) n = 1;
+  return n;
+}
+
+export function exhibitFillMs() {
+  return (3 + Math.floor(Math.random() * 13)) * 1000;
+}
+
 function pickFrom(list, avoidId, avoidName) {
   const id = String(avoidId || "");
   const name = String(avoidName || "").trim().toLowerCase();

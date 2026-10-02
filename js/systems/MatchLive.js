@@ -4,6 +4,7 @@ import { Session } from "./Session.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { botSheet } from "../data/growth.js?v=local206";
 import { champSetOf } from "../data/seasonLooks.js";
+import { exhibitWaitShown } from "./IsleLive.js?v=local272";
 
 export function matchHttpUrl() {
   const q = new URLSearchParams(location.search).get("match");
@@ -30,8 +31,12 @@ export const MatchLive = {
     return this;
   },
 
+  exhibitShown(self) {
+    return exhibitWaitShown(this.exhibit, self);
+  },
+
   waitOf(mode) {
-    return mode === "exhibit" ? (this.exhibit | 0) : (this.ranked | 0);
+    return mode === "exhibit" ? this.exhibitShown() : (this.ranked | 0);
   },
 
   slotsFull() {
@@ -40,7 +45,7 @@ export const MatchLive = {
 
   label(t, mode) {
     if (mode === "pvp" || mode === "ranked") return t("queue.rankedWait", { n: this.ranked | 0 });
-    return t("queue.exhibitWait", { n: this.exhibit | 0 });
+    return t("queue.exhibitWait", { n: this.exhibitShown() });
   },
 
   async pull() {
