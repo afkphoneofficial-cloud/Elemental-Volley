@@ -1237,6 +1237,9 @@ export const SaveSystem = {
     if (!this.skinOpen(id, tier)) return false;
     if (!this.data.skins) this.data.skins = emptySkins();
     this.data.skins[id] = clampSkin(tier);
+    if (!this.data.champEquipped) this.data.champEquipped = {};
+    this.data.champEquipped[id] = 0;
+    if (this.data.shopLooks && this.data.shopLooks.worn) this.data.shopLooks.worn[id] = "";
     this.persist();
     return true;
   },

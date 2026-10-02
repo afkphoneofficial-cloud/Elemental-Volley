@@ -363,7 +363,7 @@ export const COPY = {
     },
     dress: {
       title: "ห้องแต่งตัว",
-      sub: "คลิกชุดเพื่อดูตัวอย่างได้เลย  ·  ชุดแรกปลดที่เลเวล 1 แล้วทุก 10 เลเวล  ·  แตะตัวละครเพื่อดูกระโดด",
+      sub: "ชุด default 5 ชุดของทุกธาตุ  ·  ชุดแรกปลดที่เลเวล 1 แล้วทุก 10 เลเวล  ·  ไม่ต้องใส่ของในกระเป๋าก็ใช้ชุดเหล่านี้ได้",
       wear: "ใส่ชุดนี้",
       using: "กำลังใส่ชุดนี้",
       locked: "ปลดล็อกตัวละครก่อน",
@@ -371,6 +371,7 @@ export const COPY = {
       unlockLv: "เลเวล {n}",
       tier: "ชุด {n}",
       tierLine: "ชุด {n}  ·  {name}",
+      bagOn: "กำลังใส่ของจากกระเป๋า · กดใส่ชุดนี้เพื่อถอดแล้วกลับไปชุด default",
       viewL: "ซ้าย",
       viewF: "หน้าตรง",
       viewR: "ขวา"
@@ -1357,7 +1358,7 @@ export const COPY = {
     },
     dress: {
       title: "Dressing room",
-      sub: "Tap a set to preview it  ·  Set 1 unlocks at level 1, then every 10 levels  ·  Tap the fighter to preview a hop",
+      sub: "Each element has 5 default sets  ·  Set 1 at level 1, then every 10 levels  ·  Wear these even with nothing from the bag",
       wear: "Wear this set",
       using: "Wearing this set",
       locked: "Unlock this fighter first",
@@ -1365,6 +1366,7 @@ export const COPY = {
       unlockLv: "Lv {n}",
       tier: "Set {n}",
       tierLine: "Set {n}  ·  {name}",
+      bagOn: "A bag look is on · Wear this set to take it off and use the default outfits",
       viewL: "Left",
       viewF: "Front",
       viewR: "Right"

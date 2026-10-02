@@ -5,7 +5,7 @@ import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { MatchLive } from "../systems/MatchLive.js?v=local266";
 import { Presence } from "../systems/Presence.js?v=local270";
-import { t } from "../i18n/I18n.js?v=local268";
+import { t } from "../i18n/I18n.js?v=local271";
 
 export class AuthScene extends Phaser.Scene {
   constructor() { super("auth"); }

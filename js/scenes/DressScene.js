@@ -1,11 +1,10 @@
 import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
 import { ROSTER_IDS } from "../data/roster.js";
-import { SKIN_TIERS, skinTier, skinNeedLv, texSelect } from "../data/skins.js";
-import { texHeroSelect, texHeroFace } from "../data/seasonLooks.js";
+import { SKIN_TIERS, skinTier, skinNeedLv, texSelect, texFace } from "../data/skins.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local271";
 import { SELECT_PLATE, drawOrbit, paintHopFx } from "../fx/SelectHover.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 
@@ -158,22 +157,25 @@ export class DressScene extends Phaser.Scene {
   }
 
   previewKey() {
-    if (this.view === "l") return texHeroFace(this, this.charId, 2, this.tier, 0);
-    if (this.view === "r") return texHeroFace(this, this.charId, 1, this.tier, 0);
-    return texHeroSelect(this, this.charId, 0, this.tier);
+    if (this.view === "l") return texFace(this, this.charId, 2, this.tier);
+    if (this.view === "r") return texFace(this, this.charId, 1, this.tier);
+    return texSelect(this, this.charId, this.tier);
   }
 
   refresh() {
     const id = this.charId;
     const row = skinTier(this.tier);
     const open = SaveSystem.skinOpen(id, this.tier);
+    const bagOn = Boolean(SaveSystem.outfitIdOf(id));
     this.hero.setTexture(this.previewKey()).setDisplaySize(248, 248);
-    if (this.sideL) this.sideL.setTexture(texHeroFace(this, id, 2, this.tier, 0)).setDisplaySize(128, 128);
-    if (this.sideR) this.sideR.setTexture(texHeroFace(this, id, 1, this.tier, 0)).setDisplaySize(128, 128);
+    if (this.sideL) this.sideL.setTexture(texFace(this, id, 2, this.tier)).setDisplaySize(128, 128);
+    if (this.sideR) this.sideR.setTexture(texFace(this, id, 1, this.tier)).setDisplaySize(128, 128);
     this.plate.setFillStyle(SELECT_PLATE[id] || 0xffb14a, 1);
     this.nameLab.setText(charName(id));
-    this.tierLab.setText(t("dress.tierLine", { n: this.tier, name: I18n.lang === "en" ? row.en : row.th }));
-    const worn = SaveSystem.skinOf(id) === this.tier;
+    this.tierLab.setText(bagOn
+      ? t("dress.bagOn")
+      : t("dress.tierLine", { n: this.tier, name: I18n.lang === "en" ? row.en : row.th }));
+    const worn = !bagOn && SaveSystem.skinOf(id) === this.tier;
     if (this.wearBtn && this.wearBtn.text) {
       if (!SaveSystem.isUnlocked(id)) this.wearBtn.text.setText(t("dress.locked"));
       else if (!open) this.wearBtn.text.setText(t("dress.needLv", { n: skinNeedLv(this.tier) }));
@@ -183,7 +185,7 @@ export class DressScene extends Phaser.Scene {
       const n = slot.row.id;
       const on = this.tier === n;
       const can = SaveSystem.skinOpen(id, n);
-      const using = SaveSystem.skinOf(id) === n;
+      const using = !bagOn && SaveSystem.skinOf(id) === n;
       slot.g.clear();
       slot.g.fillStyle(on ? 0xffe8c8 : 0xfff6ea, 0.96);
       slot.g.fillRoundedRect(slot.x - 106, slot.y - 56, 212, 118, 18);
