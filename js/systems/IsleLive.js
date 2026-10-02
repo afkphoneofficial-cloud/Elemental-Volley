@@ -143,22 +143,55 @@ export function liveHeadcount(live) {
   );
 }
 
+function hash01(seed) {
+  let s = seed | 0;
+  s = Math.imul(s ^ (s >>> 16), 0x7feb352d);
+  s = Math.imul(s ^ (s >>> 15), 0x846ca68b);
+  return ((s ^ (s >>> 16)) >>> 0) % 10000 / 10000;
+}
+
+function crowdAt(ms) {
+  const bkk = new Date(ms + 7 * 3600000);
+  const hm = bkk.getUTCHours() + bkk.getUTCMinutes() / 60;
+  const dow = bkk.getUTCDay();
+  const weekend = dow === 0 || dow === 6;
+  const friday = dow === 5;
+  let lo = 22;
+  let hi = 36;
+  if (hm >= 1.5 && hm < 7) {
+    lo = 21;
+    hi = 33;
+  } else if (hm >= 7 && hm < 12) {
+    lo = weekend ? 28 : 22;
+    hi = weekend ? 46 : 38;
+  } else if (hm >= 12 && hm < 14) {
+    lo = weekend ? 40 : 36;
+    hi = weekend ? 58 : 51;
+  } else if (hm >= 14 && hm < 16) {
+    lo = weekend ? 44 : 32;
+    hi = weekend ? 62 : 46;
+  } else if (hm >= 16 && hm < 19) {
+    lo = weekend || friday ? 50 : 42;
+    hi = weekend || friday ? 70 : 58;
+  } else if (hm >= 19 && hm < 23.5) {
+    lo = weekend || friday ? 61 : 52;
+    hi = weekend || friday ? 79 : 73;
+  } else {
+    lo = weekend || friday ? 48 : 38;
+    hi = weekend || friday ? 68 : 54;
+  }
+  const slot = Math.floor(ms / 180000);
+  const t = hash01(slot * 17 + bangkokDay() * 31);
+  let n = Math.round(lo + (hi - lo) * t);
+  if (n % 10 === 0) n += t > 0.5 ? 1 : -1;
+  return Math.max(21, Math.min(79, n));
+}
+
 export function presenceCount(realOrLive) {
   const n = typeof realOrLive === "number" || realOrLive == null
     ? Math.max(0, realOrLive | 0)
     : liveHeadcount(realOrLive);
-  const now = new Date();
-  const hour = now.getHours();
-  const day = bangkokDay();
-  const slot = Math.floor(Date.now() / 120000);
-  let floor = 17 + (day % 7);
-  if (hour >= 19 || hour < 1) floor += 7;
-  else if (hour >= 12 && hour < 15) floor += 5;
-  else if (hour >= 7 && hour < 12) floor += 3;
-  else if (hour >= 1 && hour < 7) floor -= 4;
-  floor += slot % 5;
-  if (floor % 10 === 0) floor += 1;
-  return Math.max(n, floor);
+  return Math.max(n, crowdAt(Date.now()));
 }
 
 function pickFrom(list, avoidId, avoidName) {
