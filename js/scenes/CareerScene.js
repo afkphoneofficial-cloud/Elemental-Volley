@@ -3,7 +3,7 @@ import { FREE_AVATARS, avatarKey, avatarLabel } from "../data/avatars.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local247";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local259";
 import { formatMatchClock } from "../gameplay/MatchStats.js";
 import { medalFromMmr, isCalibrating, badgeKey, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { TITLE_LIST, TITLE_TIER_HEX } from "../data/titles.js";
@@ -118,8 +118,14 @@ export class CareerScene extends Phaser.Scene {
     }).setOrigin(0.5);
     const copyW = 200;
     const enterW = 168;
+    const hintW = 36;
     const copyX = W - PAD - copyW / 2;
     const enterX = copyX - copyW / 2 - GAP - enterW / 2;
+    const hintX = enterX - enterW / 2 - GAP - hintW / 2;
+    this.refHelpBtn = makeButton(this, hintX, 38, hintW, 36, "?", () => {
+      AudioSystem.ui();
+      this.openReferRules();
+    }, 0xffb14a);
     this.refEnterBtn = makeButton(this, enterX, 38, enterW, 36, t("refer.enter"), () => {
       AudioSystem.ui();
       Referral.openRedeem();
@@ -244,6 +250,39 @@ export class CareerScene extends Phaser.Scene {
       if (this.refHint && this.refHint.destroy) this.refHint.destroy();
       this.refHint = null;
     });
+  }
+
+  closeReferRules() {
+    (this.referRuleBits || []).forEach((o) => {
+      try { o.destroy(); } catch (e) {}
+    });
+    this.referRuleBits = [];
+  }
+
+  openReferRules() {
+    this.closeReferRules();
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const dim = this.add.rectangle(W / 2, H / 2, W, H, 0x1a1008, 0.55).setDepth(70).setInteractive();
+    dim.on("pointerdown", () => this.closeReferRules());
+    const g = this.add.graphics().setDepth(71);
+    g.fillStyle(0xfff6ea, 0.98);
+    g.fillRoundedRect(W / 2 - 300, H / 2 - 168, 600, 336, 24);
+    g.lineStyle(3, 0xff6a22, 0.8);
+    g.strokeRoundedRect(W / 2 - 300, H / 2 - 168, 600, 336, 24);
+    const block = this.add.zone(W / 2, H / 2, 600, 336).setInteractive().setDepth(71);
+    const title = this.add.text(W / 2, H / 2 - 124, t("refer.rulesTitle"), {
+      fontFamily: UI_FONT, fontSize: "26px", fontStyle: "900", color: "#3a2418"
+    }).setOrigin(0.5).setDepth(72);
+    const body = this.add.text(W / 2, H / 2 - 20, t("refer.rulesBody"), {
+      fontFamily: UI_FONT, fontSize: "17px", fontStyle: "700", color: "#5a3828",
+      align: "center", wordWrap: { width: 520 }, lineSpacing: 6
+    }).setOrigin(0.5).setDepth(72);
+    const close = makeButton(this, W / 2, H / 2 + 118, 180, 44, t("career.close"), () => {
+      AudioSystem.ui();
+      this.closeReferRules();
+    }, 0xff6a22, 80);
+    this.referRuleBits = [dim, g, block, title, body, close.gfx, close.text, close.bg];
   }
 
   paintLists() {

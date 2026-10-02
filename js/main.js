@@ -1,7 +1,7 @@
 import { AudioSystem } from "./systems/AudioSystem.js";
 import { SaveSystem } from "./systems/SaveSystem.js";
 import { Session } from "./systems/Session.js";
-import { I18n } from "./i18n/I18n.js?v=local258";
+import { I18n } from "./i18n/I18n.js?v=local259";
 import { mountLobbyStage } from "./web/LobbyStage.js?v=local256";
 import { mountOrientDock, placeOrientBtn } from "./web/OrientDock.js?v=local255";
 import { GAME } from "./config/gameConfig.js";
@@ -22,7 +22,7 @@ import { WikiScene } from "./scenes/WikiScene.js?v=local180";
 import { ExploreScene } from "./scenes/ExploreScene.js?v=local206";
 import { ResultScene } from "./scenes/ResultScene.js?v=local258";
 import { SettingsScene } from "./scenes/SettingsScene.js";
-import { CareerScene } from "./scenes/CareerScene.js?v=local247";
+import { CareerScene } from "./scenes/CareerScene.js?v=local259";
 import { QueueScene } from "./scenes/QueueScene.js?v=local258";
 import { RankScene } from "./scenes/RankScene.js?v=local217";
 import { SeasonScene } from "./scenes/SeasonScene.js?v=local210";
