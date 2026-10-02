@@ -1,4 +1,4 @@
-import { bgmAllowed, sceneBgmPage } from "./GameSettings.js";
+import { bgmAllowed, sceneBgmPage } from "./GameSettings.js?v=local260";
 
 let ctx = null;
 let master = null;

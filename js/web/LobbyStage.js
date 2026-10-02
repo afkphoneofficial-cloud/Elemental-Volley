@@ -1,4 +1,4 @@
-import { wantLobbyMotion } from "../systems/GameSettings.js";
+import { wantLobbyMotion } from "../systems/GameSettings.js?v=local260";
 
 /** Cute looping mini-rally behind the game frame. Uses existing sprite assets. */
 

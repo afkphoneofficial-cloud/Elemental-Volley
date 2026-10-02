@@ -39,7 +39,8 @@ const empty = () => ({
     reducedFx: false,
     cameraShake: true,
     lobbyMotion: true,
-    timeZone: "Bangkok"
+    timeZone: "Bangkok",
+    shell: "isle"
   },
   unlockedCheers: ["classic"],
   equippedCheer: "classic",

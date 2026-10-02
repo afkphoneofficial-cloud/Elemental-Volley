@@ -1,4 +1,4 @@
-import { shakeCam, wantFx } from "../systems/GameSettings.js";
+import { shakeCam, wantFx } from "../systems/GameSettings.js?v=local260";
 
 const MAX_MARKS = 10;
 const MAX_BITS = 14;

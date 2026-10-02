@@ -1,7 +1,7 @@
 import { UI_FONT } from "./Ui.js";
 import { t } from "../i18n/I18n.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { wantFx } from "../systems/GameSettings.js";
+import { wantFx } from "../systems/GameSettings.js?v=local260";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";

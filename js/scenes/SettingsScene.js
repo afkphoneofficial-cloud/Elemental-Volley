@@ -1,4 +1,4 @@
-import { drawGrid, makeButton, makeSlider, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, makeSlider, UI_FONT } from "../ui/Ui.js?v=local261";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
@@ -16,8 +16,8 @@ import {
   settings,
   toggleBgmPage,
   toggleFullscreen
-} from "../systems/GameSettings.js";
-import { I18n, t } from "../i18n/I18n.js";
+} from "../systems/GameSettings.js?v=local260";
+import { I18n, t } from "../i18n/I18n.js?v=local261";
 import { TouchControls } from "../ui/TouchControls.js";
 import { paintSettingsTabs } from "../ui/sceneTabs.js";
 import { TIME_ZONES } from "../data/timeZones.js";
@@ -129,24 +129,35 @@ export class SettingsScene extends Phaser.Scene {
     row(168, "settings.reducedFx", s.reducedFx, () => patchSettings({ reducedFx: !s.reducedFx }));
     row(228, "settings.cameraShake", s.cameraShake, () => patchSettings({ cameraShake: !s.cameraShake }));
     row(288, "settings.lobbyMotion", s.lobbyMotion, () => patchSettings({ lobbyMotion: !s.lobbyMotion }));
-    row(348, "settings.fullscreen", isFullscreen(), () => {
+    this.add.text(W / 2, 338, t("settings.shell"), {
+      fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
+    }).setOrigin(0.5);
+    ["isle", "night", "mist"].forEach((id, i) => {
+      const on = s.shell === id;
+      makeButton(this, W / 2 - 220 + i * 220, 384, 200, 44, mark(on, t("settings.shell" + id[0].toUpperCase() + id.slice(1))), () => {
+        AudioSystem.ui();
+        patchSettings({ shell: id });
+        this.scene.restart({ from: this.backTo, tab: "video" });
+      }, on ? 0x3ad6ff : 0xe8dcc8);
+    });
+    row(444, "settings.fullscreen", isFullscreen(), () => {
       toggleFullscreen().then(() => {
         if (this.sys && this.sys.isActive()) this.scene.restart({ from: this.backTo, tab: "video" });
       });
     });
-    this.add.text(W / 2 - 280, 430, t("settings.contrast"), {
+    this.add.text(W / 2 - 280, 512, t("settings.contrast"), {
       fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#7a4a30"
     }).setOrigin(0, 0.5);
     const c0 = s.contrast;
-    const cLabel = this.add.text(W / 2 + 280, 430, Math.round(c0 * 100) + "%", {
+    const cLabel = this.add.text(W / 2 + 280, 512, Math.round(c0 * 100) + "%", {
       fontFamily: UI_FONT, fontSize: "15px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(1, 0.5);
-    makeSlider(this, W / 2 + 70, 430, 280, (c0 - 0.5) / 1, (v) => {
+    makeSlider(this, W / 2 + 70, 512, 280, (c0 - 0.5) / 1, (v) => {
       const next = 0.5 + v * 1;
       patchSettings({ contrast: next });
       cLabel.setText(Math.round(next * 100) + "%");
     });
-    this.add.text(W / 2, 500, t("settings.videoHint"), {
+    this.add.text(W / 2, 568, t("settings.videoHint"), {
       fontFamily: UI_FONT, fontSize: "14px", color: "#7a4a30", align: "center", wordWrap: { width: 720 }
     }).setOrigin(0.5);
   }

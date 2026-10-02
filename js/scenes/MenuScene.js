@@ -1,4 +1,4 @@
-import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js";
+import { drawGrid, makeButton, UI_FONT } from "../ui/Ui.js?v=local261";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";

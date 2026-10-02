@@ -2,6 +2,17 @@ import { t } from "../i18n/I18n.js";
 
 export const UI_FONT = "Kanit, Segoe UI, sans-serif";
 
+const SHELL_GRID = {
+  isle: { base: 0xfff1dc, a: 0xff9a4a, b: 0x7ad4ff, c: 0xffe08a, line: 0xc45a16 },
+  night: { base: 0xc9c4be, a: 0x5a5478, b: 0x3a5a70, c: 0x6a6058, line: 0x3a2418 },
+  mist: { base: 0xe6ebe6, a: 0x8eaea0, b: 0x86a8b6, c: 0xc5d0c6, line: 0x4a5c54 }
+};
+
+function shellGrid() {
+  const id = document.documentElement.getAttribute("data-shell") || "isle";
+  return SHELL_GRID[id] || SHELL_GRID.isle;
+}
+
 export function makeButton(scene, x, y, w, h, label, onClick, color = 0xff6a22, depth = 40) {
   const gfx = scene.add.graphics().setDepth(depth);
   const draw = (hover) => {
@@ -98,15 +109,16 @@ export function roundPanel(scene, x, y, w, h, stroke = 0xff8a3a, fill = 0x120e18
 export function drawGrid(scene) {
   const W = scene.scale.width;
   const H = scene.scale.height;
-  scene.add.rectangle(W / 2, H / 2, W, H, 0xfff1dc);
+  const pal = shellGrid();
+  scene.add.rectangle(W / 2, H / 2, W, H, pal.base);
   const g = scene.add.graphics();
-  g.fillStyle(0xff9a4a, 0.22);
+  g.fillStyle(pal.a, 0.22);
   g.fillCircle(W * 0.18, -40, 260);
-  g.fillStyle(0x7ad4ff, 0.2);
+  g.fillStyle(pal.b, 0.2);
   g.fillCircle(W * 0.86, H + 40, 300);
-  g.fillStyle(0xffe08a, 0.16);
+  g.fillStyle(pal.c, 0.16);
   g.fillCircle(W * 0.5, H * 0.35, 220);
-  g.lineStyle(1, 0xc45a16, 0.07);
+  g.lineStyle(1, pal.line, 0.07);
   for (let x = 0; x <= W; x += 72) g.lineBetween(x, 0, x, H);
   for (let y = 0; y <= H; y += 72) g.lineBetween(0, y, W, y);
 }

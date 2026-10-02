@@ -1,7 +1,7 @@
 import { drawGrid, makeButton, UI_FONT, roundPanel } from "../ui/Ui.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { wantFx } from "../systems/GameSettings.js";
+import { wantFx } from "../systems/GameSettings.js?v=local260";
 import { Session } from "../systems/Session.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { MODE_DROPS } from "../data/modeDrops.js";

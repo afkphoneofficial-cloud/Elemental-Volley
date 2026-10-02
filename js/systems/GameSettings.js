@@ -23,6 +23,13 @@ export const DEFAULT_KEYS = {
 };
 
 export const KEY_ACTIONS = ["left", "right", "jump", "down", "hit"];
+export const SHELL_THEMES = ["isle", "night", "mist"];
+
+const SHELL_GRID = {
+  isle: { base: 0xfff1dc, a: 0xff9a4a, b: 0x7ad4ff, c: 0xffe08a, line: 0xc45a16 },
+  night: { base: 0xc9c4be, a: 0x5a5478, b: 0x3a5a70, c: 0x6a6058, line: 0x3a2418 },
+  mist: { base: 0xe6ebe6, a: 0x8eaea0, b: 0x86a8b6, c: 0xc5d0c6, line: 0x4a5c54 }
+};
 
 function clampContrast(n) {
   const v = Number(n);
@@ -40,6 +47,10 @@ function cleanKeyName(name) {
     }
   } catch (e) {}
   return raw;
+}
+
+function cleanShell(id) {
+  return SHELL_THEMES.indexOf(id) >= 0 ? id : "isle";
 }
 
 function mergeKeys(raw) {
@@ -70,6 +81,7 @@ export function defaultSettings() {
     timeZone: "Bangkok",
     hubMenuOpen: false,
     contrast: 1,
+    shell: "isle",
     keys: { ...DEFAULT_KEYS }
   };
 }
@@ -85,6 +97,7 @@ export function mergeSettings(raw) {
   next.lobbyMotion = next.lobbyMotion !== false;
   if (!TIME_ZONES.some((row) => row.id === next.timeZone)) next.timeZone = "Bangkok";
   next.contrast = clampContrast(next.contrast);
+  next.shell = cleanShell(next.shell);
   next.keys = mergeKeys(next.keys);
   return next;
 }
@@ -121,6 +134,7 @@ export function patchSettings(partial) {
   bagCache = next;
   SaveSystem.persist();
   applyContrast();
+  applyShell();
   try { window.dispatchEvent(new CustomEvent("ev-settings")); } catch (e) {}
   return next;
 }
@@ -132,8 +146,18 @@ export function resetSettings() {
   bagCache = next;
   SaveSystem.persist();
   applyContrast();
+  applyShell();
   try { window.dispatchEvent(new CustomEvent("ev-settings")); } catch (e) {}
   return next;
+}
+
+export function applyShell() {
+  const id = cleanShell(settings().shell);
+  document.documentElement.setAttribute("data-shell", id);
+}
+
+export function shellGrid() {
+  return SHELL_GRID[cleanShell(settings().shell)] || SHELL_GRID.isle;
 }
 
 export function applyContrast() {

@@ -17,6 +17,26 @@ html, body {
   color: "#3a2418";
 }
 
+html[data-shell="night"],
+html[data-shell="night"] body {
+  background:
+    radial-gradient(1100px 600px at 16% 6%, #3a3558 0%, transparent 46%),
+    radial-gradient(900px 520px at 88% 12%, #1c3848 0%, transparent 48%),
+    radial-gradient(800px 480px at 50% 100%, #2a2438 0%, transparent 52%),
+    linear-gradient(180deg, #16141c 0%, #1c1826 46%, #121018 100%);
+  color: #ece6dc;
+}
+
+html[data-shell="mist"],
+html[data-shell="mist"] body {
+  background:
+    radial-gradient(1100px 600px at 18% 8%, #c5d8cc 0%, transparent 48%),
+    radial-gradient(900px 520px at 86% 16%, #b8cdd8 0%, transparent 46%),
+    radial-gradient(700px 480px at 50% 100%, #d4ddd4 0%, transparent 50%),
+    linear-gradient(180deg, #e8eee8 0%, #d5e0dc 48%, #c8d6d4 100%);
+  color: #2e3a36;
+}
+
 body {
   display: flex;
   align-items: center;
@@ -146,6 +166,21 @@ body {
   pointer-events: none;
   background:
     radial-gradient(ellipse 58% 52% at 50% 48%, rgba(255, 246, 234, 0.12) 0%, rgba(255, 232, 200, 0.18) 100%);
+}
+
+html[data-shell="night"] #lobby-veil {
+  background:
+    radial-gradient(ellipse 62% 54% at 50% 48%, rgba(18, 16, 28, 0.28) 0%, rgba(10, 8, 16, 0.55) 100%);
+}
+html[data-shell="night"] #lobby-bg {
+  filter: saturate(0.38) brightness(0.42);
+}
+html[data-shell="mist"] #lobby-veil {
+  background:
+    radial-gradient(ellipse 60% 52% at 50% 48%, rgba(232, 238, 232, 0.16) 0%, rgba(196, 212, 208, 0.28) 100%);
+}
+html[data-shell="mist"] #lobby-bg {
+  filter: saturate(0.52) brightness(0.92);
 }
 
 #exhibit-overlay {
@@ -575,6 +610,34 @@ html[data-control="pc"] #game {
 #lang-dock {
   top: max(10px, env(safe-area-inset-top));
   right: max(10px, env(safe-area-inset-right));
+}
+
+html[data-shell="night"] #vol-dock,
+html[data-shell="night"] #lang-dock,
+html[data-shell="night"] #orient-btn {
+  background: rgba(28, 26, 38, 0.9);
+  color: #f0e8dc;
+  border-color: rgba(168, 152, 210, 0.4);
+  box-shadow: 0 8px 28px rgba(8, 6, 16, 0.45);
+}
+html[data-shell="night"] #lang-dock button {
+  color: #d8d0c4;
+}
+html[data-shell="night"] #lang-dock button.on {
+  background: #6a5a98;
+  color: #f4eee4;
+}
+html[data-shell="night"] #vol-steps button {
+  border-color: #a898d2;
+}
+html[data-shell="night"] #vol-steps button.on {
+  background: #a898d2;
+}
+html[data-shell="night"] #site-foot .foot-copy,
+html[data-shell="night"] #site-foot .foot-by,
+html[data-shell="night"] #site-legal a,
+html[data-shell="night"] #site-stripe {
+  color: #d8d0c4;
 }
 
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {

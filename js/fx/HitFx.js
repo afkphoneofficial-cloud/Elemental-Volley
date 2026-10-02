@@ -1,4 +1,4 @@
-import { wantFx } from "../systems/GameSettings.js";
+import { wantFx } from "../systems/GameSettings.js?v=local260";
 
 export const ELEMENT_FX = {
   ignis: { tints: [0xff5a1f, 0xffd24a, 0xfff4e8], smash: [0xff3300, 0xffee88] },
