@@ -7,6 +7,29 @@ import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis,
 
 const IDS = ["ignis", "aqua", "volt", "terra"];
 const cooks = [];
+let flushLock = Promise.resolve();
+
+function bagN(bag) {
+  if (!bag) return 0;
+  if (typeof bag.size === "number") return bag.size | 0;
+  if (typeof bag.length === "number") return bag.length | 0;
+  return 0;
+}
+
+function pendingCount(loader) {
+  if (!loader) return 0;
+  return bagN(loader.list) + bagN(loader.queue) + bagN(loader.inflight);
+}
+
+function yieldFrame() {
+  return new Promise((resolve) => {
+    const t = window.setTimeout(resolve, 32);
+    requestAnimationFrame(() => {
+      window.clearTimeout(t);
+      resolve();
+    });
+  });
+}
 
 function seasonDest(id) {
   if (String(id).indexOf("select-champ-") === 0) {
@@ -33,23 +56,35 @@ function want(scene, key, url, dest, knock) {
 function waitLoad(scene) {
   return new Promise((resolve) => {
     const loader = scene.load;
-    const pending = loader.list ? (loader.list.length | loader.list.size | 0) : 0;
-    if (!loader.isLoading() && pending <= 0) {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
       resolve();
+    };
+    const pending = pendingCount(loader);
+    if (!loader.isLoading() && pending <= 0) {
+      finish();
       return;
     }
-    loader.once("complete", () => resolve());
+    loader.once("complete", finish);
+    loader.once("loaderror", () => {
+      if (!loader.isLoading() && pendingCount(loader) <= 0) finish();
+    });
     if (!loader.isLoading()) loader.start();
+    window.setTimeout(finish, 10000);
   });
 }
 
-function cookQueued(scene) {
+async function cookQueued(scene) {
   const jobs = cooks.splice(0, cooks.length);
-  jobs.forEach((job) => {
+  for (let i = 0; i < jobs.length; i += 1) {
+    const job = jobs[i];
     if (!scene.textures.exists(job.dest) && scene.textures.exists(job.src)) {
       TextureFactory.applyChibi(scene, job.src, job.dest, job.knock);
     }
-  });
+    if ((i & 1) === 1) await yieldFrame();
+  }
 }
 
 function mirrorIf(scene, src, dest) {
@@ -123,8 +158,16 @@ function finishChar(scene, charId, skin, champ, lookId) {
 
 export const ArtLoad = {
   async flush(scene) {
-    await waitLoad(scene);
-    cookQueued(scene);
+    const prev = flushLock;
+    let release = () => {};
+    flushLock = new Promise((resolve) => { release = resolve; });
+    await prev.catch(() => {});
+    try {
+      await waitLoad(scene);
+      await cookQueued(scene);
+    } finally {
+      release();
+    }
   },
 
   async ensureWorn(scene, charId) {

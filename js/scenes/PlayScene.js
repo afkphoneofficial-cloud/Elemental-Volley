@@ -43,7 +43,7 @@ import { NetPlay } from "../systems/NetPlay.js?v=local272";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
-import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local275";
 import { ballFxOf, ballFxFitsChar, drawArmedBallFx } from "../data/ballFx.js?v=local196";
 import {
   GAUGE_MAX,

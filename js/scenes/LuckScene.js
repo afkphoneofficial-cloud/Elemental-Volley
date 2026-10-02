@@ -6,6 +6,7 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { NetPlay } from "../systems/NetPlay.js?v=local272";
 import { clampChamp } from "../data/seasonLooks.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local275";
 
 export class LuckScene extends Phaser.Scene {
   constructor() { super("luck"); }
@@ -87,6 +88,10 @@ export class LuckScene extends Phaser.Scene {
     this.rollDone = false;
     this.pendingGo = null;
     this.picked = false;
+    this.artReady = false;
+    this.wantPlay = false;
+    this._leaving = false;
+    this._playDelay = 0;
     this.off = this.net ? NetPlay.on((msg) => {
       if (msg.t === "luck") this.playNetLuck(msg);
       if (msg.t === "go") this.armGo(msg);
@@ -95,6 +100,7 @@ export class LuckScene extends Phaser.Scene {
       if (this.off) this.off();
       this.clearRollTimers();
     });
+    this.prepArt();
     if (this.net) {
       this._boot = window.setTimeout(() => {
         this.playNetLuck(this.bootLuck || NetPlay.lastLuck);
@@ -102,6 +108,11 @@ export class LuckScene extends Phaser.Scene {
     } else {
       this.rollUntilWinner();
     }
+    this._stuck = window.setTimeout(() => {
+      if (!this.sys || !this.sys.isActive() || this._leaving) return;
+      this.artReady = true;
+      this.leaveToPlay(0);
+    }, 16000);
     makeButton(this, 120, 40, 140, 40, t("nav.back"), () => {
       if (this.net) NetPlay.quit();
       this.scene.start("select");
@@ -119,6 +130,8 @@ export class LuckScene extends Phaser.Scene {
     this._boot = null;
     if (this._retry) window.clearTimeout(this._retry);
     this._retry = null;
+    if (this._stuck) window.clearTimeout(this._stuck);
+    this._stuck = null;
     this.stopPickClock();
   }
 
@@ -148,12 +161,37 @@ export class LuckScene extends Phaser.Scene {
     this.stopPickClock();
     if (this.picked) return;
     this.status.setText(t("luck.autoPick"));
-    if (!this.net && this.pickYou) {
+    if (this.pickYou) {
       const pick = Phaser.Utils.Array.GetRandom(COURTS);
       this.chooseCourt(pick.id);
-    } else if (this.net && this.pickYou) {
-      this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
     }
+  }
+
+  prepArt() {
+    const you = Session.playerId;
+    const foe = Session.botId;
+    if (!you || !foe) {
+      this.artReady = true;
+      this.tryLeave();
+      return;
+    }
+    ArtLoad.ensureMatch(this, you, foe, Session.youSkin, Session.foeSkin, Session.youChamp, Session.foeChamp)
+      .catch(() => {})
+      .then(() => {
+        this.artReady = true;
+        this.tryLeave();
+      });
+  }
+
+  tryLeave() {
+    if (!this.wantPlay || this._leaving) return;
+    if (!this.artReady) return;
+    if (!this.sys || !this.sys.isActive()) return;
+    this._leaving = true;
+    this._rollTimers = this._rollTimers || [];
+    this._rollTimers.push(window.setTimeout(() => {
+      if (this.sys && this.sys.isActive()) this.scene.start("play");
+    }, this._playDelay || 0));
   }
 
   armGo(msg) {
@@ -163,10 +201,9 @@ export class LuckScene extends Phaser.Scene {
   }
 
   leaveToPlay(delay) {
-    this._rollTimers = this._rollTimers || [];
-    this._rollTimers.push(window.setTimeout(() => {
-      if (this.sys && this.sys.isActive()) this.scene.start("play");
-    }, delay || 0));
+    this.wantPlay = true;
+    this._playDelay = delay || 0;
+    this.tryLeave();
   }
 
   goReady(msg) {
@@ -212,6 +249,7 @@ export class LuckScene extends Phaser.Scene {
       if (msg.rival.skin) Session.foeSkin = msg.rival.skin | 0;
       Session.foeChamp = clampChamp(msg.rival.champSet);
     }
+    this.prepArt();
     this.status.setText(t("luck.rolling"));
     this.rollTween(0, () => {
       if (!this.sys || !this.sys.isActive()) return;
@@ -283,8 +321,9 @@ export class LuckScene extends Phaser.Scene {
       this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
       this.status.setText(t("luck.waitGo"));
       NetPlay.pickCourt(id);
+      if (this.goReady({ roomId: this.luckId })) this.leaveToPlay(400);
       return;
     }
-    this.scene.start("play");
+    this.leaveToPlay(0);
   }
 }
