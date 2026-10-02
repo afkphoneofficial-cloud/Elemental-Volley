@@ -16,8 +16,8 @@ import { SelectScene } from "./scenes/SelectScene.js?v=local272";
 import { ShopScene } from "./scenes/ShopScene.js?v=local273";
 import { TopupScene } from "./scenes/TopupScene.js?v=local238";
 import { PassScene } from "./scenes/PassScene.js?v=local238";
-import { PlayScene } from "./scenes/PlayScene.js?v=local275";
-import { LuckScene } from "./scenes/LuckScene.js?v=local275";
+import { PlayScene } from "./scenes/PlayScene.js?v=local276";
+import { LuckScene } from "./scenes/LuckScene.js?v=local276";
 import { WikiScene } from "./scenes/WikiScene.js?v=local180";
 import { ExploreScene } from "./scenes/ExploreScene.js?v=local206";
 import { ResultScene } from "./scenes/ResultScene.js?v=local274";
@@ -107,9 +107,9 @@ NetPlay.on((msg) => {
     live.scene.start("luck", msg);
   }
   if ((msg.t === "go" || msg.t === "rejoin") && key !== "play") {
-    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub" || key === "select" || key === "queue" || key === "luck") return;
+    if (NetPlay.settled || key === "result" || key === "auth" || key === "hub" || key === "select" || key === "queue") return;
     const luck = NetPlay.lastLuck;
-    if (msg.t === "go" && luck && luck.roomId === msg.roomId) {
+    if (msg.t === "go" && luck && luck.roomId === msg.roomId && key !== "luck") {
       Session.net = true;
       live.scene.start("luck", luck);
       return;

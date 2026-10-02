@@ -43,7 +43,7 @@ import { NetPlay } from "../systems/NetPlay.js?v=local272";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
-import { ArtLoad } from "../systems/ArtLoad.js?v=local275";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local276";
 import { ballFxOf, ballFxFitsChar, drawArmedBallFx } from "../data/ballFx.js?v=local196";
 import {
   GAUGE_MAX,
@@ -85,6 +85,14 @@ export class PlayScene extends Phaser.Scene {
       if (this._artReady === "load") return;
       this._artReady = "load";
       this.events.once("shutdown", () => { this._artReady = false; });
+      const W = GAME.width;
+      const H = GAME.height;
+      this._bootBits = [
+        this.add.rectangle(W / 2, H / 2, W, H, 0xfff6ea),
+        this.add.text(W / 2, H / 2, t("board.loading"), {
+          fontFamily: UI_FONT, fontSize: "28px", fontStyle: "900", color: "#3a2418"
+        }).setOrigin(0.5)
+      ];
       ArtLoad.ensureMatch(this, this.youData.id, this.botData.id, this.youSkin, this.foeSkin, this.youChamp, this.foeChamp).then(() => {
         this._artReady = true;
         if (this.sys && this.sys.isActive()) this.create();
@@ -94,6 +102,8 @@ export class PlayScene extends Phaser.Scene {
       });
       return;
     }
+    (this._bootBits || []).forEach((o) => { try { o.destroy(); } catch (e) {} });
+    this._bootBits = null;
     this.score = [0, 0];
     this.p2Serves = this.firstServeIsP2();
     this.matchOver = false;
