@@ -329,6 +329,31 @@ export function exhibitFillMs() {
   return (3 + Math.floor(Math.random() * 13)) * 1000;
 }
 
+export function rankFillMs() {
+  return (6 + Math.floor(Math.random() * 13)) * 1000;
+}
+
+function rankCrowdAt(ms, salt) {
+  const day = bangkokDay();
+  const slot = Math.floor(ms / 10000);
+  const from = Math.max(0, slot - 24);
+  let n = Math.floor(hash01(from * 37 + day * (salt | 0) + 5) * 9);
+  for (let s = from + 1; s <= slot; s += 1) {
+    const step = Math.floor(hash01(s * 71 + day * (salt | 0) + 13) * 5) - 2;
+    n = Math.max(0, Math.min(8, n + step));
+  }
+  return n;
+}
+
+export function rankedWaitShown(real, self, kind) {
+  const key = kind === "special" ? "special" : "pvp";
+  if (!isRankWindowOpen(key)) return Math.max(0, real | 0);
+  const crowd = rankCrowdAt(Date.now(), key === "special" ? 23 : 17);
+  let n = Math.min(8, Math.max(real | 0, crowd));
+  if (self && n < 1) n = 1;
+  return n;
+}
+
 function pickFrom(list, avoidId, avoidName) {
   const id = String(avoidId || "");
   const name = String(avoidName || "").trim().toLowerCase();
@@ -348,12 +373,13 @@ function handName(hand) {
   return "normal";
 }
 
-export function startIsleExhibit(scene, youId, youName) {
+function startIsleMatch(scene, youId, youName, mode) {
   const row = pickIsleFoe(youId, youName);
   const hand = handName(row.hand);
   const id = youId || Session.playerId || "ignis";
-  Session.mode = "exhibit";
-  Session.exhibitCasual = true;
+  const kind = mode === "special" ? "special" : mode === "exhibit" ? "exhibit" : "pvp";
+  Session.mode = kind;
+  Session.exhibitCasual = kind === "exhibit";
   Session.exhibitFriendId = null;
   Session.exhibitIncoming = false;
   Session.net = false;
@@ -380,7 +406,16 @@ export function startIsleExhibit(scene, youId, youName) {
     mostUsed: row.fighter,
     difficulty: hand,
     skin: row.skin,
-    champSet: 0
+    champSet: 0,
+    titleId: boardTitle(row.i | 0, row.mmr | 0, kind === "exhibit" ? "pvp" : kind) || ""
   };
   scene.scene.start("luck");
+}
+
+export function startIsleExhibit(scene, youId, youName) {
+  startIsleMatch(scene, youId, youName, "exhibit");
+}
+
+export function startIsleRank(scene, youId, youName) {
+  startIsleMatch(scene, youId, youName, Session.mode === "special" ? "special" : "pvp");
 }

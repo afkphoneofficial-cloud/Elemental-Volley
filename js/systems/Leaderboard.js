@@ -4,7 +4,7 @@ import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { TitleSystem } from "./TitleSystem.js?v=local267";
-import { mixRankRows, placeAfterMix } from "./IsleLive.js?v=local274";
+import { mixRankRows, placeAfterMix } from "./IsleLive.js?v=local275";
 import { AudioSystem } from "./AudioSystem.js";
 
 function els() {

@@ -4,12 +4,12 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local275";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
 import { RosterCarousel } from "../ui/RosterCarousel.js?v=local265";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local272";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local275";
 
 export class SelectScene extends Phaser.Scene {
   constructor() { super("select"); }
@@ -77,8 +77,8 @@ export class SelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(20);
     this.refreshPick();
 
-    if (this.pvpMode || this.exhibitMode) {
-      this.waitLine = this.add.text(W / 2, 508, MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"), {
+    if (this.pvpMode || this.exhibitMode || this.specialMode) {
+      this.waitLine = this.add.text(W / 2, 508, MatchLive.label(t, this.pvpMode ? "pvp" : this.specialMode ? "special" : "exhibit"), {
         fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16"
       }).setOrigin(0.5).setDepth(20);
       this.refreshWait();
@@ -141,12 +141,15 @@ export class SelectScene extends Phaser.Scene {
           return;
         }
         Session.mode = "special";
+        Session.exhibitCasual = false;
+        Session.exhibitFriendId = null;
+        Session.exhibitIncoming = false;
         const lv = SaveSystem.growthOf(this.pick).level;
         if (lv < GROWTH_SPECIAL_LV) {
           this.pickText.setText(t("growth.specialNeed", { n: GROWTH_SPECIAL_LV }));
           return;
         }
-        this.pickText.setText(t("growth.specialSoon"));
+        this.scene.start("queue");
       });
     } else {
       makeButton(this, W / 2, 560, 360, 52, t("select.explore"), () => {
@@ -184,7 +187,7 @@ export class SelectScene extends Phaser.Scene {
 
   paintWaitLine() {
     if (!this.sys || !this.sys.isActive() || !this.waitLine) return;
-    this.waitLine.setText(MatchLive.label(t, this.pvpMode ? "pvp" : "exhibit"));
+    this.waitLine.setText(MatchLive.label(t, this.pvpMode ? "pvp" : this.specialMode ? "special" : "exhibit"));
   }
 
   refreshWait() {
