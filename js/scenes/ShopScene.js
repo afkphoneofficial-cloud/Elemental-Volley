@@ -17,6 +17,7 @@ import { openLookPreview, closeLookPreview } from "../ui/shopLookPreview.js";
 import { openBallPreview, closeBallPreview } from "../ui/shopBallPreview.js?v=local196";
 import { openOrbPreview, closeOrbPreview } from "../ui/shopOrbPreview.js?v=local201";
 import { COSTUME_TIERS, shopLooksInTier, shopLookVis, shopLookLabel, costumeTierLabel } from "../data/costumeShop.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 
 const CARD_W = 196;
 const CARD_H = 236;
@@ -61,7 +62,11 @@ export class ShopScene extends Phaser.Scene {
     })), this.tab);
 
     if (this.tab === "fighters") this.paintFighters();
-    else if (this.tab === "cosmetics") this.paintCosmetics();
+    else if (this.tab === "cosmetics") {
+      void ArtLoad.ensureShopTier(this, this.costumeTier).then(() => {
+        if (this.sys && this.sys.isActive()) this.paintCosmetics();
+      });
+    }
     else if (this.tab === "effect") this.paintEffects();
     else if (this.tab === "items") this.paintItems();
     else this.paintTrade();

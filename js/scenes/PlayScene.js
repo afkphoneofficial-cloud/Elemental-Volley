@@ -43,6 +43,7 @@ import { NetPlay } from "../systems/NetPlay.js?v=local272";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 import { ballFxOf, ballFxFitsChar, drawArmedBallFx } from "../data/ballFx.js?v=local196";
 import {
   GAUGE_MAX,
@@ -80,6 +81,19 @@ export class PlayScene extends Phaser.Scene {
     this.foeSkin = clampSkin(Session.foeSkin || (Session.rival && Session.rival.skin) || 1);
     this.youChamp = this.net ? (Session.youChamp | 0) : champSetOf(this.youData.id);
     this.foeChamp = Session.foeChamp | 0;
+    if (this._artReady !== true) {
+      if (this._artReady === "load") return;
+      this._artReady = "load";
+      this.events.once("shutdown", () => { this._artReady = false; });
+      ArtLoad.ensureMatch(this, this.youData.id, this.botData.id, this.youSkin, this.foeSkin, this.youChamp, this.foeChamp).then(() => {
+        this._artReady = true;
+        if (this.sys && this.sys.isActive()) this.create();
+      }).catch(() => {
+        this._artReady = true;
+        if (this.sys && this.sys.isActive()) this.create();
+      });
+      return;
+    }
     this.score = [0, 0];
     this.p2Serves = this.firstServeIsP2();
     this.matchOver = false;

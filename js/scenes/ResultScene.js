@@ -18,6 +18,7 @@ import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { TouchControls } from "../ui/TouchControls.js";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
 import { texHeroSelect } from "../data/seasonLooks.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 
 const SEASON_FX = {
   summer: { burst: [0xffe08a, 0xff6a22, 0xffffff], glow: 0xff8a3a },
@@ -87,6 +88,7 @@ export class ResultScene extends Phaser.Scene {
     this.xpUpHold = 0;
     const youId = this.payload.youId || Session.playerId;
     this.youId = youId;
+    void ArtLoad.ensureWorn(this, youId);
     if (pay.xp) {
       const pre = SaveSystem.growthOf(youId);
       this.xpBefore = { level: pre.level | 0, into: pre.into | 0, need: pre.need | 0 };

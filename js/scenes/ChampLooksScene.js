@@ -4,12 +4,26 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, charName } from "../i18n/I18n.js?v=local232";
 import { paintSkinAura } from "../fx/SkinAura.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 
 export class ChampLooksScene extends Phaser.Scene {
   constructor() { super("champLooks"); }
 
   create() {
     if (!AuthSystem.guard(this)) return;
+    if (this._artReady !== true) {
+      if (this._artReady === "load") return;
+      this._artReady = "load";
+      this.events.once("shutdown", () => { this._artReady = false; });
+      ArtLoad.ensureChampLooks(this).then(() => {
+        this._artReady = true;
+        if (this.sys && this.sys.isActive()) this.create();
+      }).catch(() => {
+        this._artReady = true;
+        if (this.sys && this.sys.isActive()) this.create();
+      });
+      return;
+    }
     drawGrid(this);
     const W = this.scale.width;
     const H = this.scale.height;

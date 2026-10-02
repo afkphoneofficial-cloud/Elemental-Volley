@@ -7,6 +7,7 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js?v=local271";
 import { SELECT_PLATE, drawOrbit, paintHopFx } from "../fx/SelectHover.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 
 export class DressScene extends Phaser.Scene {
   constructor() { super("dress"); }
@@ -37,6 +38,9 @@ export class DressScene extends Phaser.Scene {
         this.view = "f";
         this.refresh();
         AudioSystem.ui();
+        void ArtLoad.ensureSkinSet(this, id).then(() => {
+          if (this.sys && this.sys.isActive() && this.charId === id) this.refresh();
+        });
       }, SaveSystem.isUnlocked(id) ? 0xffb14a : 0xc8bdd8);
     });
 
@@ -130,6 +134,9 @@ export class DressScene extends Phaser.Scene {
 
     this.refresh();
     AudioSystem.playMenu();
+    void ArtLoad.ensureSkinSet(this, this.charId).then(() => {
+      if (this.sys && this.sys.isActive()) this.refresh();
+    });
   }
 
   hop() {

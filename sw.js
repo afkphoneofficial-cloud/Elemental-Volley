@@ -10,7 +10,8 @@ self.addEventListener("activate", (ev) => {
 
 self.addEventListener("fetch", (ev) => {
   if (ev.request.method !== "GET") return;
-  ev.respondWith(
-    fetch(ev.request).catch(() => caches.match(ev.request).then((hit) => hit || Response.error()))
-  );
+  let path = "";
+  try { path = new URL(ev.request.url).pathname || ""; } catch (e) { return; }
+  if (path.indexOf("/assets/") === 0) return;
+  ev.respondWith(fetch(ev.request));
 });

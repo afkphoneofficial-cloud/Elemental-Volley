@@ -25,7 +25,8 @@ export class BootScene extends Phaser.Scene {
     } catch (e) {
       TextureFactory.lightMobile = true;
     }
-    this.load.maxParallelDownloads = TextureFactory.lightMobile ? 4 : 8;
+    const light = TextureFactory.lightMobile;
+    this.load.maxParallelDownloads = light ? 3 : 8;
     this.load.on("loaderror", () => {});
     this.load.on("progress", (v) => BootSplash.setProgress(0.16 + v * 0.62));
     IDS.forEach((id) => {
@@ -33,12 +34,14 @@ export class BootScene extends Phaser.Scene {
       this.load.image("chibi-" + id + "-left", "assets/sprites/" + id + "-left.png");
       this.load.image("chibi-" + id + "-right", "assets/sprites/" + id + "-right.png");
       this.load.image("select-" + id, "assets/sprites/select-" + id + ".png");
-      [1, 2, 3, 4, 5].forEach((n) => {
+      this.load.image("dive-" + id + "-t1-l", "assets/sprites/skins/" + id + "-t1-dive-left.png");
+      this.load.image("dive-" + id + "-t1-r", "assets/sprites/skins/" + id + "-t1-dive-right.png");
+      this.load.image("cheer-" + id + "-t1", "assets/sprites/skins/" + id + "-t1-cheer.png");
+      if (light) return;
+      [2, 3, 4, 5].forEach((n) => {
         this.load.image("dive-" + id + "-t" + n + "-l", "assets/sprites/skins/" + id + "-t" + n + "-dive-left.png");
         this.load.image("dive-" + id + "-t" + n + "-r", "assets/sprites/skins/" + id + "-t" + n + "-dive-right.png");
         this.load.image("cheer-" + id + "-t" + n, "assets/sprites/skins/" + id + "-t" + n + "-cheer.png");
-      });
-      [2, 3, 4, 5].forEach((n) => {
         this.load.image("select-" + id + "-t" + n, "assets/sprites/skins/select-" + id + "-t" + n + ".png");
         this.load.image("skin-" + id + "-t" + n + "-l", "assets/sprites/skins/" + id + "-t" + n + "-left.png");
         this.load.image("skin-" + id + "-t" + n + "-r", "assets/sprites/skins/" + id + "-t" + n + "-right.png");
@@ -70,9 +73,11 @@ export class BootScene extends Phaser.Scene {
     this.load.image("item-plate-runner", "assets/sprites/items/item-plate-runner.png");
     this.load.image("item-plate-frame", "assets/sprites/items/item-plate-frame.png");
     this.load.image("item-cheer-champ", "assets/sprites/items/item-cheer-champ.png");
-    SEASON_ART.forEach((id) => {
-      this.load.image(id, "assets/sprites/season/" + id + ".png");
-    });
+    if (!light) {
+      SEASON_ART.forEach((id) => {
+        this.load.image(id, "assets/sprites/season/" + id + ".png");
+      });
+    }
     this.load.image("ball-art", "assets/sprites/ball.png");
     BALL_FX.forEach((row) => {
       this.load.image(row.tex, row.src);
@@ -92,12 +97,14 @@ export class BootScene extends Phaser.Scene {
       this.load.image(badgeKey(row.id), "assets/sprites/ranks/" + row.id + ".png");
     });
     this.load.image(badgeKey(RANK_CAL_ID), "assets/sprites/ranks/" + RANK_CAL_ID + ".png");
-    SHOP_LOOKS.forEach((row) => {
-      SHOP_LOOK_POSES.forEach((pose) => {
-        if (!pose.file) return;
-        this.load.image(shopLookLoadKey(row.id, pose.file), shopLookSrc(row.id, pose.file));
+    if (!light) {
+      SHOP_LOOKS.forEach((row) => {
+        SHOP_LOOK_POSES.forEach((pose) => {
+          if (!pose.file) return;
+          this.load.image(shopLookLoadKey(row.id, pose.file), shopLookSrc(row.id, pose.file));
+        });
       });
-    });
+    }
   }
 
   create() {
@@ -147,7 +154,7 @@ export class BootScene extends Phaser.Scene {
       chibi("item-plate-runner", "item-plate-runner");
       chibi("item-plate-frame", "item-plate-frame");
       chibi("item-cheer-champ", "item-cheer-champ");
-      SEASON_ART.forEach((id) => {
+      if (!TextureFactory.lightMobile) SEASON_ART.forEach((id) => {
         let dest = id;
         if (id.indexOf("select-champ-") === 0) {
           dest = "vis_select_champ_" + id.slice("select-champ-".length).replace("-", "_");
@@ -161,7 +168,7 @@ export class BootScene extends Phaser.Scene {
         }
         chibi(id, dest);
       });
-      ["ignis", "aqua", "volt", "terra"].forEach((id) => {
+      if (!TextureFactory.lightMobile) ["ignis", "aqua", "volt", "terra"].forEach((id) => {
         [1, 2, 3].forEach((n) => {
           maybeMirror("vis_champ_" + id + "_" + n + "_l", "vis_champ_" + id + "_" + n + "_r");
           maybeMirror("vis_champ_" + id + "_" + n + "_r", "vis_champ_" + id + "_" + n + "_l");
@@ -184,6 +191,7 @@ export class BootScene extends Phaser.Scene {
         maybeMirror("vis_" + id + "_dive_r", "vis_" + id + "_dive_l");
         maybeMirror("vis_" + id + "_l", "vis_" + id + "_r");
         maybeMirror("vis_" + id + "_r", "vis_" + id + "_l");
+        if (TextureFactory.lightMobile) return;
         [2, 3, 4, 5].forEach((n) => {
           chibi("select-" + id + "-t" + n, "vis_select_" + id + "_" + n);
           chibi("skin-" + id + "-t" + n + "-l", "vis_" + id + "_" + n + "_l");
@@ -197,7 +205,7 @@ export class BootScene extends Phaser.Scene {
           maybeMirror("vis_" + id + "_" + n + "_dive_r", "vis_" + id + "_" + n + "_dive_l");
         });
       });
-      SHOP_LOOKS.forEach((row) => {
+      if (!TextureFactory.lightMobile) SHOP_LOOKS.forEach((row) => {
         SHOP_LOOK_POSES.forEach((pose) => {
           if (!pose.file) return;
           chibi(shopLookLoadKey(row.id, pose.file), shopLookVis(row.id, pose.vis));

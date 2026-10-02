@@ -26,6 +26,7 @@ import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLay
 import { PASS, monthId, passLookOf, dayKey } from "../data/monthPass.js?v=local171";
 import { topupOpen } from "../data/beta.js";
 import { shopLookVis, shopLookLabel } from "../data/costumeShop.js";
+import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 import { dailyGiftOn, dailyMonthTable, dailyLookOf, dailyMonthPad, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { openRewardPop } from "../ui/rewardPop.js?v=local190";
@@ -137,6 +138,10 @@ export class HubScene extends Phaser.Scene {
     this.heroSkin = SaveSystem.skinOf(heroId);
     this.heroY = heroY;
     this.heroImg = this.add.image(heroX, heroY - 6, heroKey).setDisplaySize(252, 252).setDepth(6);
+    void ArtLoad.ensureWorn(this, heroId).then(() => {
+      if (!this.sys || !this.sys.isActive() || !this.heroImg) return;
+      this.heroImg.setTexture(texHeroSelect(this, heroId)).setDisplaySize(252, 252);
+    });
     this.heroName = this.add.text(heroX, 424, charName(heroId), {
       fontFamily: UI_FONT, fontSize: "22px", fontStyle: "800", color: "#3a2418"
     }).setOrigin(0.5);
@@ -582,11 +587,15 @@ export class HubScene extends Phaser.Scene {
     const next = owned[(i + dir + owned.length) % owned.length];
     SaveSystem.setShowcase(next);
     AudioSystem.ui();
-    const key = texHeroSelect(this, next);
-    if (this.heroImg) this.heroImg.setTexture(key).setDisplaySize(252, 252);
-    if (this.heroName) this.heroName.setText(charName(next));
     this.heroId = next;
     this.heroSkin = SaveSystem.skinOf(next);
+    const paint = () => {
+      if (!this.sys || !this.sys.isActive() || !this.heroImg) return;
+      this.heroImg.setTexture(texHeroSelect(this, next)).setDisplaySize(252, 252);
+      if (this.heroName) this.heroName.setText(charName(next));
+    };
+    paint();
+    void ArtLoad.ensureWorn(this, next).then(paint);
   }
 
   update(now) {
