@@ -4,7 +4,7 @@ import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local266";
+import { NetPlay } from "../systems/NetPlay.js?v=local267";
 import { clampChamp } from "../data/seasonLooks.js";
 
 export class LuckScene extends Phaser.Scene {
@@ -205,7 +205,8 @@ export class LuckScene extends Phaser.Scene {
         mostUsed: msg.rival.mostUsed,
         difficulty: "normal",
         skin: msg.rival.skin | 0 || 1,
-        champSet: clampChamp(msg.rival.champSet)
+        champSet: clampChamp(msg.rival.champSet),
+        titleId: msg.rival.titleId || msg.rival.title_id || msg.rival.title || ""
       };
       Session.botId = msg.rival.fighter || Session.botId;
       if (msg.rival.skin) Session.foeSkin = msg.rival.skin | 0;

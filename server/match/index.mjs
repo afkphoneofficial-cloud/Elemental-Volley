@@ -75,6 +75,7 @@ function preview(p) {
   return {
     id: p.id,
     name: p.name,
+    titleId: p.title || "",
     avatarId: p.avatar,
     fighter: p.fighter,
     mmr: p.mmr | 0,
@@ -690,6 +691,7 @@ function onHello(ws, user, body) {
     ws,
     id: user.id,
     name: String(body.name || "player").slice(0, 12),
+    title: String(body.title || "").slice(0, 40),
     avatar: body.avatar || "av01",
     fighter: (body.fighter || (prev && prev.fighter) || "ignis"),
     mmr: body.mmr | 0,

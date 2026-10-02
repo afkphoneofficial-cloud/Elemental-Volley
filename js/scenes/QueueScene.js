@@ -4,16 +4,17 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local267";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local266";
+import { NetPlay } from "../systems/NetPlay.js?v=local267";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { maintenanceNow } from "../data/maintenance.js";
 import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local266";
 import { startIsleExhibit } from "../systems/IsleLive.js?v=local266";
+import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 
 function formatWait(ms) {
   const sec = Math.max(0, Math.floor(ms / 1000));
@@ -38,7 +39,8 @@ function searchStatus() {
 
 function rivalLabel(rival) {
   if (!rival) return "";
-  return I18n.lang === "en" ? rival.nameEn : rival.nameTh;
+  const n = I18n.lang === "en" ? rival.nameEn : rival.nameTh;
+  return TitleSystem.withLabel(n, rival.titleId);
 }
 
 export class QueueScene extends Phaser.Scene {
@@ -253,7 +255,8 @@ export class QueueScene extends Phaser.Scene {
         mostUsed: msg.rival.mostUsed,
         difficulty: "normal",
         skin: msg.rival.skin | 0 || 1,
-        champSet: clampChamp(msg.rival.champSet)
+        champSet: clampChamp(msg.rival.champSet),
+        titleId: msg.rival.titleId || msg.rival.title_id || msg.rival.title || ""
       };
     }
     Session.youSide = msg.youSide === 2 ? 2 : 1;
@@ -295,7 +298,8 @@ export class QueueScene extends Phaser.Scene {
       mostUsed: rival.mostUsed,
       difficulty: "normal",
       skin: rival.skin | 0 || 1,
-      champSet: clampChamp(rival.champSet)
+      champSet: clampChamp(rival.champSet),
+      titleId: rival.titleId || rival.title_id || rival.title || ""
     };
     Session.foeSkin = clampSkin(Session.rival.skin);
     Session.foeChamp = Session.rival.champSet;

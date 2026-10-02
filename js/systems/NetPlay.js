@@ -115,6 +115,7 @@ export const NetPlay = {
         t: "hello",
         token,
         name: AuthSystem.displayName() || "player",
+        title: (SaveSystem.data.titles && SaveSystem.data.titles.worn) || "",
         avatar: SaveSystem.data.avatarId || "av01",
         fighter: Session.playerId,
         skin: fighterSkin(),
@@ -186,7 +187,8 @@ export const NetPlay = {
             mostUsed: msg.rival.mostUsed,
             difficulty: "normal",
             skin: clampSkin(msg.foeSkin || msg.rival.skin || 1),
-            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet)
+            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet),
+            titleId: msg.rival.titleId || msg.rival.title_id || msg.rival.title || ""
           };
         }
       }
@@ -212,7 +214,8 @@ export const NetPlay = {
             mostUsed: msg.rival.mostUsed,
             difficulty: "normal",
             skin: clampSkin(msg.foeSkin || msg.rival.skin || 1),
-            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet)
+            champSet: clampChamp(msg.foeChamp != null ? msg.foeChamp : msg.rival.champSet),
+            titleId: msg.rival.titleId || msg.rival.title_id || msg.rival.title || ""
           };
         }
       }

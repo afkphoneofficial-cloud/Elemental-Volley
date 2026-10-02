@@ -3,7 +3,7 @@ import { SaveSystem } from "./SaveSystem.js";
 import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
-import { TitleSystem } from "./TitleSystem.js?v=local266";
+import { TitleSystem } from "./TitleSystem.js?v=local267";
 import { mixRankRows, placeAfterMix } from "./IsleLive.js?v=local266";
 import { AudioSystem } from "./AudioSystem.js";
 

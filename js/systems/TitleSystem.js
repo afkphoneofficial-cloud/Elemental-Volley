@@ -91,15 +91,24 @@ export const TitleSystem = {
   },
 
   named(save, base) {
+    return this.withLabel(base, save && save.titles && save.titles.worn);
+  },
+
+  withLabel(base, titleId) {
     const name = base || "";
-    const row = this.worn(save);
+    const row = titleById(titleId);
     if (!row) return name;
     return name + "  " + this.label(row);
   },
 
   boardWorn(row, youId, save) {
-    if (!row || !youId || String(row.id) !== String(youId)) return null;
-    return this.worn(save);
+    if (!row) return null;
+    let id = "";
+    if (youId && String(row.id) === String(youId) && save && save.titles) {
+      id = save.titles.worn || "";
+    }
+    if (!id) id = row.title_id || row.titleId || "";
+    return titleById(id);
   },
 
   giftMail() {
