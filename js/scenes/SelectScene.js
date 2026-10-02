@@ -8,7 +8,7 @@ import { t, I18n, charName } from "../i18n/I18n.js?v=local258";
 import { STAT_IDS, GROWTH_SPECIAL_LV } from "../data/growth.js?v=local206";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { champSetOf } from "../data/seasonLooks.js";
-import { RosterCarousel } from "../ui/RosterCarousel.js";
+import { RosterCarousel } from "../ui/RosterCarousel.js?v=local265";
 import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local258";
 
 export class SelectScene extends Phaser.Scene {
@@ -30,7 +30,9 @@ export class SelectScene extends Phaser.Scene {
       this.scene.start("mode");
       return;
     }
-    this.input.setTopOnly(true);
+    this.input.enabled = true;
+    this.input.setTopOnly(false);
+    this.events.once("shutdown", () => this.teardown());
     drawGrid(this);
     const W = this.scale.width;
     this.pick = SaveSystem.isUnlocked(SaveSystem.data.starterId)
@@ -161,6 +163,14 @@ export class SelectScene extends Phaser.Scene {
     makeButton(this, 120, 48, 140, 40, t("nav.back"), () => {
       this.scene.start(AuthSystem.isGuest() ? "auth" : "mode");
     }, 0x7d5cff);
+  }
+
+  teardown() {
+    try { if (this.carousel) this.carousel.destroy(); } catch (e) {}
+    this.carousel = null;
+    try { if (this.hopSpark) this.hopSpark.destroy(); } catch (e) {}
+    this.hopSpark = null;
+    try { this.input.setTopOnly(false); } catch (e) {}
   }
 
   armYou() {

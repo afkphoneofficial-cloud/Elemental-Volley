@@ -15,6 +15,7 @@ import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js?v=local258";
 import { Leaderboard } from "../systems/Leaderboard.js";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
+import { TouchControls } from "../ui/TouchControls.js";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
 import { texHeroSelect } from "../data/seasonLooks.js";
 
@@ -98,6 +99,10 @@ export class ResultScene extends Phaser.Scene {
     if (Session.net) NetPlay.send({ t: "done" });
     Session.net = false;
     Session.netHost = false;
+    try {
+      NetPlay.settled = true;
+      NetPlay.stopPing();
+    } catch (e) {}
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
@@ -146,27 +151,27 @@ export class ResultScene extends Phaser.Scene {
         Session.exhibitCasual = true;
         Session.exhibitFriendId = null;
         Session.rival = null;
-        this.scene.start("select");
+        this.leaveTo("select");
       });
       this.shopBtn = makeButton(this, W / 2 + 190, 640, 300, 52, t("auth.register"), () => {
-        AuthSystem.endGuestForRegister().then(() => this.scene.start("auth"));
+        AuthSystem.endGuestForRegister().then(() => this.leaveTo("auth"));
       }, 0xffb14a);
       this.hubBtn = null;
     } else {
       this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => {
         const kind = Session.mode;
         if ((kind === "pvp" || kind === "special") && !isRankWindowOpen(kind)) {
-          this.scene.start("mode");
+          this.leaveTo("mode");
           return;
         }
         if (Session.trainStage) {
-          this.scene.start("explore", { from: "select" });
+          this.leaveTo("explore", { from: "select" });
           return;
         }
-        this.scene.start("select");
+        this.leaveTo("select");
       });
-      this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.scene.start("shop"), 0xc8ff3a);
-      this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.scene.start("hub"), 0x7d5cff);
+      this.shopBtn = makeButton(this, W / 2, 640, 260, 52, t("result.shop"), () => this.leaveTo("shop"), 0xc8ff3a);
+      this.hubBtn = makeButton(this, W / 2 + 300, 640, 260, 52, t("result.hub"), () => this.leaveTo("hub"), 0x7d5cff);
     }
     this.showPage(this.hasLoot ? "loot" : "verdict");
     this.applyLang();
@@ -174,6 +179,26 @@ export class ResultScene extends Phaser.Scene {
     AudioSystem.score();
     AudioSystem.playMenu();
     this.cameras.main.fadeIn(220, 8, 6, 10);
+  }
+
+  leaveTo(key, data) {
+    try {
+      NetPlay.settled = true;
+      Session.net = false;
+      Session.netHost = false;
+      NetPlay.stopPing();
+      NetPlay.ticks.length = 0;
+      NetPlay.snap = null;
+    } catch (e) {}
+    try { TouchControls.setPlayActive(false); } catch (e) {}
+    ["exhibit-overlay", "friend-overlay"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = true;
+    });
+    ["play", "luck", "queue"].forEach((name) => {
+      try { this.scene.stop(name); } catch (e) {}
+    });
+    this.scene.start(key, data);
   }
 
   keep(page, obj) {

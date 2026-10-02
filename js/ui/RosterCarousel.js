@@ -28,12 +28,7 @@ export class RosterCarousel {
 
     this.strip = scene.add.container(0, 0).setDepth(this.depth);
     const W = scene.scale.width;
-    const maskG = scene.make.graphics();
-    maskG.fillStyle(0xffffff, 1);
-    maskG.fillRect(108, this.cy - 168, W - 216, 336);
-    maskG.setVisible(false);
-    this.strip.setMask(maskG.createGeometryMask());
-    this.maskG = maskG;
+    this.maskG = null;
 
     this.ids.forEach((id) => this.spawnCard(id));
 
@@ -176,13 +171,18 @@ export class RosterCarousel {
       hold: 30,
       onComplete: () => {
         card.hopping = false;
-        card.sprite.y = card.landY;
-        if (this.isActive(card)) this.scene.time.delayedCall(90, () => this.hopOnce(card));
+        if (card.sprite && card.sprite.active) card.sprite.y = card.landY;
+        if (!this.scene || !this.scene.sys || !this.scene.sys.isActive()) return;
+        if (this.isActive(card)) this.scene.time.delayedCall(90, () => {
+          if (!this.scene || !this.scene.sys || !this.scene.sys.isActive()) return;
+          this.hopOnce(card);
+        });
       }
     });
   }
 
   update(now) {
+    if (!this.scene || !this.scene.sys || !this.scene.sys.isActive()) return;
     this.cards.forEach((card) => {
       const on = this.isActive(card);
       if (card.aura) {
@@ -208,12 +208,19 @@ export class RosterCarousel {
   }
 
   destroy() {
-    if (this._onWheel) this.scene.input.off("wheel", this._onWheel);
+    try {
+      if (this._onWheel && this.scene && this.scene.input) this.scene.input.off("wheel", this._onWheel);
+    } catch (e) {}
     this._onWheel = null;
-    this.cards.forEach((card) => this.scene.tweens.killTweensOf(card.box, card.sprite));
-    if (this.strip) this.strip.destroy(true);
-    if (this.maskG) this.maskG.destroy();
-    if (this.nameText) this.nameText.destroy();
-    if (this.tagText) this.tagText.destroy();
+    this.cards.forEach((card) => {
+      try { this.scene.tweens.killTweensOf(card.box); } catch (e) {}
+      try { this.scene.tweens.killTweensOf(card.sprite); } catch (e) {}
+    });
+    try { if (this.strip) this.strip.destroy(true); } catch (e) {}
+    try { if (this.maskG) this.maskG.destroy(); } catch (e) {}
+    try { if (this.nameText) this.nameText.destroy(); } catch (e) {}
+    try { if (this.tagText) this.tagText.destroy(); } catch (e) {}
+    this.cards = [];
+    this.strip = null;
   }
 }

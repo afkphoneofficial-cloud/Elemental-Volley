@@ -201,6 +201,9 @@ export class PlayScene extends Phaser.Scene {
       if (this.offNet) this.offNet();
       TouchControls.setPlayActive(false);
       this.tweens.timeScale = 1;
+      this.time.timeScale = 1;
+      this.worldRate = 1;
+      this.input.enabled = true;
       if (this.cameras && this.cameras.main) this.cameras.main.setZoom(1);
       AudioSystem.playMenu();
     });
