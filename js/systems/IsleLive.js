@@ -4,7 +4,7 @@ import { SaveSystem } from "./SaveSystem.js";
 import { champSetOf } from "../data/seasonLooks.js";
 
 const FIGHTERS = ["ignis", "aqua", "volt", "terra"];
-const BOARD_N = 23;
+const BOARD_N = 61;
 
 const NAMES = [
   "kaii", "Beamz", "firstz", "Pondd", "milkk",
@@ -18,7 +18,13 @@ const NAMES = [
   "Emma", "Noel", "Lunaa", "winwin", "mildd",
   "Icee", "peach", "zomz", "gulf", "Earthh",
   "น้องมิว", "พี่แบม", "ฟ้าใส", "กอล์ฟ", "ตั้ม",
-  "ปิงปิง"
+  "ปิงปิง",
+  "Teez", "Offz", "Timmy", "Benny", "Chloe",
+  "Ivy", "Maxx", "Cole", "Nico", "Elio",
+  "Vera", "Sage", "Wren", "Palo", "Kira",
+  "Nori", "Tobi", "Mika", "Rene", "Quin",
+  "Faye", "Lars", "Theo", "Nyla", "Coco",
+  "Yok", "Nan", "Jin", "Pai", "Deww"
 ];
 
 const MMRS = [
@@ -58,9 +64,20 @@ function winsOf(games, hand) {
   return Math.max(0, Math.min(games, Math.round(games * rate)));
 }
 
+function mmrOf(i) {
+  if (i < MMRS.length) return MMRS[i];
+  const v = 638 + ((i * 47 + 23) % 1171);
+  return v % 10 === 0 ? v + 3 : v;
+}
+
+function gamesOf(i) {
+  if (i < GAMES.length) return GAMES[i];
+  return 5 + ((i * 13 + 7) % 68);
+}
+
 const ISLE = NAMES.map((name, i) => {
-  const mmr = MMRS[i];
-  const games = GAMES[i];
+  const mmr = mmrOf(i);
+  const games = gamesOf(i);
   const hand = handOf(i, mmr);
   const wins = winsOf(games, hand);
   return {

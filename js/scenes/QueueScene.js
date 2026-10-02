@@ -13,7 +13,7 @@ import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { maintenanceNow } from "../data/maintenance.js";
 import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local266";
-import { startIsleExhibit } from "../systems/IsleLive.js?v=local269";
+import { startIsleExhibit } from "../systems/IsleLive.js?v=local270";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 
 function formatWait(ms) {

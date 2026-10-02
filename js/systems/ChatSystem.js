@@ -4,7 +4,7 @@ import { ChatFilter } from "./ChatFilter.js";
 import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
-import { Presence } from "./Presence.js?v=local269";
+import { Presence } from "./Presence.js?v=local270";
 
 const SHOW = new Set(["hub"]);
 
