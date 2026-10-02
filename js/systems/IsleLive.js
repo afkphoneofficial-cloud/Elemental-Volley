@@ -175,12 +175,39 @@ function liveGames(i, seed, slot) {
   return gamesOf(i) + (slot | 0) * 2 + wave;
 }
 
-function asRow(p, seed, slot) {
+const TITLE_PVP = [
+  "rp-first", "rp-w1", "rp-w10", "rp-cal", "rp-g25", "rp-ws3", "rp-l1",
+  "ex-first", "ex-g10", "ex-w1", "ex-w5", "ex-sweep",
+  "rk-sandling", "rk-netling", "rk-server", "rk-setter", "rk-ace", "rk-mmr1200",
+  "cr-m25", "cr-ace5", "cr-ult10", "ex-ignis", "ex-aqua", "ex-volt", "ex-terra"
+];
+const TITLE_SPECIAL = [
+  "sp-first", "sp-g10", "sp-g25", "sp-w1", "sp-w10", "cr-both",
+  "ex-first", "rk-setter", "rk-ace", "rp-first", "cr-m25", "ex-w5"
+];
+const TITLE_PVP_HIGH = ["rk-ace", "rk-island", "rp-w25", "rk-mmr1200", "rp-cal"];
+const TITLE_SP_HIGH = ["sp-w10", "sp-g25", "rk-ace", "cr-both"];
+const TITLE_PVP_LOW = ["rp-first", "ex-first", "rk-sandling", "ex-w1"];
+const TITLE_SP_LOW = ["sp-first", "ex-first", "sp-w1"];
+
+function boardTitle(i, mmr, kind) {
+  const wear = hash01(i * 91 + 19);
+  if (wear > 0.5) return "";
+  if (hash01(i * 131 + 41) < 0.035) return "beta-tester";
+  const special = kind === "special";
+  let pool = special ? TITLE_SPECIAL : TITLE_PVP;
+  if (mmr >= 1580) pool = special ? TITLE_SP_HIGH : TITLE_PVP_HIGH;
+  else if (mmr < 880) pool = special ? TITLE_SP_LOW : TITLE_PVP_LOW;
+  return pool[Math.floor(hash01(i * 53 + 11) * pool.length)] || "";
+}
+
+function asRow(p, seed, slot, kind) {
   const i = p.i | 0;
   const mmr = liveMmr(i, seed);
   const games = liveGames(i, seed, slot);
   const hand = handOf(i, mmr);
   const wins = winsOf(games, hand);
+  const titleId = boardTitle(i, mmr, kind);
   return {
     id: p.id,
     display_name: p.name,
@@ -189,7 +216,8 @@ function asRow(p, seed, slot) {
     wins,
     losses: Math.max(0, games - wins),
     avatar_id: p.avatar,
-    season_mark: null
+    season_mark: null,
+    title_id: titleId || null
   };
 }
 
@@ -198,7 +226,7 @@ export function mixRankRows(rows, kind) {
   const seed = boardSeed(kind);
   const real = Array.isArray(rows) ? rows.slice() : [];
   const taken = new Set(real.map((r) => String(r.display_name || "").trim().toLowerCase()));
-  const extra = boardPool(kind).filter((p) => !taken.has(p.name.toLowerCase())).map((p) => asRow(p, seed, stamp.slot));
+  const extra = boardPool(kind).filter((p) => !taken.has(p.name.toLowerCase())).map((p) => asRow(p, seed, stamp.slot, stamp.kind));
   const mixed = real.concat(extra);
   mixed.sort((a, b) => (b.mmr | 0) - (a.mmr | 0) || String(a.display_name || "").localeCompare(String(b.display_name || "")));
   mixed.forEach((row, i) => {

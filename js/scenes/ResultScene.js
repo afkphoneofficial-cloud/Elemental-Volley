@@ -13,7 +13,7 @@ import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.j
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js?v=local272";
-import { Leaderboard } from "../systems/Leaderboard.js?v=local273";
+import { Leaderboard } from "../systems/Leaderboard.js?v=local274";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { TouchControls } from "../ui/TouchControls.js";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
