@@ -13,4 +13,4 @@ as $$
 $$;
 
 revoke all on function public.online_count() from public;
-grant execute on function public.online_count() to authenticated;
+grant execute on function public.online_count() to anon, authenticated;

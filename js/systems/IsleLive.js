@@ -7,18 +7,18 @@ const FIGHTERS = ["ignis", "aqua", "volt", "terra"];
 const BOARD_N = 23;
 
 const NAMES = [
-  "SpikeCat", "ฝนตกทั้งเกาะ", "TerraBoy", "แมวไฟป่า", "koi.jump",
-  "VoltMama", "ลูกชิ้นย่าง", "sand.set", "AquaNoon", "ปิงปองไม่ใช่",
-  "mossy.ace", "หมีพริก", "NetGhost", "ลมทะเล", "chili.dive",
-  "DewDrop", "ฟ้าผ่าหลังบ้าน", "pebble.set", "WePlaySoft", "นากน้ำค้าง",
-  "ram.block", "NightServe", "กบฝนกรก", "lemon.gecko", "ตุ่นกรวด",
-  "CloudSheep", "ดอกบัวพุ่ง", "MiniSpike", "แกะเมฆขาว", "otter.dash",
-  "ลูกเจี๊ยบเผ็ด", "CourtDuck", "แมวกำยาน", "finch.wind", "เห็ดทานูกิ",
-  "LowTide", "โคมไฟบิน", "salt.block", "AxoBubble", "นกฮูกลูกโอ๊ก",
-  "sky.toss", "เม่นมอส", "TideSeal", "spark.hog", "ฝนไม่หยุด",
-  "IsleHopper", "ปลาคาร์ปบัว", "dusk.rally", "ตุ๊กแกเลมอน", "WarmServe",
-  "เม่นประกาย", "CampCub", "lotus.koi", "แกะเมฆ", "FrostRam",
-  "จับลมนก"
+  "kaii", "Beamz", "firstz", "Pondd", "milkk",
+  "Pimry", "Fahh", "Nicee", "Vieww", "Ohmz",
+  "Force", "Perth", "Mixxi", "Aouu", "Boss",
+  "Markk", "TayT", "Neww", "Phu", "Armm",
+  "Kenji", "Riku", "Yunaa", "Hana", "Leo.",
+  "Kris", "Nate", "Jules", "Alexx", "Samu",
+  "RinRin", "Yuki", "Haru", "Soraa", "Noa",
+  "Liam", "Miaa", "ZoeZ", "Ryan", "Jakee",
+  "Emma", "Noel", "Lunaa", "winwin", "mildd",
+  "Icee", "peach", "zomz", "gulf", "Earthh",
+  "น้องมิว", "พี่แบม", "ฟ้าใส", "กอล์ฟ", "ตั้ม",
+  "ปิงปิง"
 ];
 
 const MMRS = [
@@ -134,16 +134,23 @@ export function placeAfterMix(me, rows) {
   return Object.assign({}, me, { place: hit.place, on_board: hit.place <= 100 });
 }
 
-export function presenceCount(live) {
-  const real = Math.max(0,
-    ((live && live.exhibit) | 0) +
-    ((live && live.ranked) | 0) +
-    ((live && live.matches) | 0) * 2
+export function liveHeadcount(live) {
+  if (!live) return 0;
+  return Math.max(0,
+    ((live.exhibit) | 0) +
+    ((live.ranked) | 0) +
+    ((live.matches) | 0) * 2
   );
+}
+
+export function presenceCount(realOrLive) {
+  const n = typeof realOrLive === "number" || realOrLive == null
+    ? Math.max(0, realOrLive | 0)
+    : liveHeadcount(realOrLive);
   const now = new Date();
   const hour = now.getHours();
   const day = bangkokDay();
-  const slot = Math.floor(Date.now() / 43000);
+  const slot = Math.floor(Date.now() / 120000);
   let floor = 17 + (day % 7);
   if (hour >= 19 || hour < 1) floor += 7;
   else if (hour >= 12 && hour < 15) floor += 5;
@@ -151,7 +158,7 @@ export function presenceCount(live) {
   else if (hour >= 1 && hour < 7) floor -= 4;
   floor += slot % 5;
   if (floor % 10 === 0) floor += 1;
-  return Math.max(real + 9, floor) + Math.min(5, real);
+  return Math.max(n, floor);
 }
 
 function pickFrom(list, avoidId, avoidName) {

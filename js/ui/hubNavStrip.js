@@ -1,6 +1,6 @@
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { ChatSystem } from "../systems/ChatSystem.js?v=local228";
-import { Presence } from "../systems/Presence.js";
+import { ChatSystem } from "../systems/ChatSystem.js?v=local268";
+import { Presence } from "../systems/Presence.js?v=local268";
 import { t } from "../i18n/I18n.js";
 import { UI_FONT } from "./Ui.js";
 import { HUB_NAV, HUB_CHAT, HUB_ONLINE_W, HUB_ONLINE_H } from "./hubLayout.js?v=local179";
@@ -28,7 +28,7 @@ function paintBadge(scene) {
 
 function paintOnlineLabel(scene) {
   if (!scene.onlineText || !scene.sys || !scene.sys.isActive()) return;
-  scene.onlineText.setText(t("hub.online", { n: Presence.n }));
+  scene.onlineText.setText(t("hub.online", { n: Presence.shown() }));
 }
 
 export function mountHubNav(scene) {
@@ -102,7 +102,7 @@ export function paintHubNav(scene) {
   if (oIcon) {
     keep(scene, scene.add.image(ox - ow / 2 + 16, oy, oIcon).setDisplaySize(20, 20).setTint(0x3dcc6a).setDepth(21));
   }
-  scene.onlineText = keep(scene, scene.add.text(ox - ow / 2 + 30, oy, t("hub.online", { n: Presence.n }), {
+  scene.onlineText = keep(scene, scene.add.text(ox - ow / 2 + 30, oy, t("hub.online", { n: Presence.shown() }), {
     fontFamily: UI_FONT, fontSize: "11px", fontStyle: "800", color: "#1a7a3a"
   }).setOrigin(0, 0.5).setDepth(21));
 

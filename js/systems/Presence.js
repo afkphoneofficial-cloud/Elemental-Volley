@@ -1,10 +1,12 @@
 import { AuthSystem } from "./AuthSystem.js";
+import { MatchLive } from "./MatchLive.js?v=local266";
+import { liveHeadcount, presenceCount } from "./IsleLive.js?v=local268";
 
 const HEART_MS = 25000;
 const POLL_MS = 15000;
 
 export const Presence = {
-  n: 1,
+  n: 0,
   at: 0,
   heartAt: 0,
   listeners: [],
@@ -15,8 +17,12 @@ export const Presence = {
 
   emit() {
     this.listeners.forEach((fn) => {
-      try { fn(this.n); } catch (e) {}
+      try { fn(this.shown()); } catch (e) {}
     });
+  },
+
+  shown() {
+    return presenceCount(this.n);
   },
 
   async beat() {
@@ -27,21 +33,23 @@ export const Presence = {
   },
 
   async poll() {
+    let rpc = 0;
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
-    let n = 1;
-    if (sb && AuthSystem.isLoggedIn && AuthSystem.isLoggedIn()) {
-      const { data, error } = await sb.rpc("online_count");
-      if (!error && data != null) n = Math.max(1, data | 0);
+    if (sb) {
+      try {
+        const { data, error } = await sb.rpc("online_count");
+        if (!error && data != null) rpc = Math.max(0, data | 0);
+      } catch (e) {}
     }
-    this.n = n;
+    try { await MatchLive.pull(); } catch (e) {}
+    this.n = Math.max(rpc, liveHeadcount(MatchLive));
     this.emit();
-    return this.n;
+    return this.shown();
   },
 
   tick() {
-    if (!AuthSystem.canPlay || !AuthSystem.canPlay()) return;
     const now = Date.now();
-    if (now - this.heartAt > HEART_MS) {
+    if (AuthSystem.canPlay && AuthSystem.canPlay() && now - this.heartAt > HEART_MS) {
       this.heartAt = now;
       this.beat();
     }

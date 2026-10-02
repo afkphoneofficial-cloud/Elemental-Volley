@@ -543,6 +543,7 @@ function tickRoom(room) {
       const live = room.a.id === room.droppedId ? room.b : room.a;
       send(live.ws, { t: "waitRival", ms: Math.max(0, FORFEIT_MS - gone) });
     }
+    return;
   }
   if (room.phase !== "play") return;
   if (room.paused) {
@@ -736,7 +737,10 @@ function onHello(ws, user, body) {
           if (liveRoom.lastSnap) send(ws, liveRoom.lastSnap);
           if (liveRoom.paused) send(ws, { t: "pause", kind: "player", ms: liveRoom.pauseLeft || 20000 });
         }
-        if (foe) send(foe.ws, { t: "rivalBack" });
+        if (foe) {
+          send(foe.ws, { t: "resume" });
+          send(foe.ws, { t: "rivalBack" });
+        }
       } else {
         const foe = mate(liveRoom, p);
         if (liveRoom.phase === "luck") {
@@ -750,7 +754,10 @@ function onHello(ws, user, body) {
           }
           if (liveRoom.hostId === p.id) send(ws, { t: "youHost", on: true });
         }
-        if (foe && liveRoom.droppedId !== foe.id) send(foe.ws, { t: "rivalBack" });
+        if (foe && liveRoom.droppedId !== foe.id) {
+          send(foe.ws, { t: "resume" });
+          send(foe.ws, { t: "rivalBack" });
+        }
       }
     }
   }
@@ -886,7 +893,10 @@ function onClose(ws) {
     room.dropAt = Date.now();
     room.inputs[p.id] = { x: 0, y: 0, p: 0 };
     const other = mate(room, p);
-    if (other) send(other.ws, { t: "waitRival", ms: FORFEIT_MS });
+    if (other) {
+      send(other.ws, { t: "pause", kind: "drop", ms: FORFEIT_MS });
+      send(other.ws, { t: "waitRival", ms: FORFEIT_MS });
+    }
     if (room.hostId === p.id && other) yieldHost(room, p.id);
     if (!room.timer) room.timer = setInterval(() => tickRoom(room), TICK_MS);
     return;

@@ -6,7 +6,7 @@ import { wantFx } from "../systems/GameSettings.js?v=local260";
 import { t } from "../i18n/I18n.js";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
-import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js?v=local267";
+import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js?v=local268";
 import { paintRankTabs } from "../ui/sceneTabs.js";
 import { avatarKey } from "../data/avatars.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";

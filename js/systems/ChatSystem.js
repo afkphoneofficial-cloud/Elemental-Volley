@@ -4,7 +4,7 @@ import { ChatFilter } from "./ChatFilter.js";
 import { Friends } from "./Friends.js";
 import { t } from "../i18n/I18n.js";
 import { hubNavX, HUB_NAV } from "../ui/hubLayout.js";
-import { Presence } from "./Presence.js";
+import { Presence } from "./Presence.js?v=local268";
 
 const SHOW = new Set(["hub"]);
 
@@ -162,7 +162,7 @@ export const ChatSystem = {
     const send = ui.form.querySelector("button");
     if (send) send.textContent = t("chat.send");
     const onlineLab = document.getElementById("online-label");
-    if (onlineLab) onlineLab.textContent = t("hub.online", { n: Presence.n });
+    if (onlineLab) onlineLab.textContent = t("hub.online", { n: Presence.shown() });
   },
 
   paintFriends() {

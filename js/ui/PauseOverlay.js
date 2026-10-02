@@ -69,8 +69,9 @@ export class PauseOverlay {
 
   applyLang() {
     if (this.title) {
+      const drop = this.kind === "drop";
       this.title.setText(this.timed
-        ? t(this.kind === "system" ? "pause.system" : "pause.player")
+        ? t(drop ? "pause.dropTitle" : this.kind === "system" ? "pause.system" : "pause.player")
         : t("pause.title"));
     }
     if (this.remain) {
@@ -79,12 +80,13 @@ export class PauseOverlay {
     }
     if (this.note) {
       this.note.setVisible(this.timed);
-      if (this.timed) this.note.setText(t("pause.note"));
+      if (this.timed) this.note.setText(t(this.kind === "drop" ? "pause.dropNote" : "pause.note"));
     }
     if (this.musicLab) this.musicLab.setText(t("settings.music"));
     if (this.sfxLab) this.sfxLab.setText(t("settings.sfx"));
     if (this.resumeBtn && this.resumeBtn.text) this.resumeBtn.text.setText(t("pause.resume"));
     if (this.quitBtn && this.quitBtn.text) this.quitBtn.text.setText(t("pause.quit"));
+    this.paintResume();
   }
 
   setTimed(kind, remainMs) {
@@ -102,6 +104,7 @@ export class PauseOverlay {
   }
 
   setOpen(on) {
+    this.open = Boolean(on);
     this.bits.forEach((o) => {
       if (o && o.setVisible) o.setVisible(on);
     });
@@ -109,6 +112,21 @@ export class PauseOverlay {
       TouchControls.setPlayActive(false);
       this.applyLang();
     } else TouchControls.setPlayActive(true);
+    this.paintResume();
+  }
+
+  paintResume() {
+    const show = this.open && this.kind !== "drop";
+    const a = show ? 1 : 0;
+    if (this.resumeBtn) {
+      if (this.resumeBtn.gfx) this.resumeBtn.gfx.setVisible(show).setAlpha(a);
+      if (this.resumeBtn.text) this.resumeBtn.text.setVisible(show).setAlpha(a);
+      if (this.resumeBtn.bg) {
+        this.resumeBtn.bg.setVisible(show);
+        if (show) this.resumeBtn.bg.setInteractive({ useHandCursor: true });
+        else this.resumeBtn.bg.disableInteractive();
+      }
+    }
   }
 
   destroy() {

@@ -960,6 +960,8 @@ export const COPY = {
       none: "ใช้โควตาพักแล้ว",
       waitPoint: "พักเมื่อจบ rally",
       dropWait: "คู่แข่งหลุด · รอ {n} วินาที",
+      dropTitle: "คู่แข่งหลุดการเชื่อมต่อ",
+      dropNote: "เกมหยุดรอคู่แข่งกลับมา  ถ้าไม่กลับจะนับว่าสละสิทธิ์",
       rivalBack: "คู่แข่งกลับมาแล้ว"
     },
     cheer: {
@@ -1952,6 +1954,8 @@ export const COPY = {
       none: "No pauses left",
       waitPoint: "Pauses after this rally",
       dropWait: "Rival dropped · {n}s",
+      dropTitle: "Rival disconnected",
+      dropNote: "The match is paused until they return. If they do not, it is a forfeit.",
       rivalBack: "Rival is back"
     },
     cheer: {
