@@ -89,7 +89,7 @@ export class LuckScene extends Phaser.Scene {
     this.picked = false;
     this.off = this.net ? NetPlay.on((msg) => {
       if (msg.t === "luck") this.playNetLuck(msg);
-      if (msg.t === "go" || msg.t === "rejoin") this.armGo(msg);
+      if (msg.t === "go") this.armGo(msg);
     }) : null;
     this.events.once("shutdown", () => {
       if (this.off) this.off();
@@ -148,16 +148,18 @@ export class LuckScene extends Phaser.Scene {
     this.stopPickClock();
     if (this.picked) return;
     this.status.setText(t("luck.autoPick"));
-    if (this.pickYou) {
+    if (!this.net && this.pickYou) {
       const pick = Phaser.Utils.Array.GetRandom(COURTS);
       this.chooseCourt(pick.id);
+    } else if (this.net && this.pickYou) {
+      this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
     }
   }
 
   armGo(msg) {
     this.pendingGo = msg || true;
     this.stopPickClock();
-    if (this.rollDone) this.leaveToPlay(200);
+    if (this.rollDone) this.leaveToPlay(500);
   }
 
   leaveToPlay(delay) {
@@ -219,7 +221,7 @@ export class LuckScene extends Phaser.Scene {
       this.rollDone = true;
       if (this.goReady(msg)) {
         this.status.setText(t("luck.waitGo"));
-        this.leaveToPlay(200);
+        this.leaveToPlay(550);
         return;
       }
       const until = msg.pickUntil | 0;
@@ -281,7 +283,6 @@ export class LuckScene extends Phaser.Scene {
       this.pickBits.forEach((o) => { try { o.disableInteractive && o.disableInteractive(); } catch (e) {} });
       this.status.setText(t("luck.waitGo"));
       NetPlay.pickCourt(id);
-      if (this.goReady({ roomId: this.luckId })) this.leaveToPlay(200);
       return;
     }
     this.scene.start("play");

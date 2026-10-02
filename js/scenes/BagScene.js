@@ -8,7 +8,6 @@ import { shopLookLabel, shopLookOf } from "../data/costumeShop.js";
 import { openRename, hideRename } from "../ui/renameOverlay.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect } from "../data/seasonLooks.js";
-import { ArtLoad } from "../systems/ArtLoad.js?v=local273";
 
 const GEAR_SLOTS = [
   { id: "look", x: -148, y: -64 },
@@ -149,9 +148,6 @@ export class BagScene extends Phaser.Scene {
     this.bits = [];
     this.paintGrid();
     AudioSystem.playMenu();
-    void ArtLoad.ensureWorn(this, this.dressChar).then(() => {
-      if (this.sys && this.sys.isActive()) this.paintGrid();
-    });
   }
 
   paintGrid() {
@@ -376,9 +372,6 @@ export class BagScene extends Phaser.Scene {
             this.dressChar = id;
             this.charOpen = false;
             this.paintGrid();
-            void ArtLoad.ensureWorn(this, id).then(() => {
-              if (this.sys && this.sys.isActive() && this.dressChar === id) this.paintGrid();
-            });
           }));
       });
     }

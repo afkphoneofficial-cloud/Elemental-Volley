@@ -1,5 +1,4 @@
 import { botSheet } from "../data/growth.js?v=local206";
-import { bangkokWall, isRankWindowOpen } from "../data/rankWindows.js";
 import { Session } from "./Session.js";
 import { SaveSystem } from "./SaveSystem.js";
 import { champSetOf } from "../data/seasonLooks.js";
@@ -83,7 +82,6 @@ const ISLE = NAMES.map((name, i) => {
   const wins = winsOf(games, hand);
   return {
     id: uid(i),
-    i,
     name,
     fighter: FIGHTERS[i % FIGHTERS.length],
     avatar: "av" + String((i % 20) + 1).padStart(2, "0"),
@@ -113,92 +111,27 @@ function shuffle(list, seed) {
   return a;
 }
 
-const SLOT_H = [7, 13, 18, 22];
-
-function seedNum(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i += 1) {
-    h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  }
-  return h >>> 0;
-}
-
-function boardStamp(kind, ms = Date.now()) {
-  const key = kind === "special" ? "special" : "pvp";
-  let at = ms;
-  let freeze = false;
-  if (!isRankWindowOpen(key, new Date(ms))) {
-    freeze = true;
-    for (let i = 1; i <= 10; i += 1) {
-      const prev = ms - i * 86400000;
-      if (isRankWindowOpen(key, new Date(prev))) {
-        at = prev;
-        break;
-      }
-    }
-  }
-  const wall = bangkokWall(new Date(at));
-  let slot = SLOT_H.length - 1;
-  if (!freeze) {
-    slot = 0;
-    const hm = wall.h + wall.min / 60 + wall.s / 3600;
-    for (let i = 0; i < SLOT_H.length; i += 1) {
-      if (hm >= SLOT_H[i]) slot = i;
-    }
-  }
-  return { kind: key, y: wall.y, m: wall.m, d: wall.d, slot };
-}
-
-function boardSeed(kind) {
-  const s = boardStamp(kind);
-  return seedNum(s.kind + "-" + s.y + "-" + s.m + "-" + s.d + "-" + s.slot);
-}
-
-function exhibitPool() {
+function boardPool() {
   return shuffle(ISLE, bangkokDay() + 19).slice(0, BOARD_N);
 }
 
-function boardPool(kind) {
-  return shuffle(ISLE, boardSeed(kind)).slice(0, BOARD_N);
-}
-
-function liveMmr(i, seed) {
-  const t = hash01(Math.imul(seed, 13) + i * 97 + 5);
-  const u = hash01(Math.imul(seed, 29) + i * 61 + 11);
-  let v = mmrOf(i) + Math.round((t - 0.5) * 64) + Math.round((u - 0.5) * 18);
-  if (v % 10 === 0) v += 1;
-  return Math.max(412, Math.min(1897, v));
-}
-
-function liveGames(i, seed, slot) {
-  const wave = Math.floor(hash01(seed + i * 17 + 3) * 3);
-  return gamesOf(i) + (slot | 0) * 2 + wave;
-}
-
-function asRow(p, seed, slot) {
-  const i = p.i | 0;
-  const mmr = liveMmr(i, seed);
-  const games = liveGames(i, seed, slot);
-  const hand = handOf(i, mmr);
-  const wins = winsOf(games, hand);
+function asRow(p) {
   return {
     id: p.id,
     display_name: p.name,
-    mmr,
-    games,
-    wins,
-    losses: Math.max(0, games - wins),
+    mmr: p.mmr,
+    games: p.games,
+    wins: p.wins,
+    losses: p.losses,
     avatar_id: p.avatar,
     season_mark: null
   };
 }
 
-export function mixRankRows(rows, kind) {
-  const stamp = boardStamp(kind);
-  const seed = boardSeed(kind);
+export function mixRankRows(rows) {
   const real = Array.isArray(rows) ? rows.slice() : [];
   const taken = new Set(real.map((r) => String(r.display_name || "").trim().toLowerCase()));
-  const extra = boardPool(kind).filter((p) => !taken.has(p.name.toLowerCase())).map((p) => asRow(p, seed, stamp.slot));
+  const extra = boardPool().filter((p) => !taken.has(p.name.toLowerCase())).map(asRow);
   const mixed = real.concat(extra);
   mixed.sort((a, b) => (b.mmr | 0) - (a.mmr | 0) || String(a.display_name || "").localeCompare(String(b.display_name || "")));
   mixed.forEach((row, i) => {
@@ -311,7 +244,7 @@ function pickFrom(list, avoidId, avoidName) {
 
 export function pickIsleFoe(avoidId, avoidName) {
   const useBoard = Math.random() < 0.58;
-  return pickFrom(useBoard ? exhibitPool() : ISLE, avoidId, avoidName);
+  return pickFrom(useBoard ? boardPool() : ISLE, avoidId, avoidName);
 }
 
 function handName(hand) {
