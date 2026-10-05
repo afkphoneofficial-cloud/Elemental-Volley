@@ -17,8 +17,8 @@ import {
   toggleBgmPage,
   toggleFullscreen
 } from "../systems/GameSettings.js?v=local260";
-import { I18n, t } from "../i18n/I18n.js?v=local261";
-import { TouchControls } from "../ui/TouchControls.js";
+import { I18n, t } from "../i18n/I18n.js?v=local276";
+import { TouchControls } from "../ui/TouchControls.js?v=local276";
 import { paintSettingsTabs } from "../ui/sceneTabs.js";
 import { TIME_ZONES } from "../data/timeZones.js";
 

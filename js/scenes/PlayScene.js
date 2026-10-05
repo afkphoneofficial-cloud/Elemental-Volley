@@ -33,9 +33,9 @@ import {
   tickOrbTouchFx
 } from "../fx/OrbTouchFx.js?v=local201";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
-import { TouchControls, preferTouch } from "../ui/TouchControls.js";
-import { PauseOverlay } from "../ui/PauseOverlay.js?v=local268";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
+import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local276";
+import { PauseOverlay } from "../ui/PauseOverlay.js?v=local276";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local276";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
@@ -1288,6 +1288,8 @@ export class PlayScene extends Phaser.Scene {
     this.plateR.wasFull = full1;
     paintChibiPips(this.plateL, UltState.gauge[0], full0, this.ultArmed && this.youSide === 1, now, UltState.burn[0] > 0);
     paintChibiPips(this.plateR, UltState.gauge[1], full1, this.ultArmed && this.youSide === 2, now, UltState.burn[1] > 0);
+    const mine = this.youSide - 1;
+    TouchControls.paintUlt(UltState.gauge[mine] / GAUGE_MAX, this.youSide === 1 ? full0 : full1, Session.playerId);
   }
 
   burstGauge(g) {

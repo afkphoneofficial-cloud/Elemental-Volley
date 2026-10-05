@@ -1,8 +1,8 @@
 import { GAME } from "../config/gameConfig.js";
 import { makeButton, makeSlider, UI_FONT } from "./Ui.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t } from "../i18n/I18n.js";
-import { TouchControls } from "./TouchControls.js";
+import { t } from "../i18n/I18n.js?v=local276";
+import { TouchControls } from "./TouchControls.js?v=local276";
 
 export class PauseOverlay {
   constructor(scene, { onResume, onQuit }) {

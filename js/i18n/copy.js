@@ -864,7 +864,7 @@ export const COPY = {
       linkGood: "ดี",
       linkMeh: "ค่อนข้างแย่",
       linkBad: "แย่",
-      hudHintTouch: "ซ้ายเลื่อนทิศทาง  ·  ขวากดตบ  ·  ค้างขวาปล่อยอัลติ",
+      hudHintTouch: "ซ้ายเดิน  ·  ขวากระโดด  ·  ปุ่มใหญ่ตบ ค้างไว้ปล่อยอัลติ",
       ultFull: "เกจเต็ม!  ค้าง ENTER แล้วตบเพื่อปล่อยอัลติ",
       matchPoint: "MATCH POINT",
       matchSub: "แต้มต่อไปจบเกมได้  ·  {who}",
@@ -888,7 +888,9 @@ export const COPY = {
     nav: { back: "กลับ" },
     touch: {
       move: "เดิน",
+      jump: "กระโดด",
       hit: "ตบ",
+      ult: "อัลติ",
       rotate: "หมุนจอเป็นแนวนอนจะเล่นง่ายกว่า  ·  แตะเพื่อปิด"
     },
     settings: {
@@ -901,7 +903,7 @@ export const COPY = {
       auto: "อัตโนมัติ",
       pc: "คอมพิวเตอร์  ·  คีย์บอร์ด",
       mobile: "มือถือ  ·  ปุ่มสัมผัส",
-      note: "มือถือใช้วงกลมซ้ายเลื่อนทิศทาง วงกลมขวากดตบ ค้างไว้เพื่ออัลติ",
+      note: "มือถือใช้วงซ้ายเดินซ้ายขวา  ขวากระโดดกับปุ่มใหญ่ตบ  เกจเต็มแล้วค้างปุ่มใหญ่เพื่ออัลติ",
       keys: "คีย์บอร์ด: ← → เดิน   ↑ กระโดด   Enter ตบ   ค้าง Enter อัลติ",
       lang: "ภาษา",
       music: "เพลง",
@@ -1861,7 +1863,7 @@ export const COPY = {
       linkGood: "good",
       linkMeh: "spotty",
       linkBad: "bad",
-      hudHintTouch: "Left stick to move  ·  Right tap to hit  ·  Hold right to fire ult",
+      hudHintTouch: "Left to walk  ·  Jump on the right  ·  Big button hits, hold it to fire ult",
       ultFull: "Gauge full!  Hold ENTER on a spike to fire your ult",
       matchPoint: "MATCH POINT",
       matchSub: "Next point can end the game  ·  {who}",
@@ -1885,7 +1887,9 @@ export const COPY = {
     nav: { back: "Back" },
     touch: {
       move: "MOVE",
+      jump: "JUMP",
       hit: "HIT",
+      ult: "ULT",
       rotate: "Turn the phone sideways for a bigger court  ·  Tap to hide"
     },
     settings: {
@@ -1898,7 +1902,7 @@ export const COPY = {
       auto: "Automatic",
       pc: "Computer  ·  Keyboard",
       mobile: "Phone  ·  Touch pads",
-      note: "On phone, left stick moves, right tap hits, hold right to fire your ult.",
+      note: "On phone, left stick walks left/right. Right side is jump plus a bigger hit button. Hold the big button to fire ult when the gauge is full.",
       keys: "Keyboard: ← → move   ↑ jump   Enter hit   hold Enter for ult",
       lang: "Language",
       music: "Music",

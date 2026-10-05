@@ -1,5 +1,5 @@
 import { t } from "../i18n/I18n.js?v=local252";
-import { preferTouch } from "../ui/TouchControls.js";
+import { preferTouch } from "../ui/TouchControls.js?v=local276";
 
 function isPortrait() {
   return window.innerHeight >= window.innerWidth;
