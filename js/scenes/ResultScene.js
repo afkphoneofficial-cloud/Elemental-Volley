@@ -15,7 +15,7 @@ import { isRankWindowOpen } from "../data/rankWindows.js";
 import { NetPlay } from "../systems/NetPlay.js?v=local272";
 import { Leaderboard } from "../systems/Leaderboard.js?v=local275";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
-import { TouchControls } from "../ui/TouchControls.js?v=local276";
+import { TouchControls } from "../ui/TouchControls.js?v=local277";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
 import { texHeroSelect } from "../data/seasonLooks.js";
 

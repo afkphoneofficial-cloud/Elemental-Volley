@@ -1,6 +1,6 @@
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local276";
+import { I18n } from "../i18n/I18n.js?v=local277";
 
 const DEAD = 0.28;
 const ULT_TINT = {

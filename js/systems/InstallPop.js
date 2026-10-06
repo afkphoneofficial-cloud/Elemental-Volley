@@ -1,6 +1,6 @@
 import { t } from "../i18n/I18n.js?v=local253";
 import { dayKey } from "../data/monthPass.js?v=local190";
-import { preferTouch } from "../ui/TouchControls.js?v=local276";
+import { preferTouch } from "../ui/TouchControls.js?v=local277";
 
 const DAY_KEY = "ev-install-ask-day";
 let deferred = null;

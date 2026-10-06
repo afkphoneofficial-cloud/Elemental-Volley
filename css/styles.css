@@ -855,25 +855,26 @@ html[data-control="pc"] #orient-btn {
 }
 
 #jump-pad {
-  left: 0;
-  bottom: 28px;
-  width: 68px;
-  height: 68px;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 108px;
+  height: 108px;
   background: radial-gradient(circle at 50% 50%, rgba(255, 246, 234, 0.1), rgba(12, 8, 18, 0.45));
   border: 2px solid rgba(90, 210, 255, 0.5);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
 }
 
 #jump-pad .jump-core {
   position: absolute;
   left: 50%;
   top: 44%;
-  width: 30px;
-  height: 30px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle at 32% 28%, #e8f8ff, #5ad2ff 55%, #3a9cff);
-  box-shadow: 0 0 12px rgba(90, 210, 255, 0.4);
+  box-shadow: 0 0 16px rgba(90, 210, 255, 0.45);
 }
 
 #jump-pad.on {
@@ -887,13 +888,14 @@ html[data-control="pc"] #orient-btn {
 #hit-pad {
   --ult: 0;
   --ult-color: #c8ff3a;
-  right: 0;
-  bottom: 0;
-  width: 100px;
-  height: 100px;
+  left: 0;
+  bottom: 26px;
+  z-index: 1;
+  width: 70px;
+  height: 70px;
   background: radial-gradient(circle at 50% 50%, rgba(255, 246, 234, 0.1), rgba(12, 8, 18, 0.48));
   border: 2px solid color-mix(in srgb, var(--ult-color) 55%, transparent);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   overflow: visible;
 }
 
@@ -952,9 +954,9 @@ html[data-control="pc"] #orient-btn {
 #hit-pad .hit-core {
   position: absolute;
   left: 50%;
-  top: 44%;
-  width: 46px;
-  height: 46px;
+  top: 42%;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle at 32% 28%, #fff6ea, var(--ult-color) 58%, color-mix(in srgb, var(--ult-color) 70%, #3a2418));
@@ -990,13 +992,15 @@ html[data-control="pc"] #orient-btn {
 }
 
 #jump-pad .pad-lab {
-  bottom: 6px;
-  font-size: 9px;
-  letter-spacing: 0.04em;
+  bottom: 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
 }
 
 #hit-pad .pad-lab {
-  bottom: 8px;
+  bottom: 6px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 #hit-pad.ult-full .pad-lab {
@@ -1537,10 +1541,10 @@ html[data-control="pc"] #orient-btn {
   #stick-base { width: 96px; height: 96px; }
   #stick-knob { width: 40px; height: 40px; }
   #touch-act { width: 142px; height: 96px; }
-  #jump-pad { width: 56px; height: 56px; bottom: 22px; }
-  #jump-pad .jump-core { width: 24px; height: 24px; }
-  #hit-pad { width: 82px; height: 82px; }
-  #hit-pad .hit-core { width: 36px; height: 36px; }
+  #jump-pad { width: 86px; height: 86px; bottom: 0; }
+  #jump-pad .jump-core { width: 38px; height: 38px; }
+  #hit-pad { width: 58px; height: 58px; bottom: 22px; }
+  #hit-pad .hit-core { width: 24px; height: 24px; }
   #hit-pad .ult-aura { inset: -10px; }
 }
 
@@ -1548,9 +1552,10 @@ html[data-control="pc"] #orient-btn {
   #stick-base { width: 104px; height: 104px; }
   #stick-knob { width: 44px; height: 44px; }
   #touch-act { width: 150px; height: 104px; }
-  #jump-pad { width: 60px; height: 60px; bottom: 24px; }
-  #hit-pad { width: 88px; height: 88px; }
-  #hit-pad .hit-core { width: 40px; height: 40px; }
+  #jump-pad { width: 92px; height: 92px; bottom: 0; }
+  #jump-pad .jump-core { width: 42px; height: 42px; }
+  #hit-pad { width: 62px; height: 62px; bottom: 24px; }
+  #hit-pad .hit-core { width: 26px; height: 26px; }
 }
 
 #welcome-overlay {

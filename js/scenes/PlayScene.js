@@ -33,9 +33,9 @@ import {
   tickOrbTouchFx
 } from "../fx/OrbTouchFx.js?v=local201";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
-import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local276";
-import { PauseOverlay } from "../ui/PauseOverlay.js?v=local276";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local276";
+import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local277";
+import { PauseOverlay } from "../ui/PauseOverlay.js?v=local277";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local277";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
