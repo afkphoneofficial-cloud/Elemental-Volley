@@ -1,6 +1,6 @@
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { I18n } from "../i18n/I18n.js?v=local277";
+import { I18n } from "../i18n/I18n.js?v=local278";
 
 const DEAD = 0.28;
 const ULT_TINT = {
@@ -110,14 +110,21 @@ export const TouchControls = {
   moveStick(e) {
     const r = this.base.getBoundingClientRect();
     const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
     const max = r.width * 0.32;
     let dx = e.clientX - cx;
-    if (Math.abs(dx) > max) dx = dx < 0 ? -max : max;
-    this.knob.style.transform = `translate(calc(-50% + ${dx}px), -50%)`;
+    let dy = e.clientY - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    if (len > max) {
+      dx = (dx / len) * max;
+      dy = (dy / len) * max;
+    }
+    this.knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     const nx = dx / max;
+    const ny = dy / max;
     this.x = Math.abs(nx) < DEAD ? 0 : (nx > 0 ? 1 : -1);
-    this.y = 0;
-    this.base.classList.toggle("on", this.x !== 0);
+    this.y = Math.abs(ny) < DEAD ? 0 : (ny > 0 ? 1 : -1);
+    this.base.classList.toggle("on", this.x !== 0 || this.y !== 0);
   },
 
   paintUlt(frac, full, charId) {
@@ -168,7 +175,8 @@ export const TouchControls = {
   snapshot() {
     return {
       x: this.x,
-      y: this.jump ? -1 : 0,
+      aimY: this.y,
+      jump: this.jump,
       hit: this.hit,
       touch: preferTouch() && this.playActive
     };

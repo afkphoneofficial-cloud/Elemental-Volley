@@ -820,6 +820,34 @@ html[data-control="pc"] #orient-btn {
   border-color: rgba(255, 106, 34, 0.85);
 }
 
+.stick-cross {
+  position: absolute;
+  inset: 22%;
+  pointer-events: none;
+  opacity: 0.38;
+}
+
+.stick-cross::before,
+.stick-cross::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(255, 246, 234, 0.7);
+}
+
+.stick-cross::before {
+  width: 2px;
+  height: 100%;
+  transform: translate(-50%, -50%);
+}
+
+.stick-cross::after {
+  width: 100%;
+  height: 2px;
+  transform: translate(-50%, -50%);
+}
+
 #stick-knob {
   width: 52px;
   height: 52px;

@@ -33,9 +33,9 @@ import {
   tickOrbTouchFx
 } from "../fx/OrbTouchFx.js?v=local201";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
-import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local277";
-import { PauseOverlay } from "../ui/PauseOverlay.js?v=local277";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local277";
+import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local278";
+import { PauseOverlay } from "../ui/PauseOverlay.js?v=local278";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local278";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
@@ -634,8 +634,17 @@ export class PlayScene extends Phaser.Scene {
     const myIdx = this.youSide - 1;
     const keyX = this.keyLeft.isDown ? -1 : this.keyRight.isDown ? 1 : 0;
     const keyY = this.keyJump.isDown ? -1 : this.keyDown.isDown ? 1 : 0;
-    input.xDirection = pad.x || keyX;
-    input.yDirection = pad.y || keyY;
+    if (pad.touch) {
+      const you = this.youSide === 1 ? this.physicsPack.player1 : this.physicsPack.player2;
+      const grounded = !you || you.y >= WORLD.playerGroundY - 0.5;
+      input.xDirection = pad.x;
+      if (pad.jump && grounded) input.yDirection = -1;
+      else if (grounded && pad.aimY === -1) input.yDirection = 0;
+      else input.yDirection = pad.aimY | 0;
+    } else {
+      input.xDirection = keyX;
+      input.yDirection = keyY;
+    }
     const down = this.enter.isDown || pad.hit;
     if (this.roundEnded) {
       this.ultArmed = false;
