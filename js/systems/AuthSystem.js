@@ -5,12 +5,14 @@ import { t } from "../i18n/I18n.js?v=local249";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
 import { WelcomePop } from "./WelcomePop.js?v=local253";
+import { MetaPixel } from "../web/MetaPixel.js?v=local279";
 
 let supabase = null;
 let session = null;
 let profile = null;
 let pushTimer = null;
 let googleReady = false;
+let newGmailAccount = false;
 const GUEST_OK = { auth: 1, wiki: 1, select: 1, queue: 1, luck: 1, play: 1, result: 1 };
 
 function isAnonUser(user) {
@@ -334,6 +336,7 @@ export const AuthSystem = {
       id: user.id,
       access_token: sess && sess.access_token
     };
+    newGmailAccount = false;
     const sb = await getSb();
     if (!sb) return;
     const { data, error } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
@@ -350,6 +353,7 @@ export const AuthSystem = {
       throw new Error(t("web.authBanned"));
     }
     if (!data) {
+      newGmailAccount = true;
       await sb.from("profiles").insert({
         id: user.id,
         email: String(user.email).toLowerCase()
@@ -416,6 +420,10 @@ export const AuthSystem = {
   },
 
   onAuthed() {
+    if (newGmailAccount && this.isLoggedIn()) {
+      newGmailAccount = false;
+      try { MetaPixel.register(); } catch (e) {}
+    }
     const g = window.game;
     if (!g || !g.scene) return;
     const auth = g.scene.getScene("auth");

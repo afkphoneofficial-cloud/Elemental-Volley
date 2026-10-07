@@ -4,7 +4,7 @@ import { SaveSystem } from "../systems/SaveSystem.js";
 import { AuthSystem } from "../systems/AuthSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { t, I18n, charName } from "../i18n/I18n.js?v=local240";
+import { t, I18n, charName } from "../i18n/I18n.js?v=local279";
 import { pickRefVerdict } from "../data/refVerdicts.js";
 import { formatMatchClock, pickStatTalk } from "../gameplay/MatchStats.js";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
@@ -146,16 +146,20 @@ export class ResultScene extends Phaser.Scene {
     this.buildLoot(W, H, pal);
     this.guestPlay = AuthSystem.isGuest();
     if (this.guestPlay) {
-      this.againBtn = makeButton(this, W / 2 - 190, 640, 300, 52, t("result.again"), () => {
+      this.guestAsk = this.add.text(W / 2, 586, t("result.guestAsk"), {
+        fontFamily: UI_FONT, fontSize: "16px", fontStyle: "800", color: "#c45a16",
+        align: "center", wordWrap: { width: 900 }
+      }).setOrigin(0.5).setDepth(8);
+      this.shopBtn = makeButton(this, W / 2 - 170, 644, 320, 54, t("auth.register"), () => {
+        AuthSystem.endGuestForRegister().then(() => this.leaveTo("auth"));
+      }, 0xff6a22);
+      this.againBtn = makeButton(this, W / 2 + 190, 644, 260, 50, t("result.again"), () => {
         Session.mode = "exhibit";
         Session.exhibitCasual = true;
         Session.exhibitFriendId = null;
         Session.rival = null;
         this.leaveTo("select");
-      });
-      this.shopBtn = makeButton(this, W / 2 + 190, 640, 300, 52, t("auth.register"), () => {
-        AuthSystem.endGuestForRegister().then(() => this.leaveTo("auth"));
-      }, 0xffb14a);
+      }, 0x7d5cff);
       this.hubBtn = null;
     } else {
       this.againBtn = makeButton(this, W / 2 - 300, 640, 260, 52, t("result.again"), () => {
@@ -548,6 +552,7 @@ export class ResultScene extends Phaser.Scene {
       row.lab.setText(t("result." + row.key));
       row.val.setText(values[row.key] || "0");
     });
+    if (this.guestAsk) this.guestAsk.setText(t("result.guestAsk"));
     if (this.againBtn && this.againBtn.text) this.againBtn.text.setText(t("result.again"));
     if (this.shopBtn && this.shopBtn.text) {
       this.shopBtn.text.setText(this.guestPlay ? t("auth.register") : t("result.shop"));

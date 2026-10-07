@@ -34,6 +34,7 @@ import {
 } from "../fx/OrbTouchFx.js?v=local201";
 import { makeButton, makeChibiPlate, paintChibiPips, UI_FONT } from "../ui/Ui.js";
 import { TouchControls, preferTouch } from "../ui/TouchControls.js?v=local278";
+import { MetaPixel } from "../web/MetaPixel.js?v=local279";
 import { PauseOverlay } from "../ui/PauseOverlay.js?v=local278";
 import { t, I18n, charName } from "../i18n/I18n.js?v=local278";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
@@ -226,6 +227,7 @@ export class PlayScene extends Phaser.Scene {
     this.offNet = this.net ? NetPlay.on((msg) => this.onNet(msg)) : null;
     if (this.net) NetPlay.startPing();
     TouchControls.setPlayActive(true);
+    try { MetaPixel.firstMatch(Session.mode); } catch (e) {}
     this.layoutHudMode();
     this.syncSprites();
     this.resetRound();
