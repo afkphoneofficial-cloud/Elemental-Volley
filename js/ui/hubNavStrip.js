@@ -1,6 +1,6 @@
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { ChatSystem } from "../systems/ChatSystem.js?v=local272";
-import { Presence } from "../systems/Presence.js?v=local272";
+import { ChatSystem } from "../systems/ChatSystem.js?v=local280";
+import { Presence } from "../systems/Presence.js?v=local280";
 import { t } from "../i18n/I18n.js";
 import { UI_FONT } from "./Ui.js";
 import { HUB_NAV, HUB_CHAT, HUB_ONLINE_W, HUB_ONLINE_H } from "./hubLayout.js?v=local179";

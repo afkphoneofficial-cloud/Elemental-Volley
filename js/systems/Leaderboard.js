@@ -4,7 +4,6 @@ import { medalFromMmr, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
 import { t, I18n } from "../i18n/I18n.js";
 import { TitleSystem } from "./TitleSystem.js?v=local267";
-import { mixRankRows, placeAfterMix } from "./IsleLive.js?v=local275";
 import { AudioSystem } from "./AudioSystem.js";
 
 function els() {
@@ -135,41 +134,35 @@ export const Leaderboard = {
 
   async load(kind) {
     this.kind = kind === "special" ? "special" : "pvp";
-    if (this.kind === "special") {
-      this.rows = mixRankRows([], "special");
-      this.me = null;
-      this.fail = false;
-      return;
-    }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
     if (!sb) {
-      this.rows = mixRankRows([], "pvp");
+      this.rows = [];
       this.me = null;
       this.fail = false;
       return;
     }
+    const boardRpc = this.kind === "special" ? "server_special_leaderboard" : "server_leaderboard";
+    const meRpc = this.kind === "special" ? "my_special_board_place" : "my_board_place";
     const [board, mine] = await Promise.all([
-      sb.rpc("server_leaderboard", { p_limit: 100 }),
-      sb.rpc("my_board_place")
+      sb.rpc(boardRpc, { p_limit: 100 }),
+      sb.rpc(meRpc)
     ]);
     const raw = !board.error && Array.isArray(board.data) ? board.data : [];
-    this.rows = mixRankRows(raw, "pvp");
-    this.fail = false;
+    this.rows = raw.map((row, i) => ({ ...row, place: (row && row.place) || i + 1 }));
+    this.fail = Boolean(board.error);
     const row = !mine.error && Array.isArray(mine.data) ? mine.data[0] : (!mine.error ? mine.data : null);
-    this.me = placeAfterMix(row && typeof row === "object" ? row : null, this.rows);
+    this.me = row && typeof row === "object" ? row : null;
   },
 
   async peekTop(kind, n) {
     const limit = Math.max(1, Math.min(5, n | 0 || 5));
     const boardKind = kind === "special" ? "special" : "pvp";
-    if (boardKind === "special") {
-      return { rows: mixRankRows([], "special").slice(0, limit), fail: false };
-    }
     const sb = AuthSystem.db ? await AuthSystem.db() : null;
-    if (!sb) return { rows: mixRankRows([], "pvp").slice(0, limit), fail: false };
-    const board = await sb.rpc("server_leaderboard", { p_limit: 100 });
+    if (!sb) return { rows: [], fail: false };
+    const rpc = boardKind === "special" ? "server_special_leaderboard" : "server_leaderboard";
+    const board = await sb.rpc(rpc, { p_limit: 100 });
     const raw = !board.error && Array.isArray(board.data) ? board.data : [];
-    return { rows: mixRankRows(raw, "pvp").slice(0, limit), fail: false };
+    return { rows: raw.slice(0, limit), fail: Boolean(board.error) };
   },
 
   paintChrome() {
@@ -202,7 +195,7 @@ export const Leaderboard = {
       });
     }
     if (!ui.you) return;
-    const local = SaveSystem.data.rank || {};
+    const local = SaveSystem.rankOf ? SaveSystem.rankOf(this.kind) : (SaveSystem.data.rank || {});
     const mmr = (this.me && this.me.mmr) || local.mmr | 0;
     const games = (this.me && this.me.games) || local.games | 0;
     const wins = (this.me && this.me.wins) || local.wins | 0;

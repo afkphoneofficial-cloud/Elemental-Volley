@@ -6,7 +6,7 @@ import { wantFx } from "../systems/GameSettings.js?v=local260";
 import { t } from "../i18n/I18n.js";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { RANK_TIERS, RANK_CAL_GAMES, RANK_STAR_MMR, medalFromMmr, isCalibrating, badgeKey, displayBadgeId } from "../data/ranks.js";
-import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js?v=local275";
+import { Leaderboard, boardRankLabel } from "../systems/Leaderboard.js?v=local280";
 import { paintRankTabs } from "../ui/sceneTabs.js";
 import { avatarKey } from "../data/avatars.js";
 import { liveSeasonMark, plateKey, seasonCycleOf } from "../data/seasonCycle.js";
@@ -312,7 +312,7 @@ export class RankScene extends Phaser.Scene {
 
   paintYouBar(special) {
     if (!this.youText) return;
-    const local = SaveSystem.data.rank || {};
+    const local = SaveSystem.rankOf ? SaveSystem.rankOf(special ? "special" : "pvp") : (SaveSystem.data.rank || {});
     const me = Leaderboard.me;
     const mmr = (me && me.mmr) || local.mmr | 0;
     const games = (me && me.games) || local.games | 0;
@@ -322,7 +322,7 @@ export class RankScene extends Phaser.Scene {
     const on = me ? me.on_board : games > 0;
     const name = TitleSystem.named(SaveSystem.data, AuthSystem.displayName() || "—");
     let status = t(special ? "board.specialOff" : "board.youOff");
-    if (!special && on && place) {
+    if (on && place) {
       status = place <= 100 ? t("board.youPlace", { n: place }) : t("board.youOut", { n: place });
     }
     this.youText.setText(status + "  ·  " + name + "  ·  " + boardRankLabel(mmr, games) + "  ·  " + mmr + "  ·  " + t("board.wl", { w: wins, l: losses }));

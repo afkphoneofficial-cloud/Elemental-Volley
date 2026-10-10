@@ -4,16 +4,16 @@ export const WELCOME_SLIDES = [
     img: "assets/welcome/welcome-promo-beta.jpg?v=local219",
     tabTh: "เบต้า",
     tabEn: "Beta",
-    capTh: "ทดสอบ 1–7 ต.ค. 2026  ·  พักเซิร์ฟ 8–9 ต.ค.  ·  เข้าเล่นแจกผงอีเธเรีย 2,000 ลองร้านค้า  ·  ฉายา BetaTester  ·  ของขวัญช่วงพัก: ผง 80 + เหรียญเกาะ 200 + ผลคืนกาย 1",
-    capEn: "Test 1–7 Oct 2026  ·  rest 8–9 Oct  ·  2,000 Etheria Powder on login to try the shop  ·  BetaTester title  ·  rest-day gift: 80 powder + 200 Isle Coins + 1 Bodyfruit"
+    capTh: "ช่วงทดสอบจบแล้ว · ไอดีที่มาเล่น 1–7 ต.ค. ได้ฉายา BetaTester และของขวัญ ผง 80 + เหรียญเกาะ 200 + ผลคืนกาย 1",
+    capEn: "Test week is over · IDs that played 1–7 Oct keep BetaTester plus 80 powder, 200 Isle Coins, and 1 Bodyfruit"
   },
   {
     id: "live",
     img: "assets/welcome/welcome-promo-live.jpg?v=local219",
     tabTh: "เปิดเซิร์ฟ",
     tabEn: "Live",
-    capTh: "เปิดเซิร์ฟจริง เสาร์ 10 ต.ค. 2026 เวลา 00:00 น. ตามเซิร์ฟไทย",
-    capEn: "Servers go live Saturday 10 Oct 2026 at 00:00 Bangkok time"
+    capTh: "เปิดเซิร์ฟจริงแล้ว · แรงก์รีเซ็ตทุกอาทิตย์ 24:00 น. ไทย แล้วเริ่มนับแต้มใหม่ทุกซีซั่น",
+    capEn: "Live now · ranks reset every Sunday 24:00 Bangkok, and points start fresh each season"
   },
   {
     id: "close",

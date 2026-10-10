@@ -4,7 +4,7 @@ import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js?v=local249";
 import { BETA } from "../data/beta.js";
 import { dayKey } from "../data/monthPass.js?v=local190";
-import { WelcomePop } from "./WelcomePop.js?v=local253";
+import { WelcomePop } from "./WelcomePop.js?v=local280";
 import { MetaPixel } from "../web/MetaPixel.js?v=local279";
 
 let supabase = null;
@@ -326,7 +326,7 @@ export const AuthSystem = {
       profile = { display_name: t("auth.guest") };
       bootGuestSave();
       try {
-        const { NetPlay } = await import("./NetPlay.js?v=local272");
+        const { NetPlay } = await import("./NetPlay.js?v=local280");
         NetPlay.ensure();
       } catch (e) {}
       return;
@@ -364,10 +364,12 @@ export const AuthSystem = {
     } else if (SaveSystem.hasStarter()) {
       this.schedulePush();
     }
+    try { await sb.rpc("settle_rank_week"); } catch (e) {}
     await this.syncLiveWipe();
+    await this.claimTesterGift();
     await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
     try {
-      const { NetPlay } = await import("./NetPlay.js?v=local272");
+      const { NetPlay } = await import("./NetPlay.js?v=local280");
       NetPlay.ensure();
     } catch (e) {}
   },
@@ -451,7 +453,7 @@ export const AuthSystem = {
   async endGuestForRegister() {
     this.wantRegister = true;
     try {
-      const { NetPlay } = await import("./NetPlay.js?v=local272");
+      const { NetPlay } = await import("./NetPlay.js?v=local280");
       NetPlay.stop();
     } catch (e) {}
     const sb = await getSb();
@@ -471,11 +473,31 @@ export const AuthSystem = {
     const sb = await getSb();
     if (!sb || !session || !session.id || session.guest) return null;
     try { await sb.rpc("flush_referral_pending"); } catch (e) {}
+    try { await sb.rpc("settle_rank_week"); } catch (e) {}
     const { data, error } = await sb.from("profiles").select("save_data").eq("id", session.id).maybeSingle();
     if (error || !data || !data.save_data) return null;
     SaveSystem.applyCloud(data.save_data);
+    SaveSystem.settleSeasonMails();
     await this.syncLiveWipe();
+    await this.claimTesterGift();
     return data.save_data;
+  },
+
+  async claimTesterGift() {
+    const d = SaveSystem.data;
+    if (!d || !d.beta || !d.beta.testPlay || d.beta.giftTaken) return;
+    const r = await this.claimBetaRestGift();
+    if (!r || !r.ok) return;
+    if (!d.currencies) d.currencies = {};
+    if (r.premium != null) d.currencies.premium = r.premium | 0;
+    if (r.coins != null) d.currencies.coins = r.coins | 0;
+    if (!d.inventory) d.inventory = {};
+    if (!r.already && (r.fruit | 0) > 0) d.inventory.bodyfruit = Math.max(d.inventory.bodyfruit | 0, r.fruit | 0);
+    d.beta.giftTaken = true;
+    if (!Array.isArray(d.seasonIssued)) d.seasonIssued = [];
+    if (d.seasonIssued.indexOf(BETA.giftId) < 0) d.seasonIssued.push(BETA.giftId);
+    d.seasonInbox = (d.seasonInbox || []).filter((row) => row && row.id !== BETA.giftId);
+    SaveSystem.persist();
   },
 
   async syncLiveWipe() {
@@ -522,7 +544,7 @@ export const AuthSystem = {
 
   async logout() {
     try {
-      const { NetPlay } = await import("./NetPlay.js?v=local272");
+      const { NetPlay } = await import("./NetPlay.js?v=local280");
       NetPlay.stop();
     } catch (e) {}
     const sb = await getSb();

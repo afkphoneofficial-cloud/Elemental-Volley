@@ -12,8 +12,8 @@ import { titleById } from "../data/titles.js";
 import { applyRankedMatch, isCalibrating, RANK_CAL_GAMES } from "../data/ranks.js";
 import { matchRewards, hasMatchLoot } from "../data/matchRewards.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local272";
-import { Leaderboard } from "../systems/Leaderboard.js?v=local275";
+import { NetPlay } from "../systems/NetPlay.js?v=local280";
+import { Leaderboard } from "../systems/Leaderboard.js?v=local280";
 import { paintGiftIcons } from "../ui/giftIcons.js?v=local216";
 import { TouchControls } from "../ui/TouchControls.js?v=local278";
 import { xpToNext, GROWTH_MAX_LV } from "../data/growth.js?v=local206";
@@ -106,11 +106,12 @@ export class ResultScene extends Phaser.Scene {
     this.rankDelta = 0;
     this.rankAfter = null;
     this.rankCal = false;
-    if (this.pvpMode) {
+    if (this.pvpMode || this.specialMode) {
+      const board = this.pvpMode ? "pvp" : "special";
       const opp = (Session.rival && Session.rival.mmr) || 1000;
       const gap = Math.abs(youScore - foeScore);
-      const applied = applyRankedMatch(SaveSystem.data.rank, opp, this.win, gap);
-      SaveSystem.setRank(applied.rank);
+      const applied = applyRankedMatch(SaveSystem.rankOf(board), opp, this.win, gap);
+      SaveSystem.setRank(applied.rank, board);
       this.rankDelta = applied.delta;
       this.rankAfter = applied.after;
       this.rankCal = isCalibrating(applied.rank);
@@ -133,12 +134,10 @@ export class ResultScene extends Phaser.Scene {
     if (this.pvpMode || this.specialMode) {
       const board = this.pvpMode ? "pvp" : "special";
       SaveSystem.touchSeasonSnap(board, 0);
-      if (this.pvpMode) {
-        Leaderboard.load("pvp").then(() => {
-          const place = Leaderboard.me && Leaderboard.me.place | 0;
-          SaveSystem.touchSeasonSnap("pvp", place);
-        });
-      }
+      Leaderboard.load(board).then(() => {
+        const place = Leaderboard.me && Leaderboard.me.place | 0;
+        SaveSystem.touchSeasonSnap(board, place);
+      });
     }
 
     this.buildVerdict(W, H, pal);
@@ -507,9 +506,10 @@ export class ResultScene extends Phaser.Scene {
       const bits = [];
       if (this.exhibitMode) bits.push(t("result.lootFun"));
       else if (!this.hasLoot) bits.push(t("result.lootNone"));
-      if (this.pvpMode && this.rankAfter) {
+      if ((this.pvpMode || this.specialMode) && this.rankAfter) {
         const delta = (this.rankDelta >= 0 ? "+" : "") + this.rankDelta;
-        if (this.rankCal) bits.push(t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - SaveSystem.data.rank.games) }));
+        const games = SaveSystem.rankOf(this.pvpMode ? "pvp" : "special").games | 0;
+        if (this.rankCal) bits.push(t("result.calLeft", { n: Math.max(0, RANK_CAL_GAMES - games) }));
         else bits.push(t("result.rank", {
           delta,
           name: t("rank.tier." + this.rankAfter.id),

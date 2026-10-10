@@ -4,7 +4,6 @@ import { Session } from "./Session.js";
 import { ROSTER_IDS } from "../data/roster.js";
 import { botSheet } from "../data/growth.js?v=local206";
 import { champSetOf } from "../data/seasonLooks.js";
-import { exhibitWaitShown, rankedWaitShown } from "./IsleLive.js?v=local275";
 
 export function matchHttpUrl() {
   const q = new URLSearchParams(location.search).get("match");
@@ -32,16 +31,18 @@ export const MatchLive = {
   },
 
   exhibitShown(self) {
-    return exhibitWaitShown(this.exhibit, self);
+    const n = Math.max(0, this.exhibit | 0);
+    return self && n < 1 ? 1 : n;
   },
 
-  rankedShown(self, kind) {
-    return rankedWaitShown(this.ranked, self, kind);
+  rankedShown(self) {
+    const n = Math.max(0, this.ranked | 0);
+    return self && n < 1 ? 1 : n;
   },
 
   waitOf(mode) {
     if (mode === "exhibit") return this.exhibitShown();
-    return this.rankedShown(false, mode === "special" ? "special" : "pvp");
+    return this.rankedShown();
   },
 
   slotsFull() {
@@ -49,8 +50,8 @@ export const MatchLive = {
   },
 
   label(t, mode) {
-    if (mode === "special") return t("queue.specialWait", { n: this.rankedShown(false, "special") });
-    if (mode === "pvp" || mode === "ranked") return t("queue.rankedWait", { n: this.rankedShown(false, "pvp") });
+    if (mode === "special") return t("queue.specialWait", { n: this.rankedShown() });
+    if (mode === "pvp" || mode === "ranked") return t("queue.rankedWait", { n: this.rankedShown() });
     return t("queue.exhibitWait", { n: this.exhibitShown() });
   },
 

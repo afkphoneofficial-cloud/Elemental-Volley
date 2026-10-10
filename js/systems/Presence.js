@@ -1,6 +1,5 @@
 import { AuthSystem } from "./AuthSystem.js";
-import { MatchLive } from "./MatchLive.js?v=local272";
-import { liveHeadcount, presenceCount } from "./IsleLive.js?v=local272";
+import { MatchLive } from "./MatchLive.js?v=local280";
 
 const HEART_MS = 25000;
 const POLL_MS = 15000;
@@ -22,7 +21,7 @@ export const Presence = {
   },
 
   shown() {
-    return presenceCount(this.n);
+    return Math.max(0, this.n | 0);
   },
 
   async beat() {
@@ -42,7 +41,12 @@ export const Presence = {
       } catch (e) {}
     }
     try { await MatchLive.pull(); } catch (e) {}
-    this.n = Math.max(rpc, liveHeadcount(MatchLive));
+    const live = Math.max(0,
+      ((MatchLive.exhibit) | 0) +
+      ((MatchLive.ranked) | 0) +
+      ((MatchLive.matches) | 0) * 2
+    );
+    this.n = Math.max(rpc, live);
     this.emit();
     return this.shown();
   },

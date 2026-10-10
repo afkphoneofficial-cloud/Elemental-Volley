@@ -5,7 +5,7 @@ import { I18n } from "../i18n/I18n.js?v=local249";
 import { FREE_AVATARS } from "../data/avatars.js";
 import { RANK_TIERS, RANK_CAL_ID, badgeKey } from "../data/ranks.js";
 import { BootSplash } from "../web/BootSplash.js?v=local248";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local253";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local280";
 import { SEASON_ART } from "../data/seasonCycle.js";
 import { SHOP_LOOKS, SHOP_LOOK_POSES, shopLookSrc, shopLookLoadKey, shopLookVis } from "../data/costumeShop.js";
 import { BALL_FX } from "../data/ballFx.js?v=local196";

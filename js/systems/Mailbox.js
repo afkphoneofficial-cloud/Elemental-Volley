@@ -32,6 +32,7 @@ export const Mailbox = {
 
   async refresh() {
     SaveSystem.settleSeasonMails();
+    SaveSystem.settleRankWeek();
     SaveSystem.purgeReadMail();
     const local = localMails();
     const sb = AuthSystem.db ? await AuthSystem.db() : null;

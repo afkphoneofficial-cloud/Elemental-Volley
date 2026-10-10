@@ -18,7 +18,7 @@ export const RANK_TIERS = [
 export const RANK_IMMORTAL_MMR = RANK_TIERS.slice(0, 7).reduce((n, t) => n + t.stars * RANK_STAR_MMR, 0);
 
 export function emptyRank() {
-  return { mmr: RANK_START_MMR, games: 0, wins: 0, losses: 0 };
+  return { mmr: RANK_START_MMR, games: 0, wins: 0, losses: 0, week: "" };
 }
 
 export function medalFromMmr(mmr) {

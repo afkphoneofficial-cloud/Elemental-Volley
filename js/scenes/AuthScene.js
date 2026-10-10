@@ -3,8 +3,8 @@ import { AuthSystem } from "../systems/AuthSystem.js";
 import { SaveSystem } from "../systems/SaveSystem.js";
 import { Session } from "../systems/Session.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
-import { MatchLive } from "../systems/MatchLive.js?v=local272";
-import { Presence } from "../systems/Presence.js?v=local272";
+import { MatchLive } from "../systems/MatchLive.js?v=local280";
+import { Presence } from "../systems/Presence.js?v=local280";
 import { t } from "../i18n/I18n.js?v=local279";
 
 export class AuthScene extends Phaser.Scene {

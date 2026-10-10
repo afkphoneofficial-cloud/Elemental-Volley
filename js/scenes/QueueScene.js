@@ -7,13 +7,12 @@ import { AudioSystem } from "../systems/AudioSystem.js";
 import { t, I18n, charName } from "../i18n/I18n.js?v=local275";
 import { medalFromMmr, searchWindow, badgeKey, isCalibrating, RANK_CAL_GAMES, displayBadgeId } from "../data/ranks.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local272";
+import { NetPlay } from "../systems/NetPlay.js?v=local280";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
 import { isRankWindowOpen } from "../data/rankWindows.js";
 import { maintenanceNow } from "../data/maintenance.js";
-import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local275";
-import { startIsleExhibit, startIsleRank, exhibitFillMs, rankFillMs } from "../systems/IsleLive.js?v=local275";
+import { MatchLive, startLocalBot } from "../systems/MatchLive.js?v=local280";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 
 function formatWait(ms) {
@@ -25,10 +24,6 @@ function formatWait(ms) {
 
 function isExhibitQueue() {
   return Session.mode === "exhibit";
-}
-
-function isRankQueue() {
-  return Session.mode === "pvp" || Session.mode === "special";
 }
 
 function queueTitle() {
@@ -52,7 +47,6 @@ export class QueueScene extends Phaser.Scene {
   constructor() { super("queue"); }
 
   create() {
-    this.fillAt = Date.now() + (isRankQueue() ? rankFillMs() : exhibitFillMs());
     if (!AuthSystem.guard(this)) return;
     if (AuthSystem.isGuest()) {
       Session.mode = "exhibit";
@@ -70,10 +64,9 @@ export class QueueScene extends Phaser.Scene {
     }
     drawGrid(this);
     const W = this.scale.width;
-    const rank = SaveSystem.data.rank;
+    const rank = SaveSystem.rankOf ? SaveSystem.rankOf(Session.mode) : (SaveSystem.data.rank || {});
     this.started = this.time.now;
     this.waitAt = Date.now();
-    this.fillAt = Date.now() + (isRankQueue() ? rankFillMs() : exhibitFillMs());
     this.found = false;
     this.bits = [];
 
@@ -439,26 +432,6 @@ export class QueueScene extends Phaser.Scene {
     }
     if (this.waitAt && !this.offerClock) this.paintWait();
     if (this.found) return;
-    if (!this.offerClock && this.waitAt && Date.now() >= this.fillAt) {
-      if (isExhibitQueue() && (Session.exhibitCasual || AuthSystem.isGuest())) {
-        this.found = true;
-        NetPlay.cancel();
-        startIsleExhibit(this, Session.playerId, AuthSystem.displayName && AuthSystem.displayName());
-        return;
-      }
-      if (isRankQueue()) {
-        if (!SaveSystem.spendEther(ECONOMY.etherCostPvp)) {
-          this.status.setText(t("queue.noEther"));
-          NetPlay.cancel();
-          this.time.delayedCall(900, () => this.scene.start(AuthSystem.lobbyKey()));
-          return;
-        }
-        this.found = true;
-        NetPlay.cancel();
-        startIsleRank(this, Session.playerId, AuthSystem.displayName && AuthSystem.displayName());
-        return;
-      }
-    }
     const elapsed = this.time.now - this.started;
     this.ring.clear();
     this.ring.lineStyle(3, 0x7d5cff, 0.45 + 0.25 * Math.sin(elapsed / 180));

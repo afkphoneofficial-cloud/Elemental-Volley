@@ -19,7 +19,7 @@ import { buildSeasonMail, seasonPayout } from "../data/seasonRewards.js";
 import { seasonCycleOf } from "../data/seasonCycle.js";
 import { emptyShopLooks, shopLookOf as lookRow } from "../data/costumeShop.js";
 import { emptyTitles } from "../data/titles.js";
-import { BETA, liveWipeDue, onBetaDay } from "../data/beta.js";
+import { BETA, liveWipeDue } from "../data/beta.js";
 import { TitleSystem } from "./TitleSystem.js?v=local267";
 import { PASS, monthId, dayKey, passLookOf, vialDayOn, elapsedDayInMonth, passDailyGiftForDay, passDayKey } from "../data/monthPass.js?v=local190";
 import { emptyDaily, claimedDaysOf, dailyGiftOn, dailyLookOf, DAILY_LOOK_NEED, DAILY_DUP_POWDER } from "../data/dailyLogin.js?v=local189";
@@ -53,6 +53,7 @@ const empty = () => ({
   unlockedAvatars: [],
   cosmetics: { owned: [], equipped: {} },
   rank: emptyRank(),
+  specialRank: emptyRank(),
   showcaseId: null,
   friends: [],
   skins: emptySkins(),
@@ -182,6 +183,9 @@ function finish(data) {
   });
   data.growth = g;
   data.rank = { ...emptyRank(), ...(data.rank || {}) };
+  if (typeof data.rank.week !== "string") data.rank.week = "";
+  data.specialRank = { ...emptyRank(), ...(data.specialRank || {}) };
+  if (typeof data.specialRank.week !== "string") data.specialRank.week = "";
   if (!Array.isArray(data.friends)) data.friends = [];
   if (!Array.isArray(data.trainCleared)) data.trainCleared = [];
   else data.trainCleared = data.trainCleared.filter((id) => typeof id === "string");
@@ -262,19 +266,38 @@ function giftPaid(data) {
   return (data.seasonIssued || []).includes(BETA.giftId) && !giftWaiting(data);
 }
 
+function wasTester(prev) {
+  if (!prev) return false;
+  if (prev.beta && prev.beta.testPlay) return true;
+  if (prev.titles && (prev.titles.owned || []).includes(BETA.titleId)) return true;
+  if ((prev.seasonIssued || []).includes(BETA.giftId)) return true;
+  if (giftWaiting(prev) || giftPaid(prev)) return true;
+  if (prev.beta && prev.beta.giftTaken) return true;
+  return false;
+}
+
 function applyLiveWipe(prev) {
   if (!prev || !liveWipeDue(dayKey(), prev.wipeId)) return prev;
   const keep = finish(empty());
+  const tester = wasTester(prev);
   keep.settings = { ...empty().settings, ...(prev.settings || {}) };
   keep.settings.bgmPages = { ...empty().settings.bgmPages, ...(prev.settings && prev.settings.bgmPages || {}) };
   keep.beta = {
-    testPlay: Boolean(prev.beta && prev.beta.testPlay),
-    testAt: prev.beta && prev.beta.testAt ? prev.beta.testAt : 0
+    testPlay: tester,
+    testAt: prev.beta && prev.beta.testAt ? prev.beta.testAt : 0,
+    shopTry: false,
+    giftTaken: tester
   };
+  keep.tryCostumePowder = false;
   keep.titles = emptyTitles();
-  if (keep.beta.testPlay || (prev.titles && (prev.titles.owned || []).includes(BETA.titleId))) {
+  if (tester) {
     keep.titles.owned = [BETA.titleId];
     if (prev.titles && prev.titles.worn === BETA.titleId) keep.titles.worn = BETA.titleId;
+    keep.currencies.premium = BETA.powder;
+    keep.currencies.coins = BETA.coins;
+    keep.inventory.bodyfruit = BETA.fruit;
+    keep.seasonIssued = [BETA.giftId];
+    keep.beta.giftTaken = false;
   }
   keep.cosmetics = prev.cosmetics && typeof prev.cosmetics === "object" ? prev.cosmetics : keep.cosmetics;
   keep.shopLooks = prev.shopLooks && typeof prev.shopLooks === "object" ? prev.shopLooks : keep.shopLooks;
@@ -284,22 +307,33 @@ function applyLiveWipe(prev) {
   keep.unlockedAvatars = Array.isArray(prev.unlockedAvatars) ? prev.unlockedAvatars.slice() : [];
   keep.avatarId = prev.avatarId || keep.avatarId;
   keep.topupLog = Array.isArray(prev.topupLog) ? prev.topupLog.slice() : [];
+  keep.passMonths = prev.passMonths && typeof prev.passMonths === "object" ? prev.passMonths : {};
   Object.keys(prev.inventory || {}).forEach((id) => {
     if (isLookItem(id) && (prev.inventory[id] | 0) > 0) keep.inventory[id] = prev.inventory[id] | 0;
   });
-  if (keep.beta.testPlay) {
-    if (giftPaid(prev)) {
-      keep.currencies.premium = BETA.powder;
-      keep.currencies.coins = BETA.coins;
-      keep.inventory.bodyfruit = BETA.fruit;
-      keep.seasonIssued = [BETA.giftId];
-    } else if (giftWaiting(prev) || (prev.seasonIssued || []).includes(BETA.giftId)) {
-      keep.seasonIssued = [BETA.giftId];
-      keep.seasonInbox = [TitleSystem.giftMail()];
-    }
-  }
+  const week = rankingWeek().id;
+  keep.rank = { ...emptyRank(), week };
+  keep.specialRank = { ...emptyRank(), week };
   keep.wipeId = BETA.wipeId;
   return finish(keep);
+}
+
+function ensureTesterRewards(data) {
+  if (!data || dayKey() < BETA.live) return false;
+  if (!wasTester(data)) return false;
+  if (!data.titles || typeof data.titles !== "object") data.titles = emptyTitles();
+  if (!Array.isArray(data.titles.owned)) data.titles.owned = [];
+  let dirty = false;
+  if (data.titles.owned.indexOf(BETA.titleId) < 0) {
+    data.titles.owned.push(BETA.titleId);
+    dirty = true;
+  }
+  if (!data.beta || typeof data.beta !== "object") data.beta = { testPlay: true };
+  if (!data.beta.testPlay) {
+    data.beta.testPlay = true;
+    dirty = true;
+  }
+  return dirty;
 }
 
 function thisUnlock(data, id) {
@@ -336,7 +370,8 @@ export const SaveSystem = {
     const before = this.data.wipeId;
     this.data = applyLiveWipe(this.data);
     this.justLiveWipe = this.data.wipeId === BETA.wipeId && before !== BETA.wipeId;
-    if (this.justLiveWipe) this.persist({ push: false });
+    const gifted = ensureTesterRewards(this.data);
+    if (this.justLiveWipe || gifted) this.persist({ push: false });
     return this.data;
   },
 
@@ -364,9 +399,21 @@ export const SaveSystem = {
       next.gear[id] = b;
     });
     restoreOutfitItems(next);
+    if (next.wipeId === BETA.wipeId) {
+      const looks = {};
+      Object.keys(next.inventory || {}).forEach((id) => {
+        if (isLookItem(id) && (next.inventory[id] | 0) > 0) looks[id] = next.inventory[id] | 0;
+      });
+      Object.keys(prev.inventory || {}).forEach((id) => {
+        if (isLookItem(id) && (prev.inventory[id] | 0) > 0) looks[id] = Math.max(looks[id] | 0, prev.inventory[id] | 0);
+      });
+      if ((next.inventory && next.inventory.bodyfruit | 0) > 0) looks.bodyfruit = next.inventory.bodyfruit | 0;
+      next.inventory = looks;
+    }
     const before = next.wipeId;
     this.data = applyLiveWipe(next);
     this.justLiveWipe = this.justLiveWipe || (this.data.wipeId === BETA.wipeId && before !== BETA.wipeId);
+    ensureTesterRewards(this.data);
     this.persist();
   },
 
@@ -436,23 +483,7 @@ export const SaveSystem = {
   },
 
   async grantTryPowder() {
-    if (!onBetaDay(dayKey(), BETA.testStart, BETA.testEnd)) return 0;
-    if (this.data.tryCostumePowder || (this.data.beta && this.data.beta.shopTry)) return 0;
-    const auth = window.AuthSystem;
-    if (!auth || !auth.claimBetaShopPowder) return 0;
-    const r = await auth.claimBetaShopPowder();
-    if (!r || !r.ok) return 0;
-    if (!this.data.beta || typeof this.data.beta !== "object") this.data.beta = { testPlay: false };
-    this.data.beta.shopTry = true;
-    this.data.tryCostumePowder = true;
-    if (r.premium != null) this.data.currencies.premium = r.premium | 0;
-    if (!(r.n > 0)) {
-      this.persist();
-      return 0;
-    }
-    this.recordTopup({ kind: "try", packId: "beta-shop", powder: r.n | 0, bonus: 0, thb: 0 }, false);
-    this.persist();
-    return r.n | 0;
+    return 0;
   },
 
   passRow(id) {
@@ -1112,6 +1143,29 @@ export const SaveSystem = {
     }
     if (dirty) this.persist();
     this.settleBetaGift();
+    this.settleRankWeek();
+  },
+
+  rankOf(kind) {
+    const row = kind === "special" ? this.data.specialRank : this.data.rank;
+    return { ...emptyRank(), ...(row || {}) };
+  },
+
+  settleRankWeek() {
+    const id = rankingWeek().id;
+    const pvp = this.rankOf("pvp");
+    const special = this.rankOf("special");
+    let dirty = false;
+    if ((pvp.week || "") !== id) {
+      this.data.rank = { ...emptyRank(), week: id };
+      dirty = true;
+    }
+    if ((special.week || "") !== id) {
+      this.data.specialRank = { ...emptyRank(), week: id };
+      dirty = true;
+    }
+    if (dirty) this.persist();
+    return dirty;
   },
 
   liveWiped() {
@@ -1214,8 +1268,11 @@ export const SaveSystem = {
     }
   },
 
-  setRank(rank) {
-    this.data.rank = { ...emptyRank(), ...(rank || {}) };
+  setRank(rank, kind) {
+    const week = rankingWeek().id;
+    const next = { ...emptyRank(), ...(rank || {}), week };
+    if (kind === "special") this.data.specialRank = next;
+    else this.data.rank = next;
     this.persist();
     if (window.AuthSystem && window.AuthSystem.pushSave) window.AuthSystem.pushSave();
   },

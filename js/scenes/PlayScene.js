@@ -40,7 +40,7 @@ import { t, I18n, charName } from "../i18n/I18n.js?v=local278";
 import { TitleSystem } from "../systems/TitleSystem.js?v=local267";
 import { emptyMatchStats, snapshotMatchStats } from "../gameplay/MatchStats.js";
 import { avatarKey } from "../data/avatars.js";
-import { NetPlay } from "../systems/NetPlay.js?v=local272";
+import { NetPlay } from "../systems/NetPlay.js?v=local280";
 import { packMatchSnap, applyMatchSnap } from "../gameplay/netSnap.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, texHeroFace, texHeroDive, champAuraTier } from "../data/seasonLooks.js";

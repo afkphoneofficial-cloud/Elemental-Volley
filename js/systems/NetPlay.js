@@ -5,7 +5,7 @@ import { Session } from "./Session.js";
 import { t } from "../i18n/I18n.js";
 import { clampSkin } from "../data/skins.js";
 import { champSetOf, clampChamp } from "../data/seasonLooks.js";
-import { MatchLive } from "./MatchLive.js?v=local272";
+import { MatchLive } from "./MatchLive.js?v=local280";
 
 const listeners = new Set();
 
@@ -39,6 +39,12 @@ function fighterSkin() {
 function fighterChamp() {
   const id = Session.playerId || SaveSystem.data.showcaseId || SaveSystem.data.starterId;
   return champSetOf(id);
+}
+
+function liveRank() {
+  const kind = Session.mode === "special" ? "special" : "pvp";
+  if (SaveSystem.rankOf) return SaveSystem.rankOf(kind);
+  return SaveSystem.data.rank || {};
 }
 
 function applyNetFighters(msg) {
@@ -110,7 +116,7 @@ export const NetPlay = {
     ws.onopen = () => {
       const live = AuthSystem.session && AuthSystem.session();
       const token = (live && live.access_token) || sess.access_token;
-      const rank = SaveSystem.data.rank || {};
+      const rank = liveRank();
       ws.send(JSON.stringify({
         t: "hello",
         token,
@@ -272,7 +278,7 @@ export const NetPlay = {
       return;
     }
     if (this.want === "ranked") {
-      const rank = SaveSystem.data.rank || {};
+      const rank = liveRank();
       this.send({ t: "quit" });
       this.send({ t: "done" });
       this.send({
@@ -287,7 +293,7 @@ export const NetPlay = {
       });
       this.want = null;
     } else if (this.want === "exhibitQueue") {
-      const rank = SaveSystem.data.rank || {};
+      const rank = liveRank();
       this.send({ t: "quit" });
       this.send({ t: "done" });
       this.send({

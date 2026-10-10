@@ -19,7 +19,6 @@ export class TopupScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
-    void SaveSystem.grantTryPowder();
     drawGrid(this);
     const W = this.scale.width;
     paintWalletBar(this, "topup");

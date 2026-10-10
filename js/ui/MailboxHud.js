@@ -1,5 +1,5 @@
 import { makeButton, UI_FONT } from "./Ui.js";
-import { Mailbox } from "../systems/Mailbox.js?v=local235";
+import { Mailbox } from "../systems/Mailbox.js?v=local280";
 import { Friends } from "../systems/Friends.js";
 import { AudioSystem } from "../systems/AudioSystem.js";
 import { t } from "../i18n/I18n.js";

@@ -9,17 +9,17 @@ import { ROSTER_IDS } from "../data/roster.js";
 import { texHeroSelect, champAuraTier } from "../data/seasonLooks.js";
 import { paintSkinAura } from "../fx/SkinAura.js";
 import { mountMailboxHud } from "../ui/MailboxHud.js?v=local235";
-import { Mailbox } from "../systems/Mailbox.js?v=local235";
+import { Mailbox } from "../systems/Mailbox.js?v=local280";
 import { Friends } from "../systems/Friends.js";
-import { ChatSystem } from "../systems/ChatSystem.js?v=local272";
-import { WelcomePop } from "../systems/WelcomePop.js?v=local253";
+import { ChatSystem } from "../systems/ChatSystem.js?v=local280";
+import { WelcomePop } from "../systems/WelcomePop.js?v=local280";
 import { TicketPop } from "../systems/TicketPop.js?v=local229";
 import { SocialPop } from "../systems/SocialPop.js?v=local236";
-import { NetPlay } from "../systems/NetPlay.js?v=local272";
-import { Leaderboard } from "../systems/Leaderboard.js?v=local275";
-import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local275";
+import { NetPlay } from "../systems/NetPlay.js?v=local280";
+import { Leaderboard } from "../systems/Leaderboard.js?v=local280";
+import { mountHubBoardWidgets, paintHubBoardFx } from "../ui/hubBoards.js?v=local280";
 import { mountHubMenu } from "../ui/hubMenu.js?v=local271";
-import { mountHubNav } from "../ui/hubNavStrip.js?v=local272";
+import { mountHubNav } from "../ui/hubNavStrip.js?v=local280";
 import { wantFx, settings } from "../systems/GameSettings.js?v=local260";
 import { timeZoneOf, formatZoneParts } from "../data/timeZones.js";
 import { HUB_BAR_TOP, HUB_PASS_H, HUB_PASS_W, HUB_CLOCK_W, hubPassX, hubDailyLayout } from "../ui/hubLayout.js?v=local179";
@@ -53,17 +53,6 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     if (!AuthSystem.guard(this)) return;
-    SaveSystem.grantTryPowder().then((tryPowder) => {
-      if (!tryPowder || !this.sys || !this.sys.isActive()) return;
-      this.time.delayedCall(900, () => {
-        if (!this.sys || !this.sys.isActive()) return;
-        openRewardPop(this, {
-          title: t("hub.testPowderTitle"),
-          sub: t("hub.testPowderSub"),
-          gift: { powder: tryPowder }
-        });
-      });
-    });
     SaveSystem.settleBetaGift();
     NetPlay.ensure();
     drawGrid(this);
